@@ -354,13 +354,14 @@ int bo3_xpak_resolve(const char *path,const char *directory,char *out,size_t cap
         close_pack(&b);
         struct stat after,after_target;
         if (valid && stat(source,&after)==0 && same_stat(&sa,&after) && stat(target,&after_target)==0 && same_stat(&sb,&after_target) && strlen(replacement)<capacity) {
+            if (derived && !resolve_path(directory,cache_directory)) continue;
             Cached *entry=&cache[next_cache++%8];
             struct stat output_stat;
             if (stat(replacement,&output_stat)!=0) continue;
             strcpy(entry->source,source); strcpy(entry->target,replacement); strcpy(entry->donor,target);
             entry->a=sa; entry->b=output_stat; entry->c=sb; entry->derived=derived;
             entry->directory[0]=0;
-            if (derived) resolve_path(directory,entry->directory);
+            if (derived) strcpy(entry->directory,cache_directory);
             strcpy(out,replacement); ok=1; break;
         }
     }

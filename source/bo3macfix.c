@@ -747,12 +747,12 @@ install_hook_name(ASL_ToNativePath, void *, void *asl, char *in_str)
                 printf("redirecting %s to \"%s\"\n", in_filename, newpath);
 #endif
             char complete_pack[4096];
-            return orig_ASL_ToNativePath(asl, bo3_xpak_fallback(newpath, complete_pack, sizeof(complete_pack)) ? complete_pack : newpath);
+            return orig_ASL_ToNativePath(asl, bo3_xpak_resolve(newpath, Macfix_Path "/MeshCache", complete_pack, sizeof(complete_pack)) ? complete_pack : newpath);
         }
     }
     
     char complete_pack[4096];
-    return orig_ASL_ToNativePath(asl, bo3_xpak_fallback(in_str, complete_pack, sizeof(complete_pack)) ? complete_pack : in_str);
+    return orig_ASL_ToNativePath(asl, bo3_xpak_resolve(in_str, Macfix_Path "/MeshCache", complete_pack, sizeof(complete_pack)) ? complete_pack : in_str);
 }
 
 bool ISteamApps_BIsSubscribedApp(void *interface, AppId_t app) {

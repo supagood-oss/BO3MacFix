@@ -115,7 +115,7 @@ The by-name loader `0xe49c9a` takes `(int,const char*,bool)`; hooked core
 `disable_unloadmod`, checks the loaded name at `0x30878dc`, then calls by-name
 with controller 0, empty name and reload enabled. The original core runs before
 adapter deactivation. Movement, pause, CSC and presentation reset; HTTP jobs
-and opaque selectors are invalidated. The engine owns FX reset/lifetimes.
+are invalidated. The engine owns FX reset/lifetimes.
 The script builtin is restored only if its current callback still belongs to
 this adapter, preserving foreign changes.
 

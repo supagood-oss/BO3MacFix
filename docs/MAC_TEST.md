@@ -1,5 +1,5 @@
-> Earlier public test downloads were withdrawn. The clean installer is being
-> rebuilt; do not reuse an earlier archive. Credential-dependent online features
+> Earlier public test downloads were withdrawn. Use the clean 1.4 test installer;
+> do not reuse archives 1 through 1.3. Credential-dependent online features
 > are disabled, while gameplay and ordinary HTTP support are retained.
 
 # First Mac test
@@ -12,8 +12,8 @@ by the chosen mod. AAE and UEM are tested separately, one loaded mod at a time.
 Let Steam finish Workshop updates on every player's computer. The installer
 checks the supported Mac executable automatically. For current AAE, subscribe
 to both full AAE and Lite if Steam lists the other as required; load only your
-chosen one. Native data decoders check
-their DLLs automatically; players do not need to calculate hashes.
+chosen one. The installer checks supported game files automatically; players
+do not need to calculate hashes.
 
 ## For the Mac player
 
@@ -52,7 +52,8 @@ are preserved.
    checking zombie models, weapons, doors and effects. Then try Der Riese
    Declassified, Karma Rezort, Vae Victis and Super Mario 64 separately.
    The same mesh fix also covers Wanted, Europa, Atonement, Modern Warfare
-   Zombies and Reaper Collection Rebuilt.
+   Zombies and Reaper Collection Rebuilt. Herrenhaus now has an English-preserving
+   mesh repair; try it separately, without its optional Intro Fix or a gameplay mod.
 4. Try **Dead High separately**. Check that its menus load, play a short game,
    return to the menu, quit BO3 completely, reopen using Setup's Play, and check
    that earned progress is still there. Test Die Rise's bank/fridge the same way.
@@ -64,7 +65,7 @@ are preserved.
    visible error. Use Setup's **Save Report** and share that with the developer.
 
 The [map support record](MAP_SUPPORT.md) explains the fixes and remaining gaps.
-Nuketown Legacy/Town stutter, Herrenhaus's differing asset packs, Workshop
+Nuketown Legacy/Town stutter, Workshop
 Stack and full AAE 4.0 AAEUnified feature parity remain unresolved. Expanded's
 startup/settings fixes are included; optional cursor/lean/crosshair and
 Windows-only experiments are not a complete native port. AAE and UEM are optional gameplay mods, not a requirement
@@ -96,7 +97,7 @@ the player. A failure at one gate is debugged before expanding the test.
 | Base game | Launch to menu, solo Zombies load and exit | No crash, map conversion completes, normal movement/FX |
 | AAE solo | Load AAE and one map, exercise menu/perks, movement, ADS/swap, jumps/slides, animations, aim states and FX-heavy play | Native API initialization succeeds; backend menus progress; no script/runtime errors |
 | UEM solo | Load UEM, verify revision/identity-dependent startup, menus, pause/unpause and FX-heavy play | No compatibility rejection, backend errors or hang |
-| Mod lifecycle | Return to menu, unload, load the other mod, change map, repeat | No stale HTTP results, tokens, movement toggles, script callbacks or aim state |
+| Mod lifecycle | Return to menu, unload, load the other mod, change map, repeat | No stale HTTP results, movement toggles, script callbacks or aim state |
 | Windows host | Mac joins ordinary-Steam Windows host; test AAE then UEM separately | Matching mod/map versions; session starts, movement/perks/FX work, no desync/disconnect |
 | Mac host | Windows joins Mac host, same two separate mod tests | Same checks in the other direction, including pause/restart and map transition |
 

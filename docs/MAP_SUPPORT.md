@@ -1,5 +1,5 @@
 > Builds 1, 1.1, 1.2 and 1.3 were withdrawn. Do not use their archives.
-> Clean test 1.4 is being prepared; gameplay changes remain under qualification.
+> Use clean test 1.4; gameplay changes remain under qualification.
 
 # Map and mod support in Mac Test 1.4
 
@@ -93,6 +93,14 @@ missing reference is supplied. Only missing mesh entries qualify. It does not
 edit Workshop files, change game language or use a map-version allowlist.
 Positive selections are cached against file identity, size and timestamps.
 
+When whole-file substitution would change the selected language, the path hook
+can create a derived pack under `BO3MacFix/MeshCache`. It retains the original
+data, references and name metadata and adds only missing referenced mesh chunks
+whose exact metadata matches the sibling. Common payloads must still agree.
+The output is validated and installed atomically; donor/source changes or cache
+corruption invalidate it. Failure leaves the original path in use. It requires
+no user file copying and does not execute a Windows DLL.
+
 The implemented C selector passed against these complete downloaded pairs,
 independently verified against Steam manifest hashes:
 
@@ -108,16 +116,18 @@ independently verified against Steam manifest hashes:
 | Wanted | 1663631538 | 32 |
 | Europa | 2142193861 | 32 |
 | Atonement | 1807713320 | 32 |
+| Return to Das Herrenhaus (derived English pack) | 1617497358 | 4 |
 
-Total: **263 entries across ten package pairs**, not 263 independently observed
+Total: **267 entries across eleven package pairs**, not 267 independently observed
 crashes. The five additional pairs pass the existing shared implementation;
 no per-map patch was added. Silent Hill's examined English pack is complete
 and correctly remains unchanged.
 
-Herrenhaus's English pack lacks four referenced meshes, but its German sibling
-has different reference/name metadata. The selector correctly refuses it.
-An English-preserving reconstruction or another equivalent complete pack would
-need investigation; swapping the whole localized file is not established safe.
+Herrenhaus's English pack lacks four referenced meshes and its German sibling
+has different global reference/name metadata. The derived-pack check passed
+against the actual pair: all 627 existing English payloads and all English
+reference/name bytes were preserved, only four verified mesh chunks were added,
+and both originals retained their hashes. Whole-file substitution remains refused.
 The author's optional Intro Fix supplies cinematic audio, not these missing
 meshes. It is a separate loaded mod and cannot simply be stacked with AAE/UEM.
 
@@ -196,13 +206,10 @@ The current build run and published archive verification are recorded in the
 release notes and profile. `ready_for_coop` and executable `verified` remain
 false until real tests pass. The installer remains easy to update in place.
 
-For runtime commit `9608b99227e46c383afe6b9f9edcf4435d56ca1f`, the
-[portable and Intel Mac jobs passed](https://github.com/supagood-oss/BO3MacFix/actions/runs/40766110728):
-12 C programs, 27 Python/Lua checks, 754 synthetic machine cases, JSON settings,
-HTTP v2/redirect and legacy save/Steam callback fixtures, universal GUI/Intel
-patch compilation, signing checks, installer recovery and automatic dependency /
-converter startup. The archive's four payload hashes and architectures were
-independently inspected. Native Apple Silicon hosted CI is awaiting capacity;
-earlier macos-15 acquisition failed without running the job. The unchanged
-installer/dependency paths had passed the Apple Silicon runner for 1.2.
-This is not a passed current Apple Silicon rerun or physical M-series game test.
+The credential-free runtime `b4cb17ffab6e005b916b3135d23a1ae3df29235e`
+[passed portable, Intel and Apple Silicon jobs](https://github.com/supagood-oss/BO3MacFix/actions/runs/40779618290):
+HTTP/settings/save/Steam callback fixtures, universal GUI/Intel patch compilation,
+signing, installer recovery and automatic dependency/converter startup.
+The additional Herrenhaus repair passes eight map/save cases locally and the
+actual eleven XPak pairs. Its final Mac rerun is recorded with the 1.4 release.
+None of these checks is a physical M-series game or Windows co-op test.

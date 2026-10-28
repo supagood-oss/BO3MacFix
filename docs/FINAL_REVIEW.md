@@ -1,14 +1,16 @@
-> Earlier public test downloads were withdrawn. The clean installer is being
-> rebuilt; do not reuse an earlier archive. Credential-dependent online features
+> Earlier public test downloads were withdrawn. Use the clean 1.4 test installer;
+> do not reuse archives 1 through 1.3. Credential-dependent online features
 > are disabled, while gameplay and ordinary HTTP support are retained.
 
 # Pre-test complexity review
 
 **Current candidate: [Mac Test 1.4](https://github.com/supagood-oss/BO3MacFix/releases/tag/aae-uem-mac-test-1.4).**
-Expanded's settings, dvar flags and glyph mapping are implemented. Current AAE's
-v2 bundled HTTP metadata and response names are covered. The same mesh rule
-passes ten actual pairs without a per-map list. See [the support record](MAP_SUPPORT.md).
-Exact hashes select layouts when reading DLL data or patching engine addresses;
+Expanded's settings, dvar flags and glyph mapping are implemented. Ordinary HTTP
+response names are retained; embedded-service credential recovery and encrypted
+HTTP exports have been removed. The mesh repair passes eleven actual pairs,
+including a derived Herrenhaus pack preserving all original English content.
+See [the support record](MAP_SUPPORT.md).
+Exact hashes select save-codec layouts or engine patch addresses;
 there is no general displayed-mod-version allowlist. Current AAE's new plugin
 remains a separate feature port. Gameplay and Windows co-op remain unqualified.
 

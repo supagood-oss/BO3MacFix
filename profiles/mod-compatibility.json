@@ -167,7 +167,7 @@
     "windows_coop_tested": false,
     "evidence": "docs/MAP_SUPPORT.md",
     "asset_fallback": {
-      "scope": "Workshop/usermaps/mods localized XPaks with missing referenced meshes and a content-equivalent complete sibling",
+      "scope": "Workshop/usermaps/mods localized XPaks: verified equivalent sibling, or language-preserving cache with only missing matched mesh chunks",
       "verified_local_pairs": {
         "2910206016": 35,
         "2271346839": 23,
@@ -178,9 +178,12 @@
         "1535759989": 18,
         "1663631538": 32,
         "2142193861": 32,
-        "1807713320": 32
+        "1807713320": 32,
+        "1617497358": 4
       },
-      "workshop_files_modified": false
+      "workshop_files_modified": false,
+      "derived_cache": "BO3MacFix/MeshCache",
+      "herrenhaus_original_payloads_preserved": 627
     },
     "legacy_dead_high": {
       "manifest": "6852605559916940411",
@@ -241,7 +244,6 @@
     "remaining": [
       "Nuketown Legacy undefined-value/stutter root cause",
       "Town Reimagined reported stutter",
-      "Herrenhaus: localized reference/name metadata differs; companion substitution refused",
       "AAE 4.0 AAEUnified native feature parity",
       "Expanded optional cursor/lean/crosshair and Windows-only debugging/presentation features",
       "Workshop Stack native loader and composition system",
@@ -332,7 +334,7 @@
     "Mod-embedded Discord webhook credential recovery"
   ],
   "pending_build_validation": {
-    "status": "clean source validation pending",
+    "status": "credential-free baseline passed both Mac runners; derived-pack final build pending",
     "artifact_name": "BO3MacFix-Mac-Test-1.4.zip"
   }
 }

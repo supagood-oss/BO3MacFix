@@ -1,5 +1,5 @@
-> Earlier public test downloads were withdrawn. The clean installer is being
-> rebuilt; do not reuse an earlier archive. Credential-dependent online features
+> Earlier public test downloads were withdrawn. Use the clean 1.4 test installer;
+> do not reuse archives 1 through 1.3. Credential-dependent online features
 > are disabled, while gameplay and ordinary HTTP support are retained.
 
 # BO3MacFix
@@ -18,8 +18,8 @@ blocked until that test passes. See [implementation status](docs/MOD_COMPATIBILI
 and the [Mac test procedure](docs/MAC_TEST.md).
 
 [Download the experimental Mac Test 1.4 installer](https://github.com/supagood-oss/BO3MacFix/releases/tag/aae-uem-mac-test-1.4).
-It adds Expanded JSON settings, dvar flags and controller glyphs, with credential recovery removed. The shared missing-mesh fallback covers ten inspected
-packages; Dead High API/save support is retained. See [map support and remaining gaps](docs/MAP_SUPPORT.md).
+It retains Expanded JSON settings, dvar flags and controller glyphs, with credential recovery removed. The shared missing-mesh repair covers eleven inspected
+packages, including an English-preserving Herrenhaus cache; Dead High API/save support is retained. See [map support and remaining gaps](docs/MAP_SUPPORT.md).
 Gameplay and Windows-Mac co-op remain unverified. AAE 4.0 ships a new native
 plugin whose additional features are not yet ported; see the support record.
 

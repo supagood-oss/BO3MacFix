@@ -1,11 +1,11 @@
-> Earlier public test downloads were withdrawn. The clean installer is being
-> rebuilt; do not reuse an earlier archive. Credential-dependent online features
+> Earlier public test downloads were withdrawn. Use the clean 1.4 test installer;
+> do not reuse archives 1 through 1.3. Credential-dependent online features
 > are disabled, while gameplay and ordinary HTTP support are retained.
 
 # AAE/UEM Mac test candidate
 
 Mac Test 1.4 adds [Expanded settings/flags/glyphs with credential recovery removed](MAP_SUPPORT.md).
-The wider survey covers 40 actual packages and ten localized missing-mesh fixes.
+The wider survey covers 40 actual packages and eleven localized missing-mesh fixes.
 **Current AAE 4.0 adds AAEUnified.dll: its extra native features are not a completed
 port.** The original shared adapters below are not full current-plugin parity.
 See the [simple fresh/update installation and test instructions](MAC_TEST.md).
@@ -53,10 +53,11 @@ inline landing callbacks preserve flags, registers, SIMD and the red zone.
 See [gameplay bindings and caveats](GAMEPLAY_PORTING.md) and
 [VM/FX bindings](MAC_BINDINGS.md).
 
-AAE's Encrypted APIs substitute four selectors. Their values are decoded only
-in RAM from the player's own unchanged, exact-hash Workshop DLL. They are not
-published, logged or saved in source. URL/body selectors are separate. JSON
-POST matches the native contract; missing/invalid selectors fail closed.
+Credential recovery, selector substitution and all encrypted Axios exports have
+been removed. Reused Lua tables are cleared so stale aliases cannot survive a
+mod switch. Ordinary JSON POST, named response polling and player-owned save
+support remain available. Observed AAE encrypted-helper call sites check exact
+member presence; their optional integrations remain absent in this candidate.
 
 Optional bullet-depletion model/bone visuals have not been ported. The
 `aim_status` producer is implemented, but does not reproduce those effects.
@@ -68,10 +69,11 @@ a working ordinary-Steam Windows baseline must be checked during step 4.
 
 ## Checks actually completed
 
-- Eleven portable C programs pass: core, codegen, payload, FX, CSC, pause,
-  movement, lifecycle, presentation, converter process handling and stream recovery.
-- Nineteen Python/Lupa tests pass, including packaging and candidate/production
-  gates. Linux CI passes the complete portable target.
+- Eleven portable C programs pass: core, codegen, FX, CSC, pause, movement,
+  lifecycle, presentation, converter process handling, Steam auth and stream recovery.
+- Twenty-five Python/Lupa tests passed after credential removal; the two new
+  derived-pack cases pass locally as well, including repair after cache corruption.
+  Packaging and candidate/production gates remain covered.
 - 754 synthetic machine-code checks cover emitted stubs and the assembled
   SysV inline bridges (registers, flags, SIMD, stack/red-zone preservation).
 - 133 bounded actual-Mac-code cases passed for selected VM/FX/animation/pause/

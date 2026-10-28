@@ -57,6 +57,7 @@ class MapSupport(unittest.TestCase):
                         "-o", str(library)], cwd=ROOT, check=True)
         cls.lib = ctypes.CDLL(str(library))
         cls.lib.bo3_xpak_fallback.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_size_t]
+        cls.lib.bo3_xpak_resolve.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_size_t]
         cls.lib.bo3_lua_path.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_size_t]
         cls.lib.bo3_prepare_save.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_char_p]
         cls.lib.t7o_save_encode.argtypes = [ctypes.c_char_p, Key]
@@ -94,6 +95,66 @@ class MapSupport(unittest.TestCase):
         value = ctypes.string_at(pointer)
         self.runtime.free(pointer)
         return value
+
+    def resolve(self, directory=None):
+        out = ctypes.create_string_buffer(4096)
+        result = self.lib.bo3_xpak_resolve(os.fsencode(self.en),
+                     os.fsencode(directory or self.root / "patch-cache"), out, len(out))
+        return Path(os.fsdecode(out.value)) if result else None
+
+    def contents(self, path):
+        raw = path.read_bytes()
+        h = struct.unpack_from("<15Q", raw)
+        entries = {}
+        for i in range(h[6]):
+            key, offset, size = struct.unpack_from("<QQQ", raw, h[7] + 24*i)
+            entries[key] = raw[h[4]+offset:h[4]+offset+size]
+        return entries, raw[h[10]:h[10]+h[11]], raw[h[13]:h[13]+h[14]]
+
+    def test_derived_pack_preserves_language_and_only_copies_missing_mesh(self):
+        pack(self.en, {1: b"shared", 3: b"English only"}, refs=(1, 2, 3))
+        pack(self.ge, {1: b"shared", 2: b"missing mesh", 4: b"German only"}, refs=(4, 2, 1))
+        before = self.en.read_bytes(), self.ge.read_bytes()
+        self.assertIsNone(self.select())
+        target = self.resolve()
+        self.assertIsNotNone(target)
+        self.assertEqual(target.parent, (self.root / "patch-cache").resolve())
+        self.assertEqual(self.contents(target)[0], {1: b"shared", 2: b"missing mesh", 3: b"English only"})
+        self.assertEqual(self.contents(target)[1:], self.contents(self.en)[1:])
+        self.assertEqual(self.resolve(), target)
+        other_cache = self.root / "other-cache"
+        self.assertEqual(self.resolve(other_cache).parent, other_cache.resolve())
+        # The read-only API must not start returning derived cache files.
+        self.assertIsNone(self.select())
+        self.assertEqual(before, (self.en.read_bytes(), self.ge.read_bytes()))
+        # A donor update invalidates the in-memory selection and repairs the cache.
+        previous_time = self.ge.stat().st_mtime
+        pack(self.ge, {1: b"shared", 2: b"updated mesh", 4: b"German only"}, refs=(4, 2, 1))
+        os.utime(self.ge, (previous_time + 2, previous_time + 2))
+        updated = self.resolve()
+        self.assertEqual(self.contents(updated)[0][2], b"updated mesh")
+        # Cache corruption is recovered atomically; source files remain untouched.
+        updated.write_bytes(b"incomplete interrupted cache")
+        fixed = self.resolve()
+        self.assertEqual(self.contents(fixed)[0][2], b"updated mesh")
+        self.assertFalse(list(fixed.parent.glob("*.tmp")))
+
+    def test_derived_pack_requires_exact_mesh_metadata_and_common_payloads(self):
+        pack(self.en, {1: b"shared", 3: b"English"}, refs=(1, 2, 3))
+        for entries, kind in [({1: b"changed", 2: b"mesh"}, "mesh"),
+                              ({1: b"shared", 2: b"voice"}, "sound"),
+                              ({1: b"shared"}, "mesh")]:
+            pack(self.ge, entries, kind=kind)
+            self.assertIsNone(self.resolve())
+        pack(self.ge, {1: b"shared", 2: b"mesh"})
+        self.ge.write_bytes(self.ge.read_bytes().replace(b"asset_2", b"other_2"))
+        self.assertIsNone(self.resolve())
+        # An unwritable/invalid cache location is a normal fallback, not a crash.
+        pack(self.ge, {1: b"shared", 2: b"mesh"})
+        blocker = self.root / "file"
+        blocker.write_text("preserve")
+        self.assertIsNone(self.resolve(blocker / "cache"))
+        self.assertEqual(blocker.read_text(), "preserve")
 
     def test_complete_companion_and_cached_read_preserve_originals(self):
         pack(self.en, {1: b"existing"})

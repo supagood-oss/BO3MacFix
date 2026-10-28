@@ -121,6 +121,8 @@ class MapSupport(unittest.TestCase):
         self.assertEqual(target.parent, (self.root / "patch-cache").resolve())
         self.assertEqual(self.contents(target)[0], {1: b"shared", 2: b"missing mesh", 3: b"English only"})
         self.assertEqual(self.contents(target)[1:], self.contents(self.en)[1:])
+        original_data_offset = struct.unpack_from("<Q", before[0], 32)[0]
+        self.assertEqual(target.read_bytes()[120:original_data_offset], before[0][120:original_data_offset])
         self.assertEqual(self.resolve(), target)
         other_cache = self.root / "other-cache"
         self.assertEqual(self.resolve(other_cache).parent, other_cache.resolve())

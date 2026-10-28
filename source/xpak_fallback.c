@@ -277,9 +277,10 @@ static int derive_pack(Pack *a,Pack *b,const char *source,const char *donor,
     int ok=0;
     if (!entries) goto done;
     memcpy(entries,a->entries,a->count*sizeof(*entries));
-    uint64_t data=32768,data_size=align_to(a->data_size,128);
+    uint64_t data=align_to(a->data,32768),data_size=align_to(a->data_size,128);
     size_t at=a->count;
-    if (seek_file(file,(int64_t)data,SEEK_SET)!=0 || !copy_bytes(file,a->file,a->data,a->data_size)) goto done;
+    if (!copy_bytes(file,a->file,0,a->data) || seek_file(file,(int64_t)data,SEEK_SET)!=0 ||
+        !copy_bytes(file,a->file,a->data,a->data_size)) goto done;
     for (size_t i=0;i<a->ref_count;++i) if (!find(a,a->keys[i])) {
         const Entry *entry=find(b,a->keys[i]);
         if (entry->size>INT64_MAX-data-data_size-32768) goto done;

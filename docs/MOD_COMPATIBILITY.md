@@ -71,9 +71,8 @@ a working ordinary-Steam Windows baseline must be checked during step 4.
 
 - Eleven portable C programs pass: core, codegen, FX, CSC, pause, movement,
   lifecycle, presentation, converter process handling, Steam auth and stream recovery.
-- Twenty-five Python/Lupa tests passed after credential removal; the two new
-  derived-pack cases pass locally as well, including repair after cache corruption.
-  Packaging and candidate/production gates remain covered.
+- Twenty-seven Python/Lupa tests pass, including derived-pack repair after cache
+  corruption, encrypted-export absence, and candidate/production packaging gates.
 - 754 synthetic machine-code checks cover emitted stubs and the assembled
   SysV inline bridges (registers, flags, SIMD, stack/red-zone preservation).
 - 133 bounded actual-Mac-code cases passed for selected VM/FX/animation/pause/
@@ -91,8 +90,9 @@ a working ordinary-Steam Windows baseline must be checked during step 4.
   execution: 25 upstream entries, 5,174 Apple Silicon Wine entries, 5,131 Intel Wine entries and 1,074 support-template entries,
   no escaping links, special files or duplicated paths.
 
-The automatic download/converter startup integration passed on both Mac runner
-architectures. A missing-input converter check does not qualify real Havok conversion. GUI visual review, power-loss durability,
+The [clean 1.4 workflow](https://github.com/supagood-oss/BO3MacFix/actions/runs/40781871389)
+passed on Linux, Intel macOS and Apple Silicon macOS, including automatic
+download/converter startup. A missing-input converter check does not qualify real Havok conversion. GUI visual review, power-loss durability,
 real external drives, clean-machine Rosetta, real mod/backend sessions and
 Windows-Mac co-op remain untested.
 

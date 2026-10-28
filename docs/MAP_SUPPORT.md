@@ -206,10 +206,14 @@ The current build run and published archive verification are recorded in the
 release notes and profile. `ready_for_coop` and executable `verified` remain
 false until real tests pass. The installer remains easy to update in place.
 
-The credential-free runtime `b4cb17ffab6e005b916b3135d23a1ae3df29235e`
-[passed portable, Intel and Apple Silicon jobs](https://github.com/supagood-oss/BO3MacFix/actions/runs/40779618290):
+The clean runtime `dc98f6c0e6015ead6c5c930d8c3bfbce883ef376`
+[passed portable, Intel and Apple Silicon jobs](https://github.com/supagood-oss/BO3MacFix/actions/runs/40781871389):
+11 C programs, 27 Python/Lua checks, 754 synthetic machine cases, native
 HTTP/settings/save/Steam callback fixtures, universal GUI/Intel patch compilation,
 signing, installer recovery and automatic dependency/converter startup.
-The additional Herrenhaus repair passes eight map/save cases locally and the
-actual eleven XPak pairs. Its final Mac rerun is recorded with the 1.4 release.
+Both archives' four payload hashes and architectures were verified, and the
+removed decoder symbols/metadata/export markers were absent. The published
+archive's SHA256 is `d2b0586d2b7c7cce942d7e9e37bb2f699c59e5b329447240db6dd4ba90a923d0`.
+The actual eleven repaired XPak pairs cover 267 missing mesh references;
+Herrenhaus preserves its 627 original English payloads and metadata.
 None of these checks is a physical M-series game or Windows co-op test.

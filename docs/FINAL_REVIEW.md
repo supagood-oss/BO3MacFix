@@ -50,4 +50,4 @@ than claiming future builds have passed testing.
 The app remains ad-hoc signed. Actual launch, map conversion, mod backend
 acceptance, game integration and co-op still require the physical Mac test.
 
-Mac Test 1.1 [checks passed on both Intel and Apple Silicon](https://github.com/supagood-oss/BO3MacFix/actions/runs/40274197043), including the missing-helper repair/rollback fixtures, full compilation, automatic downloads and converter startup. The universal GUI and bundled payload hashes were also inspected in the downloadable archive.
+Mac Test 1.4 [checks passed on both Intel and Apple Silicon](https://github.com/supagood-oss/BO3MacFix/actions/runs/40781871389), including recovery fixtures, compilation, automatic downloads and converter startup. The universal GUI, Intel game patch and all four payload hashes were inspected in both generated archives. The credential decoder and encrypted helper markers are absent. Physical Mac gameplay and Windows co-op still need the first test.

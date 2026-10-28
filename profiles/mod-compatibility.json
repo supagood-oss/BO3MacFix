@@ -140,26 +140,24 @@
     "Windows-only authoring, hot reload and Discord integration"
   ],
   "build_validation": {
-    "runtime_commit": "9608b99227e46c383afe6b9f9edcf4435d56ca1f",
-    "workflow_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40766110728",
-    "portable_c_programs_passed": 12,
+    "runtime_commit": "dc98f6c0e6015ead6c5c930d8c3bfbce883ef376",
+    "workflow_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40781871389",
+    "portable_c_programs_passed": 11,
     "python_lua_tests_passed": 27,
     "synthetic_machine_cases_passed": 754,
     "mac_runner_checks_passed": [
-      "macos-15-intel"
+      "macos-15-intel",
+      "macos-26"
     ],
-    "apple_silicon_runner_status": "queued; hosted runner capacity delays (earlier macos-15 acquisition failed)",
     "full_intel_patch_and_universal_gui_compiled": true,
-    "json_settings_fixtures_passed": true,
-    "v2_http_and_redirect_fixtures_passed": true,
     "http_and_installer_fixtures_passed": true,
     "steam_callback_and_map_save_fixtures_passed": true,
     "automatic_dependency_preparation_and_converter_startup_passed": true,
-    "artifact_name": "BO3MacFix-Mac-Test-1.3.zip",
-    "published_artifact_sha256": "58ec6b0fddd1c1ac3034c8db15d3d70676274d17dd3bf3f57a92aa4349c838ee",
-    "gameplay_or_coop_tested": false,
-    "status": "withdrawn; retained only as historical build evidence",
-    "artifact_withdrawn": true
+    "artifact_name": "BO3MacFix-Mac-Test-1.4.zip",
+    "published_artifact_sha256": "d2b0586d2b7c7cce942d7e9e37bb2f699c59e5b329447240db6dd4ba90a923d0",
+    "archive_payload_hashes_verified": 4,
+    "credential_recovery_removed": true,
+    "gameplay_or_coop_tested": false
   },
   "map_support": {
     "candidate_version": "1.4",
@@ -249,7 +247,7 @@
       "Workshop Stack native loader and composition system",
       "Physical Mac gameplay, service acceptance and both co-op host roles"
     ],
-    "mac_build_checks_passed": false,
+    "mac_build_checks_passed": true,
     "survey_counts": {
       "packages": 40,
       "verified_files": 742,
@@ -259,24 +257,6 @@
       "gsc_csc_import_inventories": 4081
     },
     "survey_evidence": "docs/map-survey-2026-10-28.json"
-  },
-  "previous_build_validation": {
-    "runtime_commit": "ff85d809bf273be01f44b5c618910c618cd68b17",
-    "workflow_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40646959814",
-    "portable_c_programs_passed": 12,
-    "python_lua_tests_passed": 26,
-    "synthetic_machine_cases_passed": 754,
-    "mac_runner_checks_passed": [
-      "macos-15-intel",
-      "macos-15"
-    ],
-    "full_intel_patch_and_universal_gui_compiled": true,
-    "http_and_installer_fixtures_passed": true,
-    "steam_callback_and_map_save_fixtures_passed": true,
-    "automatic_dependency_preparation_and_converter_startup_passed": true,
-    "artifact_name": "BO3MacFix-Mac-Test-1.2.zip",
-    "published_artifact_sha256": "577e7b4baf608fcf56225a7da8ac11d77418b7a7d7b48db2ba3658328b177341",
-    "gameplay_or_coop_tested": false
   },
   "source_implementation_scope": "The original shared adapter groups and the additional shared APIs documented in MAP_SUPPORT.md. This field does not claim AAEUnified feature parity or qualification of every surveyed package.",
   "previous_aae_reference": {
@@ -291,50 +271,15 @@
       "client_fx"
     ]
   },
-  "build_validation_history": [
-    {
-      "runtime_commit": "d936fe0ba0b181e9012a23bca7d3877bf6db9ff2",
-      "workflow_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40274197043",
-      "portable_c_programs_passed": 11,
-      "python_lua_tests_passed": 19,
-      "synthetic_machine_cases_passed": 754,
-      "mac_runner_checks_passed": [
-        "macos-15-intel",
-        "macos-15"
-      ],
-      "full_intel_patch_and_universal_gui_compiled": true,
-      "http_and_installer_fixtures_passed": true,
-      "automatic_dependencies_and_converter_startup_passed": true,
-      "live_gameplay_or_coop_tested": false,
-      "installer_revision": "aae-uem-test-1.1",
-      "missing_helper_repair_and_rollback_passed": true
-    },
-    {
-      "runtime_commit": "ff85d809bf273be01f44b5c618910c618cd68b17",
-      "workflow_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40646959814",
-      "portable_c_programs_passed": 12,
-      "python_lua_tests_passed": 26,
-      "synthetic_machine_cases_passed": 754,
-      "mac_runner_checks_passed": [
-        "macos-15-intel",
-        "macos-15"
-      ],
-      "full_intel_patch_and_universal_gui_compiled": true,
-      "http_and_installer_fixtures_passed": true,
-      "steam_callback_and_map_save_fixtures_passed": true,
-      "automatic_dependency_preparation_and_converter_startup_passed": true,
-      "artifact_name": "BO3MacFix-Mac-Test-1.2.zip",
-      "published_artifact_sha256": "577e7b4baf608fcf56225a7da8ac11d77418b7a7d7b48db2ba3658328b177341",
-      "gameplay_or_coop_tested": false
-    }
-  ],
   "credential_recovery_removed": true,
   "disabled_integrations": [
     "Mod-embedded Steam Web API credential recovery",
     "Mod-embedded Discord webhook credential recovery"
   ],
-  "pending_build_validation": {
-    "status": "credential-free baseline passed both Mac runners; derived-pack final build pending",
-    "artifact_name": "BO3MacFix-Mac-Test-1.4.zip"
-  }
+  "withdrawn_test_versions": [
+    "1",
+    "1.1",
+    "1.2",
+    "1.3"
+  ]
 }

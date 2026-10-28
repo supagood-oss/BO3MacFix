@@ -19,6 +19,8 @@
 #include "t7o_mac_pause.h"
 #include "t7o_mac_lifecycle.h"
 #include "t7o_mac_presentation.h"
+#include "t7o_mac_traversal.h"
+#include "t7o_mac_lean.h"
 #include "utilities.h"
 #include "mod_fileio.h"
 #include "steam.h"
@@ -164,12 +166,19 @@ static int t7o_init(lua_State *s) {
     steam_http_auth_begin(save_codec && !strcmp(save_codec,"1"));
     free(save_codec);
     uint32_t capabilities=0;
+    t7o_mac_traversal_deactivate();
+    char plugin[4200];
+    int plugin_length=snprintf(plugin,sizeof(plugin),"%s/T7Overcharged/plugins/AAEUnified.dll",dll_dir);
+    if (plugin_length>0 && (size_t)plugin_length<sizeof(plugin) && access(plugin,F_OK)==0 &&
+        !t7o_mac_traversal_activate())
+        printf("T7Overcharged: AAE traversal hooks are unavailable\n");
     if (t7o_mac_fx_activate()) capabilities|=T7O_CAP_FX;
     if (t7o_mac_script_activate()) capabilities|=T7O_CAP_CSC;
     if (t7o_mac_movement_activate()) capabilities|=T7O_CAP_MOVEMENT;
     if (t7o_mac_pause_activate()) capabilities|=T7O_CAP_PAUSE;
     if (t7o_mac_lifecycle_ready()) capabilities|=T7O_CAP_UNLOAD;
     if (t7o_mac_presentation_activate()) capabilities|=T7O_CAP_AIM;
+    if (!t7o_mac_lean_activate()) printf("T7Overcharged: optional viewmodel lean is unavailable\n");
     t7o_platform_engine_capabilities(capabilities);
     apply_asset_limits();
     if (hks_load_source(s, (const char *)t7overcharged_lua, t7overcharged_lua_len, "=BO3MacFix T7Overcharged")) {

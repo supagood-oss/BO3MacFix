@@ -69,16 +69,21 @@
         "interactive_prompt",
         "lan_browser",
         "mantle_hint",
-        "pool_fix (2 GiB to 4 GiB arena feature)",
-        "t7_traversal",
-        "viewmodel_ui_anchor"
+        "viewmodel_ui_anchor",
+        "checkpoint_fix (real deferred engine/save hooks)",
+        "link_to_camera (real deferred native registration)",
+        "mantle_hint probe/latch (separate from new traversal classifier)"
       ],
-      "plugin_stub_components": [
+      "plugin_lua_start_methods_are_noops": true,
+      "notes": "Embedded-service credential recovery is removed; guarded online integrations are absent. Ordinary HTTP and shared gameplay adapters remain available. AAEUnified feature parity is still in progress.",
+      "plugin_deferred_components": [
         "checkpoint_fix",
         "link_to_camera"
       ],
-      "plugin_lua_start_methods_are_noops": true,
-      "notes": "Embedded-service credential recovery is removed; guarded online integrations are absent. Ordinary HTTP and shared gameplay adapters remain available. AAEUnified feature parity is still in progress."
+      "plugin_source_adapters_after_1_4": [
+        "pool_fix: boot-time main reserve 2 GiB to 4 GiB",
+        "t7_traversal: classifier, height, input comparisons and vehicle permission; mantle hint remains separate"
+      ]
     },
     "2942053577": {
       "name": "UEM",
@@ -117,11 +122,13 @@
       ],
       "optional_native_features_not_ported": [
         "Windows cursor files",
-        "cosmetic viewmodel leaning",
-        "forced third-person crosshair",
         "extra Windows logging/authoring settings"
       ],
-      "gameplay_tested": false
+      "gameplay_tested": false,
+      "source_adapters_after_1_4": [
+        "forced third-person crosshair",
+        "cosmetic viewmodel leaning (Mac key processing and DObj tag transforms)"
+      ]
     }
   },
   "windows_reference": {
@@ -243,7 +250,7 @@
       "Nuketown Legacy undefined-value/stutter root cause",
       "Town Reimagined reported stutter",
       "AAE 4.0 AAEUnified native feature parity",
-      "Expanded optional cursor/lean/crosshair and Windows-only debugging/presentation features",
+      "Expanded optional cursor and Windows-only debugging/presentation features",
       "Workshop Stack native loader and composition system",
       "Physical Mac gameplay, service acceptance and both co-op host roles"
     ],
@@ -258,7 +265,7 @@
     },
     "survey_evidence": "docs/map-survey-2026-10-28.json"
   },
-  "source_implementation_scope": "The original shared adapter groups and the additional shared APIs documented in MAP_SUPPORT.md. This field does not claim AAEUnified feature parity or qualification of every surveyed package.",
+  "source_implementation_scope": "Original shared required T7Overcharged API family only; not full AAEUnified or Expanded feature parity.",
   "previous_aae_reference": {
     "name": "AAE",
     "version": "3.9.5",
@@ -281,5 +288,19 @@
     "1.1",
     "1.2",
     "1.3"
-  ]
+  ],
+  "native_source_development": {
+    "published": false,
+    "evidence": "docs/NATIVE_DEVELOPMENT.md",
+    "runtime_gameplay_tested": false,
+    "new_adapters": [
+      "main_pool_reservation_4GiB",
+      "aae_traversal",
+      "expanded_crosshair",
+      "expanded_lean"
+    ],
+    "local_synthetic_machine_cases": 826,
+    "real_image_redirect_fallback_cases": 106,
+    "mac_sdk_build_pending": true
+  }
 }

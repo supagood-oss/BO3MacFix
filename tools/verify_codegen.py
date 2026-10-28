@@ -155,7 +155,7 @@ def check(compiler):
         machine = text_section(obj)
         prefix = bytes.fromhex('9c50515253555657')
         starts = [i for i in range(len(machine)) if machine.startswith(prefix, i)]
-        assert len(starts) == 3
+        assert len(starts) == 6
         decoder = Cs(CS_ARCH_X86, CS_MODE_64)
         calls = {instruction.address for instruction in decoder.disasm(machine, BRIDGE) if instruction.mnemonic == 'call'}
         for operation, start in enumerate(starts):
@@ -197,7 +197,7 @@ def check(compiler):
             import _ctypes
             _ctypes.FreeLibrary(native._handle)
     return {'schema':1, 'cases_passed':cases, 'synthetic_memory_only':True,
-            'assembly_bridges_checked':3, 'live_mac_qualified':False}
+            'assembly_bridges_checked':6, 'live_mac_qualified':False}
 
 
 if __name__ == '__main__':

@@ -38,3 +38,6 @@ tests/test_t7o_mac_presentation_adapter
 tests/test_converter_process
 tests/test_steam_auth
 tests/test_t7o_json
+tests/test_t7o_mac_memory_adapter
+tests/test_t7o_mac_traversal_adapter
+tests/test_t7o_mac_lean_adapter

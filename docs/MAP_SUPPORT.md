@@ -64,9 +64,10 @@ The active components include prediction/tag anchors, co-op pause, free aim,
 host migration, interaction prompts, LAN browsing, mantle hints, a larger-memory
 patch, traversal and viewmodel UI anchoring. The pool feature reserves or
 extends a 2 GiB arena to 4 GiB; it is distinct from our asset free-list limits.
-Mac equivalence is not established. Checkpoint/link-to-camera component startup
-and several exported save helpers are stubs in this image; their exported names
-alone do not establish working Windows features.
+Mac equivalence is not established. Correction from the deeper native review:
+checkpoint and link-to-camera startup schedule real deferred callbacks. Empty
+`lua_start` methods do not make those components stubs. Their engine/save hooks
+remain separate work; the exported names alone do not establish Mac support.
 
 Our original shared pause/movement/FX adapters do not constitute a port of those
 new components. Ordinary AAE startup/core play is a test target; full current
@@ -74,6 +75,26 @@ AAE parity, optional new features and heavy-map memory behavior are unqualified.
 The optional ZoneWriter Windows debug-output guard now sees `winOs` as absent,
 so it cannot pass a presence check and then call a missing `execute` member.
 No Windows command interpreter is exposed on Mac.
+
+### Native work after the published 1.4 build
+
+The source branch now contains additional development adapters. They are **not
+in the published 1.4 download** and have no physical Mac qualification:
+
+- The main CPU arena is reserved as 4 GiB at engine startup, before allocation.
+  Only the original 2 GiB main reserve-only pool registration changes; physical
+  commitment and every other pool retain the engine's own behavior.
+- AAE traversal animation selection, high-height offset, mantle-height setting,
+  input thresholds and server vehicle-vault permission checks have Mac bindings.
+  Input changes affect cached comparisons, preserving actual command axes.
+  The separate mantle-hint probe/latch and UI are still pending.
+- Expanded's forced third-person crosshair uses the Mac predicate with its
+  different CG offset. Viewmodel leaning has a Mac key-up/bone adapter, native
+  easing, per-local-client state and mod-unload reset. The original event-queue
+  hook is replaced at Mac key-event processing; live input timing needs testing.
+
+See [the native development record](NATIVE_DEVELOPMENT.md) for evidence and
+remaining components. These additions do not establish full AAEUnified parity.
 
 UEM’s current manifest was also refreshed: `3514276820181770986` is unchanged
 from the earlier 1.3.4 Build-001 analysis. Thirty-three cached selected files

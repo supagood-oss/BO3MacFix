@@ -40,6 +40,9 @@ SOURCES += source/t7o_movement.c
 SOURCES += source/t7o_mac_lifecycle.c
 SOURCES += source/t7o_inline.S
 SOURCES += source/t7o_mac_presentation.c
+SOURCES += source/t7o_mac_memory.c
+SOURCES += source/t7o_mac_traversal.c
+SOURCES += source/t7o_mac_lean.c
 SOURCES += source/converter_process.c
 SOURCES += source/xpak_fallback.c source/mod_fileio.c
 SOURCES += source/t7o_save_codec.c
@@ -49,7 +52,7 @@ FRAMEWORKS += -framework Metal -framework QuartzCore -framework AppKit -weak_fra
 
 all: $(TARGET)
 
-test: $(TEST_TARGET) test-core test-codegen test-codegen-machine test-fx-adapter test-script-adapter test-pause-adapter test-movement-adapter test-lifecycle-adapter test-presentation-adapter test-converter-process test-steam-auth test-lua
+test: $(TEST_TARGET) test-core test-codegen test-codegen-machine test-fx-adapter test-script-adapter test-pause-adapter test-movement-adapter test-lifecycle-adapter test-presentation-adapter test-memory-adapter test-traversal-adapter test-lean-adapter test-converter-process test-steam-auth test-lua
 	./$(TEST_TARGET)
 
 test-converter-process:
@@ -105,6 +108,24 @@ tests/test_t7o_mac_lifecycle_adapter: tests/test_t7o_mac_lifecycle_adapter.c sou
 test-presentation-adapter: tests/test_t7o_mac_presentation_adapter
 	./tests/test_t7o_mac_presentation_adapter
 
+test-memory-adapter: tests/test_t7o_mac_memory_adapter
+	./tests/test_t7o_mac_memory_adapter
+
+test-traversal-adapter: tests/test_t7o_mac_traversal_adapter
+	./tests/test_t7o_mac_traversal_adapter
+
+test-lean-adapter: tests/test_t7o_mac_lean_adapter
+	./tests/test_t7o_mac_lean_adapter
+
+tests/test_t7o_mac_lean_adapter: tests/test_t7o_mac_lean_adapter.c source/t7o_mac_lean.c
+	$(HOST_CC) -std=c11 -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_mac_lean_adapter.c -lm
+
+tests/test_t7o_mac_traversal_adapter: tests/test_t7o_mac_traversal_adapter.c source/t7o_mac_traversal.c source/t7o_core.c
+	$(HOST_CC) -std=c11 -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_mac_traversal_adapter.c source/t7o_core.c -lm
+
+tests/test_t7o_mac_memory_adapter: tests/test_t7o_mac_memory_adapter.c source/t7o_mac_memory.c
+	$(HOST_CC) -std=c11 -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_mac_memory_adapter.c
+
 tests/test_t7o_mac_presentation_adapter: tests/test_t7o_mac_presentation_adapter.c source/t7o_mac_presentation.c source/t7o_core.c
 	$(HOST_CC) -std=c11 -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_mac_presentation_adapter.c source/t7o_core.c
 
@@ -142,8 +163,11 @@ source/t7overcharged_lua.h: source/t7overcharged.lua
 	cd source && xxd -i t7overcharged.lua > t7overcharged_lua.h
 
 clean:
+	rm -f -- tests/test_t7o_mac_memory_adapter
+	rm -f -- tests/test_t7o_mac_traversal_adapter
+	rm -f -- tests/test_t7o_mac_lean_adapter
 	rm -f -- tests/test_steam_auth source/t7o_save_codec_test.o tests/test_t7o_json source/t7o_json_test.o
 	rm -f -- $(TARGET) $(TEST_TARGET) tests/test_t7o_core tests/test_t7o_codegen tests/test_t7o_mac_fx_adapter tests/test_t7o_mac_script_adapter tests/test_t7o_mac_pause_adapter tests/test_t7o_mac_movement_adapter tests/test_t7o_mac_lifecycle_adapter tests/test_t7o_mac_presentation_adapter tests/test_converter_process $(NATIVE_OBJECTS) source/t7overcharged_lua.h
 
 .PHONY: all clean test test-core test-codegen test-codegen-machine test-fx-adapter test-script-adapter test-pause-adapter test-movement-adapter test-lifecycle-adapter test-presentation-adapter test-converter-process test-lua test-macos check-sdk
-.PHONY: test-steam-auth
+.PHONY: test-steam-auth test-memory-adapter test-traversal-adapter test-lean-adapter

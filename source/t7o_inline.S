@@ -7,7 +7,7 @@
 #define SYM(x) x
 #endif
 .text
-.macro BRIDGE name,id
+.macro BRIDGE name,id,handler
 .globl \name
 \name:
     pushfq
@@ -46,7 +46,7 @@
     movq %rsp,%rdi
     movl $\id,%esi
     cld
-    call SYM(t7o_inline_dispatch)
+    call \handler
     movdqu 0(%rsp),%xmm0
     movdqu 16(%rsp),%xmm1
     movdqu 32(%rsp),%xmm2
@@ -82,6 +82,9 @@
     popfq
     ret
 .endm
-BRIDGE SYM(t7o_inline_jump_cap),0
-BRIDGE SYM(t7o_inline_land_begin),1
-BRIDGE SYM(t7o_inline_land_end),2
+BRIDGE SYM(t7o_inline_jump_cap),0,SYM(t7o_inline_dispatch)
+BRIDGE SYM(t7o_inline_land_begin),1,SYM(t7o_inline_dispatch)
+BRIDGE SYM(t7o_inline_land_end),2,SYM(t7o_inline_dispatch)
+BRIDGE SYM(t7o_inline_traversal_input),3,SYM(t7o_mac_traversal_inline_dispatch)
+BRIDGE SYM(t7o_inline_traversal_eligible),4,SYM(t7o_mac_traversal_inline_dispatch)
+BRIDGE SYM(t7o_inline_traversal_surface),5,SYM(t7o_mac_traversal_inline_dispatch)

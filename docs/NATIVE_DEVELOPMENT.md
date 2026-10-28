@@ -1,0 +1,68 @@
+# Native development after Mac Test 1.4
+
+Status: source work in progress; **not a new published installer**. No physical
+Mac gameplay or Windows co-op has been tested. Credential recovery remains
+removed. The published 1.4 build retains its recorded source commit and checksum.
+
+## Implemented adapters
+
+| Native contract | Mac binding | Evidence / qualification |
+| --- | --- | --- |
+| Expanded forced third-person crosshair | `d54e99` | Predicate and CG offset independently matched; substituted-engine on/off/unload tests |
+| AAE 4 GiB main reserve | `d327e4` | Engine startup tuple `(0,0,2,"main",0x80000000,0x1e)` only; no live relocation or eager physical commitment; other-pool preservation tests |
+| AAE traversal animation type | `14c50bc` | SysV float3 aggregate ABI; 3,808 differential cases against bounded original Windows arithmetic; portable boundary regressions |
+| Traversal height | `d973da`, return `14c415a` | Only the traversal caller's `trm_maxHeight` setting is replaced; invalid values retain native defaults |
+| Traversal input comparisons | `14c3e6a`, `14c4fc4` | Original strict comparisons and zero-input asymmetry retained; 5,140 adapter cases; command axes unchanged |
+| Traversal surface / vehicle permission | `14c4101`, helper `d691e0` | Mac gclient stride `17210`, level/client/entity relationships, server/predicted fallbacks and deny result 4 checked |
+| Expanded viewmodel lean | `d37a72`, key processing `1549275` | Mac DObj lookup `f74d4f`, local tag setter `f74879`, key query `15467e4`; key-up ordering, easing, fire reset, UI/main-thread guards and local-client isolation tests |
+
+All locations are RVAs in the independently hashed Mac executable recorded in
+`t7o_mac_offsets.h`. Native hooks require that engine build and the generated
+prepatched executable. That is an engine-layout requirement, not a general
+Workshop version allowlist. Inactive hooks retain original engine paths.
+
+The development prepatch fixture accepts 53 hooks and 24 settings using
+5,504 of 6,272 bytes of verified existing padding. It passes 106 real-image
+redirect/fallback cases. Six assembly bridges pass 826 synthetic machine cases,
+covering integer/SIMD registers, flags, stack alignment and red-zone preservation.
+These are offline tests; they do not exercise Rosetta or actual engine gameplay.
+
+Expanded's lean code rotates `tag_ads`; it does not alter player collision,
+aim or movement. The native key-up callback occurs before the Windows event
+queue dispatch; the Mac adapter operates before key-state processing instead.
+Input routing and render timing remain part of the Mac test.
+
+## Still separate work
+
+AAEUnified has real deferred callbacks for checkpoint and link-to-camera.
+Earlier classification of these as stubs was incorrect. The empty `lua_start`
+methods say nothing about deferred engine or UI registration.
+
+Remaining AAE components include prediction/tag anchors, viewmodel UI widget
+registration/layout and bone snapshots, checkpoint/save and link-to-camera,
+the new co-op pause implementation, host migration, free aim, interaction
+prompts, LAN browser and mantle-hint probe/latch/UI behavior. The existing shared
+pause and movement adapters are not substitutes for those components.
+
+Expanded cursor/animated-cursor handling and Windows-only authoring/debugging
+options remain separate. Optional achievement/ranked overrides, custom GSC,
+server FX, sound limits and ultrawide behavior are unqualified. Do not describe
+this branch or the existing 1.4 installer as a complete native port.
+
+## Research provenance
+
+AAEUnified SHA256:
+`577b4d054128b39bd4999197fc9ce51dc04c3710e49ca547c8f037fec7aa9eac`.
+Expanded shared base SHA256:
+`016ba5559c4f66cd8de864e4a85a8e7de573e97f4716ec0fd476558c9b4165c3`.
+
+The owner-authorized Windows capture read engine code and static data only.
+The game was closed normally. No game memory was written and no original mod
+DLL initialization or mod backend was run. Bounded arithmetic comparisons use
+substituted memory/services, never native initialization.
+
+The upstream T7Overcharged [DObj declarations](https://github.com/JariKCoding/T7Overcharged/blob/main/src/client/game/symbols.hpp)
+and [viewmodel callback](https://github.com/JariKCoding/T7Overcharged/blob/main/src/client/components/bullet_depletion.cpp)
+were used as independent interface references; their PC addresses were not
+copied into the Mac bindings. The downloaded public reference was inspected
+without running or building it.

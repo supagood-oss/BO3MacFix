@@ -104,6 +104,23 @@ static void test_dispatch(void) {
     assert(t7o_script_dispatch(&b,1)==T7O_SCRIPT_UNSUPPORTED && s.calls==2);
     assert(t7o_script_dispatch(&b,2)==T7O_SCRIPT_BAD_ARGUMENT);
 }
+static void test_traversal_boundaries(void) {
+    /* Golden outputs from the original native arithmetic, including the
+     * engine's unchanged low branches. No proprietary image is needed here. */
+    const struct { unsigned flags;float height;int result; } rows[]={
+        {0,77.999f,9},{0,78,20},{0,331.999f,20},{0,332,21},
+        {1,78,17},{1,181.999f,17},{1,182,18},{1,332,19},
+        {3,0,15},{7,0,16},{17,0,14},{9,0,12},{1,0,13},
+        {2,0.999f,3},{2,1,7},{2,50,10},{6,0.999f,4},{6,1,8},{6,50,11},
+        {16,0,2},{16,1,6},{0,0,1},{0,1,5},{0,50,9}
+    };
+    for (unsigned i=0;i<sizeof(rows)/sizeof(*rows);++i)
+        assert(t7o_traversal_type(rows[i].flags,rows[i].height,-18)==rows[i].result);
+    assert(t7o_traversal_type(0,51,-100)==20);
+    assert(t7o_traversal_type(0,607.999f,600)==9);
+    assert(t7o_traversal_type(0,608,600)==20);
+    assert(t7o_traversal_type(0,78,NAN)==20);
+}
 int main(void) {
     /* Golden IDs recovered from the two DLLs, independently of this code. */
     assert(t7o_script_hash("getvieworigin")==UINT32_C(0x35224a7a));
@@ -117,6 +134,6 @@ int main(void) {
     assert(t7o_strafe_scale(NAN)==0.667f && t7o_strafe_scale(0.9f)==0.9f);
     bool enabled[T7O_MOVEMENT_COUNT];t7o_movement_defaults(true,enabled);
     for(int i=0;i<T7O_MOVEMENT_COUNT;i++)assert(enabled[i]==(i!=T7O_FAST_SWAP));
-    test_rip_relocation();test_patch_safety();test_pool_chain();test_fx_storage_isolation();test_dispatch();
+    test_rip_relocation();test_patch_safety();test_pool_chain();test_fx_storage_isolation();test_dispatch();test_traversal_boundaries();
     puts("T7 native core tests passed (portable behavior; no Mac bindings qualified)");return 0;
 }

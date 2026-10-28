@@ -41,6 +41,9 @@
 #include "t7o_mac_movement.h"
 #include "t7o_mac_lifecycle.h"
 #include "t7o_mac_presentation.h"
+#include "t7o_mac_memory.h"
+#include "t7o_mac_traversal.h"
+#include "t7o_mac_lean.h"
 #include "controllers.h"
 #include "gc_bridge.h"
 
@@ -975,6 +978,9 @@ __attribute__((constructor)) static void dylib_main() {
     // set up functions that we later call
     havok_init(game_base_address);
     bool t7o_exact_build=t7o_mac_fx_install(game_base_address,image_path);
+    t7o_mac_memory_install(game_base_address,t7o_exact_build);
+    t7o_mac_traversal_install(game_base_address,t7o_exact_build);
+    t7o_mac_lean_install(game_base_address,t7o_exact_build);
     t7o_mac_script_install(game_base_address,t7o_exact_build);
     t7o_mac_pause_install(game_base_address,t7o_exact_build);
     t7o_mac_movement_install(game_base_address,t7o_exact_build);

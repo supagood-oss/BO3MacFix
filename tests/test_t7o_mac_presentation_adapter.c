@@ -11,7 +11,16 @@ static uint8_t *clients;static int count=2;
 static uint8_t definition[0xe68];
 static int observed=-1,publications,original_calls,zoom,level;
 static const char *glyphs="0";
-static void *find_mock(const char *name) { assert(!strcmp(name,"t7o_override_gamepadtype"));return &glyphs; }
+static const char *force_crosshair="0";
+static int crosshair_calls;
+static bool crosshair_result;
+static void *find_mock(const char *name) {
+    if (!strcmp(name,"t7o_force_3rd_person_crosshair")) return &force_crosshair;
+    assert(!strcmp(name,"t7o_override_gamepadtype"));return &glyphs;
+}
+static bool crosshair_mock(const void *client,const void *player) {
+    assert(client==&count && player==definition);++crosshair_calls;return crosshair_result;
+}
 static const char *text_mock(const void *value) { return *(const char *const *)value; }
 static void *fixture_address(uint32_t offset) {
     if (offset==T7O_MAC_CG_ARRAY) return &clients;
@@ -34,12 +43,19 @@ static void draw(void) { hold_breath_hint(0,&count,definition,&count); }
 int main(void) {
     assert(!t7o_mac_presentation_activate());
     find_dvar=find_mock;dvar_text=text_mock;
+    original_crosshair=crosshair_mock;
+    assert(!crosshair_visible(&count,definition) && crosshair_calls==1);
     assert(t7o_mac_presentation_gamepad(2)==2);
     original_hint=hint_mock;view_weapon=weapon_mock;weapon_definition=definition_mock;
     zoom_count=zoom_mock;zoom_level=level_mock;set_string=set_mock;
     clients=calloc(2,T7O_MAC_CG_STRIDE);assert(clients);
     put32(clients+T7O_MAC_BREATH_SPENT,-1);
     installed=true;assert(t7o_mac_presentation_activate() && observed==0);draw();
+    assert(!crosshair_visible(&count,definition) && crosshair_calls==2);
+    force_crosshair="1";assert(crosshair_visible(&count,definition) && crosshair_calls==2);
+    force_crosshair="0";crosshair_result=true;
+    assert(crosshair_visible(&count,definition) && crosshair_calls==3);
+    crosshair_result=false;
     glyphs="1";assert(t7o_mac_presentation_gamepad(2)==1);
     glyphs="2";assert(t7o_mac_presentation_gamepad(1)==0);
     glyphs="3";assert(t7o_mac_presentation_gamepad(0)==2);
@@ -63,6 +79,8 @@ int main(void) {
     assert(t7o_aim_status_tail(2,false,4481,0,100,20)==8);
     assert(t7o_aim_status_tail(1,false,INT32_MAX,0,100,1)==1);
     t7o_mac_presentation_deactivate();assert(observed==0);int before=publications;draw();
+    force_crosshair="1";
+    assert(!crosshair_visible(&count,definition) && crosshair_calls==4);
     assert(t7o_mac_presentation_gamepad(1)==1);
     assert(publications==before && original_calls==10);
     free(clients);puts("Mac aim/breath state, recovery boundaries, original hints and mod reset passed (substituted engine)");

@@ -16,6 +16,7 @@ static bool installed;
 static atomic_bool active;
 static int last_status=-1;
 static void (*original_hint)(int,const void *,void *,void *);
+static bool (*original_crosshair)(const void *,const void *);
 static uint64_t (*view_weapon)(void *);
 static const uint8_t *(*weapon_definition)(uint64_t);
 static int (*zoom_count)(uint64_t),(*zoom_level)(uint64_t);
@@ -27,6 +28,14 @@ static const char *(*dvar_text)(const void *);
 #endif
 static void *address(uint32_t offset) { return T7O_MAC_ADDRESS(offset); }
 static int32_t integer(const void *p) { int32_t v;memcpy(&v,p,4);return v; }
+static bool crosshair_visible(const void *client,const void *player) {
+    if (atomic_load(&active)) {
+        void *variable=find_dvar("t7o_force_3rd_person_crosshair");
+        const char *value=variable ? dvar_text(variable) : NULL;
+        if (value && strtol(value,NULL,10)!=0) return true;
+    }
+    return original_crosshair(client,player);
+}
 int t7o_mac_presentation_gamepad(int fallback) {
     if (!atomic_load(&active) || !find_dvar || !dvar_text) return fallback;
     void *dvar=find_dvar("t7o_override_gamepadtype");
@@ -65,12 +74,14 @@ bool t7o_mac_presentation_install(uint64_t game_base,bool exact_build_verified) 
     if (installed) return base==game_base;
     base=game_base;
     const uint8_t prefix[]={0x55,0x48,0x89,0xe5,0x41,0x57};
-    if (memcmp(prepatch_original_code(address(T7O_MAC_HOLD_BREATH_HINT),sizeof(prefix)),prefix,sizeof(prefix))) return false;
+    if (memcmp(prepatch_original_code(address(T7O_MAC_HOLD_BREATH_HINT),sizeof(prefix)),prefix,sizeof(prefix)) ||
+        memcmp(prepatch_original_code(address(T7O_MAC_CROSSHAIR_VISIBLE),sizeof(prefix)),prefix,sizeof(prefix))) return false;
     view_weapon=(void *)address(T7O_MAC_VIEW_WEAPON);weapon_definition=(void *)address(T7O_MAC_WEAPON_DEFINITION);
     zoom_count=(void *)address(T7O_MAC_WEAPON_ZOOM_COUNT);zoom_level=(void *)address(T7O_MAC_WEAPON_ZOOM_LEVEL);
     set_string=(void *)address(T7O_MAC_SET_DVAR_STRING);
     find_dvar=(void *)address(T7O_MAC_DVAR_FIND_NAME);dvar_text=(void *)address(T7O_MAC_DVAR_VALUE_STRING);
-    if (DobbyHook(address(T7O_MAC_HOLD_BREATH_HINT),(void *)hold_breath_hint,(void **)&original_hint)!=0) return false;
+    if (DobbyHook(address(T7O_MAC_HOLD_BREATH_HINT),(void *)hold_breath_hint,(void **)&original_hint)!=0 ||
+        DobbyHook(address(T7O_MAC_CROSSHAIR_VISIBLE),(void *)crosshair_visible,(void **)&original_crosshair)!=0) return false;
     installed=true;return true;
 }
 bool t7o_mac_presentation_activate(void) {

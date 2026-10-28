@@ -1,4 +1,26 @@
 #include "t7o_core.h"
+#include <math.h>
+int t7o_traversal_type(unsigned flags,float height,float offset) {
+    if (!isfinite(offset)) offset=-18.0f;
+    if (offset< -45.0f) offset=-45.0f;
+    if (offset>512.0f) offset=512.0f;
+    if (height>=96.0f+offset) {
+        if (!(flags&1)) return height>=350.0f+offset ? 21 : 20;
+        if (height<200.0f+offset) return 17;
+        return height>=350.0f+offset ? 19 : 18;
+    }
+    /* The native wrapper falls through to the engine's lower-height branches.
+     * Preserve all flags there, including the original 1/50-unit thresholds. */
+    if (flags&1) {
+        if (flags&2) return 15+((flags>>2)&1);
+        if (flags&16) return 14;
+        return 13-((flags>>3)&1);
+    }
+    if (flags&2) return height<1.0f ? 3+((flags>>2)&1) :
+                          height<50.0f ? 7+((flags>>2)&1) : 10+((flags>>2)&1);
+    if (flags&16) return height>=1.0f ? 6 : 2;
+    return height<1.0f ? 1 : height<50.0f ? 5 : 9;
+}
 int t7o_aim_status_tail(int initial,bool holding,int32_t spent,int32_t limit,int32_t recovery,int32_t frame_ms) {
     if (recovery>0) recovery=(int32_t)((uint32_t)recovery-(uint32_t)frame_ms);
     if (holding) {
@@ -11,7 +33,6 @@ int t7o_aim_status_tail(int initial,bool holding,int32_t spent,int32_t limit,int
     }
     return initial;
 }
-#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>

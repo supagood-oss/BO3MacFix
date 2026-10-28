@@ -2,6 +2,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+/* AAE traversal animation selection for finite relative heights. The high
+ * offset uses the native -45..512 range, with -18 as the default. */
+int t7o_traversal_type(unsigned flags,float relative_height,float high_offset);
 
 /* Platform-independent behavior recovered from the current mod DLLs.
  * These functions do not locate or patch engine memory. Mac bindings must be

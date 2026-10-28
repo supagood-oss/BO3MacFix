@@ -4,6 +4,8 @@
 #include "t7o_mac_pause.h"
 #include "t7o_mac_script.h"
 #include "t7o_mac_presentation.h"
+#include "t7o_mac_traversal.h"
+#include "t7o_mac_lean.h"
 #include "t7o_platform.h"
 #include "steam_auth.h"
 #include "prepatch.h"
@@ -26,7 +28,8 @@ static void load_core(int controller,const void *record,bool reload) {
      * later. Leave the extended FX cache alive: its engine reset hook clears
      * records when the engine reaches the cache's own lifetime boundary. */
     t7o_mac_movement_deactivate();t7o_mac_pause_deactivate();
-    t7o_mac_script_deactivate();t7o_mac_presentation_deactivate();t7o_platform_begin_mod(NULL);
+    t7o_mac_script_deactivate();t7o_mac_presentation_deactivate();t7o_mac_traversal_deactivate();
+    t7o_mac_lean_deactivate();t7o_platform_begin_mod(NULL);
     steam_http_auth_begin(false);
 }
 int t7o_mac_lifecycle_unload(void) {

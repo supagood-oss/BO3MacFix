@@ -243,17 +243,12 @@ static int derive_pack(Pack *a,Pack *b,const char *source,const char *donor,
                        const char *directory,char *out,size_t capacity) {
     size_t missing;
     if (!can_supply(a,b,&missing) || a->length>INT64_MAX/4 || b->length>INT64_MAX/4) return 0;
-    /* This hash only selects a cache filename. Reuse validates the actual bytes. */
+    /* One filename per source/donor pair avoids keeping another large copy on
+     * every Workshop update. This hash is only a name; reuse validates bytes. */
     uint64_t signature=UINT64_C(14695981039346656037);
     const char *paths[]={source,donor};
     for (size_t i=0;i<2;++i) for (const unsigned char *p=(const unsigned char *)paths[i];*p;++p)
         signature=(signature^*p)*UINT64_C(1099511628211);
-    const struct stat *stats[]={sa,sb};
-    for (size_t i=0;i<2;++i) {
-        uint64_t values[]={(uint64_t)stats[i]->st_dev,(uint64_t)stats[i]->st_ino,
-            (uint64_t)stats[i]->st_size,(uint64_t)stats[i]->st_mtime,(uint64_t)stats[i]->st_ctime};
-        for (size_t j=0;j<sizeof(values)/sizeof(*values);++j) signature=(signature^values[j])*UINT64_C(1099511628211);
-    }
     char target[PATH_MAX],temp[PATH_MAX],normalized[PATH_MAX];
     if (!bo3_mkdirs(directory) || !resolve_path(directory,normalized)) return 0;
     int n=snprintf(target,sizeof(target),"%s/mesh-%016llx.xpak",normalized,(unsigned long long)signature);

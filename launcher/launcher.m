@@ -96,6 +96,21 @@ int main(int argc, char **argv) {
     NSProcessInfo *currentProcess = [NSProcessInfo processInfo];
     NSString *pwd = [currentProcess arguments][0];
     gameProc.currentDirectoryURL = [[NSURL fileURLWithPath:pwd] URLByDeletingLastPathComponent];
+    // The graphical setup app keeps this launcher in BO3MacFix/, leaving the
+    // original game launcher untouched. Steam's older installed launcher path
+    // still works when --game-dir is absent.
+    for (int i = 1; i + 1 < argc; ++i) {
+        if (strcmp(argv[i], "--game-dir") == 0) {
+            NSString *path = [NSString stringWithUTF8String:argv[++i]];
+            NSURL *directory = [NSURL fileURLWithPath:path isDirectory:YES];
+            NSString *executable = [directory URLByAppendingPathComponent:@"CoDBlkOps3_Exe"].path;
+            if (![[NSFileManager defaultManager] isExecutableFileAtPath:executable]) {
+                fprintf(stderr, "The selected Mac game executable was not found.\n");
+                return 1;
+            }
+            gameProc.currentDirectoryURL = directory;
+        }
+    }
     // set the game executable path
     gameProc.executableURL = [gameProc.currentDirectoryURL URLByAppendingPathComponent:@"CoDBlkOps3_Exe"];
 
@@ -112,8 +127,10 @@ int main(int argc, char **argv) {
     newEnvironment[@"SteamAppId"] = @"311210";
     // parse our arguments and figure out which ones we send to the new process vs which ones we
     NSMutableArray *newArguments = [[NSMutableArray alloc] init];
-    for (int i = 0; i < argc; i++) {
-        if (strcasecmp(argv[i], "--password") == 0 && i + 1 < argc)
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--game-dir") == 0 && i + 1 < argc)
+            ++i;
+        else if (strcasecmp(argv[i], "--password") == 0 && i + 1 < argc)
             newEnvironment[@"BO3MACFIX_NETWORKPASSWORD"] = [NSString stringWithUTF8String:argv[++i]];
         else if (strcasecmp(argv[i], "--playername") == 0 && i + 1 < argc)
             newEnvironment[@"BO3MACFIX_PLAYERNAME"] = [NSString stringWithUTF8String:argv[++i]];

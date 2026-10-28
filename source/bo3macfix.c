@@ -23,6 +23,7 @@
 #include <IOKit/hid/IOHIDDevice.h>
 
 #include "bo3macnative.h"
+#include "converter_process.h"
 #include "codhavoktypes.h"
 #include "cpu_tuning.h"
 #include "dobby.h"
@@ -34,6 +35,12 @@
 #include "steam.h"
 #include "stream_stall_recovery.h"
 #include "t7overcharged.h"
+#include "t7o_mac_fx.h"
+#include "t7o_mac_script.h"
+#include "t7o_mac_pause.h"
+#include "t7o_mac_movement.h"
+#include "t7o_mac_lifecycle.h"
+#include "t7o_mac_presentation.h"
 #include "controllers.h"
 #include "gc_bridge.h"
 
@@ -470,7 +477,7 @@ install_hook_name(HKAI_InitMapData, void, const char *mapname, char restart) {
 
         // make sure the new physics folder exists
         if (access(Macfix_Path "/Physics/", F_OK) != 0)
-            mkdir(Macfix_Path "/Physics/", 0644);
+            mkdir(Macfix_Path "/Physics/", 0755);
 
         // write out the header and all the navmesh/navvolume data to the clump
         FILE *clumpfile = fopen(Macfix_Path "/Physics/convert.clump", "wb");
@@ -492,19 +499,16 @@ install_hook_name(HKAI_InitMapData, void, const char *mapname, char restart) {
         fclose(clumpfile);
 
         // call Wine with our cod2map64 binary, passing in the clump
-        char cwd[1025];
-        char wine_path[3075];
-        getcwd(cwd, sizeof(cwd));
-        snprintf(wine_path, sizeof(wine_path), "\"%s\" " C2M_Path " -mac_navmesh \"Z:%s/" Macfix_Path "/Physics/convert.clump\" \"Z:%s/" Macfix_Path "/Physics/%s\"", get_wine_path(), cwd, cwd, mapname);
-        printf("executing: %s\n", wine_path);
-        unsetenv("DYLD_INSERT_LIBRARIES"); // stop steam from fucking with our wine
-        FILE *convert = popen(wine_path, "r");
-        if (convert == NULL)
-            Com_Error(__FILE__, __LINE__, 2, Error_Prefix "Failed to start map conversion process for '^2%s^7'.", mapname);
+        char cwd[1025],input[2048],output[2048];
+        if (!getcwd(cwd,sizeof(cwd)) ||
+            snprintf(input,sizeof(input),"Z:%s/" Macfix_Path "/Physics/convert.clump",cwd)>=(int)sizeof(input) ||
+            snprintf(output,sizeof(output),"Z:%s/" Macfix_Path "/Physics/%s",cwd,mapname)>=(int)sizeof(output))
+            Com_Error(__FILE__, __LINE__, 2, Error_Prefix "Map conversion path is too long.");
         char stdoutresult[0x400] = {0};
-        fread(stdoutresult, 1, 0x400, convert);
-        pclose(convert);
+        int conversion_status=bo3_run_converter(get_wine_path(),C2M_Path,input,output,600000,stdoutresult,sizeof(stdoutresult));
         printf("%s\n", stdoutresult);
+        if (conversion_status!=0)
+            Com_Error(__FILE__, __LINE__, 2, Error_Prefix "Map conversion failed for '^2%s^7' (status %d).",mapname,conversion_status);
         printf("conversion complete!\n");
 
         // make sure we have a navmesh file generated
@@ -698,6 +702,8 @@ int sandbox_init_with_parameters(const char *profile, uint64_t flags, const char
 
 #define EMUPATH_B "C:\\Emu\\AppAssets"
 #define EMUPATH_F "C:/Emu/AppAssets"
+#include "xpak_fallback.h"
+#include "mod_fileio.h"
 install_hook_name(ASL_ToNativePath, void *, void *asl, char *in_str)
 {
     char cwd[1025];
@@ -740,11 +746,13 @@ install_hook_name(ASL_ToNativePath, void *, void *asl, char *in_str)
             if (access(newpath, F_OK) == 0)
                 printf("redirecting %s to \"%s\"\n", in_filename, newpath);
 #endif
-            return orig_ASL_ToNativePath(asl, newpath);
+            char complete_pack[4096];
+            return orig_ASL_ToNativePath(asl, bo3_xpak_fallback(newpath, complete_pack, sizeof(complete_pack)) ? complete_pack : newpath);
         }
     }
     
-    return orig_ASL_ToNativePath(asl, in_str);
+    char complete_pack[4096];
+    return orig_ASL_ToNativePath(asl, bo3_xpak_fallback(in_str, complete_pack, sizeof(complete_pack)) ? complete_pack : in_str);
 }
 
 bool ISteamApps_BIsSubscribedApp(void *interface, AppId_t app) {
@@ -791,18 +799,13 @@ install_hook_name(CSteamAPIContext_Init, bool, CSteamAPIContext *ctx) {
 }
 
 void lua_correct_path(const char *in_path, char *out_path, size_t out_path_len) {
-    out_path[0] = '\0';
-    strncat(out_path, Basegame_Path, out_path_len - strlen(out_path) - 1);
-    strncat(out_path, in_path, out_path_len - strlen(out_path) - 1);
-    for (int i = 0; i < strlen(out_path); i++)
-        if (out_path[i] == '\\') out_path[i] = '/';
+    bo3_lua_path(Basegame_Path, in_path, out_path, out_path_len);
 }
 
 install_hook_name(hksf_fopen_internal, void *, char *filename, char *opentype, int unknown) {
-    printf("Lua opening file '%s'\n", filename);
     char newpath[4096];
-    lua_correct_path(filename, newpath, sizeof(newpath));
-    printf("-> '%s'\n", newpath);
+    if (!bo3_lua_path(Basegame_Path,filename,newpath,sizeof(newpath)) ||
+        !bo3_prepare_save(Basegame_Path,filename,opentype)) return NULL;
     return fopen(newpath, opentype);
 }
 
@@ -971,6 +974,12 @@ __attribute__((constructor)) static void dylib_main() {
 
     // set up functions that we later call
     havok_init(game_base_address);
+    bool t7o_exact_build=t7o_mac_fx_install(game_base_address,image_path);
+    t7o_mac_script_install(game_base_address,t7o_exact_build);
+    t7o_mac_pause_install(game_base_address,t7o_exact_build);
+    t7o_mac_movement_install(game_base_address,t7o_exact_build);
+    t7o_mac_presentation_install(game_base_address,t7o_exact_build);
+    t7o_mac_lifecycle_install(game_base_address,t7o_exact_build);
     R_TrackTextureMemory = (void *)(game_base_address + ADDR_R_TrackTextureMemory);
     build_usermods_path = (void *)(game_base_address + ADDR_build_usermods_path);
     DB_FindXAssetHeader = (void *)(game_base_address + ADDR_DB_FindXAssetHeader);

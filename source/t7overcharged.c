@@ -6,11 +6,22 @@
 #include <string.h>
 #include <strings.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include "havok.h"
 #include "offsets.h"
 #include "t7overcharged.h"
 #include "t7overcharged_lua.h"
+#include "t7o_core.h"
+#include "t7o_platform.h"
+#include "t7o_mac_fx.h"
+#include "t7o_mac_script.h"
+#include "t7o_mac_movement.h"
+#include "t7o_mac_pause.h"
+#include "t7o_mac_lifecycle.h"
+#include "t7o_mac_presentation.h"
 #include "utilities.h"
+#include "mod_fileio.h"
+#include "steam.h"
 
 // defined in bo3macfix.c
 extern uint64_t game_base_address;
@@ -22,18 +33,12 @@ void set_clipboard_text(const char *text);
 #define ASSET_TYPE_COUNT 0x6B
 #define MAX_ASSET_LIMIT 100000
 
-typedef struct _XAssetPool {
-    void *pool;
-    uint32_t itemSize;
-    int32_t itemCount;
-    bool isSingleton;
-    int32_t itemAllocCount;
-    void *freeHead;
-} XAssetPool;
+typedef T7oAssetPool XAssetPool;
 _Static_assert(sizeof(XAssetPool) == 0x20, "XAssetPool must match the game's layout");
 
 // the folder the mod's T7Overcharged DLL is in
 static char dll_dir[4096];
+static char dll_file[4096];
 
 bool t7o_is_overcharged_dll(const char *path) {
     const char *name = filename_from_path(path);
@@ -51,19 +56,14 @@ static void extend_asset_pool(int type, const char *name, int new_limit) {
         return;
     }
     XAssetPool *pool = (XAssetPool *)(game_base_address + ADDR_DB_XAssetPool) + type;
-    if (pool->isSingleton || pool->itemSize < sizeof(void *) || new_limit <= pool->itemCount)
-        return;
-    int added = new_limit - pool->itemCount;
-    uint8_t *block = calloc(added, pool->itemSize);
-    if (block == NULL)
-        return;
-    for (int i = 0; i < added; i++) {
-        void **entry = (void **)(block + (size_t)i * pool->itemSize);
-        *entry = (i + 1 < added) ? block + (size_t)(i + 1) * pool->itemSize : pool->freeHead;
+    int old_limit = pool->item_count;
+    void *allocation = NULL;
+    if (!t7o_pool_extend(pool, new_limit, &allocation)) {
+        printf("T7Overcharged: could not raise %s pool from %i to %i\n", name, old_limit, new_limit);
+    } else if (allocation != NULL) {
+        // Engine references can outlive the UI VM. Keep this allocation alive.
+        printf("T7Overcharged: raised %s limit from %i to %i\n", name, old_limit, new_limit);
     }
-    pool->freeHead = block;
-    printf("T7Overcharged: raised %s limit from %i to %i\n", name, pool->itemCount, new_limit);
-    pool->itemCount = new_limit;
 }
 
 // Applies the mod's T7Overcharged/assetlimits.txt, made of "<type> <name> <default limit> <new limit>" lines.
@@ -86,17 +86,7 @@ static void apply_asset_limits() {
 static int lua_create_directory(lua_State *s) {
     char path[4096];
     lua_correct_path(hks_check_string(s, 1), path, sizeof(path));
-    // like mkdir -p, create any missing parent folders too
-    bool ok = true;
-    for (char *p = path + 1; ok && *p != '\0'; p++) {
-        if (*p == '/') {
-            *p = '\0';
-            ok = mkdir(path, 0755) == 0 || errno == EEXIST;
-            *p = '/';
-        }
-    }
-    if (ok)
-        ok = mkdir(path, 0755) == 0 || errno == EEXIST;
+    bool ok = bo3_mkdirs(path);
     hks_push_boolean(s, ok);
     return 1;
 }
@@ -126,10 +116,61 @@ static int lua_print(lua_State *s) {
     return 0;
 }
 
+static int lua_native_call(lua_State *s) {
+    const char *operation = hks_check_string(s, 1);
+    size_t count = (size_t)(HKS_TOP(s) - HKS_BASE(s));
+    const char *arguments[7];
+    if (count == 0 || count > 8) {
+        hks_push_nil(s);
+        hks_push_string(s, "invalid BO3MacFix helper arguments");
+        return 2;
+    }
+    for (size_t i = 1; i < count; ++i) arguments[i - 1] = hks_check_string(s, (int)i + 1);
+    char json_path[4096];
+    if ((!strcmp(operation,"json.read") || !strcmp(operation,"json.write")) && count>1) {
+        lua_correct_path(arguments[0],json_path,sizeof(json_path)); arguments[0]=json_path;
+    }
+    if (strcmp(operation,"file.delete")==0 && count==2) {
+        char path[4096];
+        lua_correct_path(arguments[0],path,sizeof(path));
+        hks_push_string(s,unlink(path)==0 ? "1" : "0"); return 1;
+    }
+    if (strcmp(operation,"mod.unload")==0 && count==1) {
+        int status=t7o_mac_lifecycle_unload();
+        if (status<0) {
+            hks_push_nil(s);hks_push_string(s,"Mac mod lifecycle adapter is unavailable");return 2;
+        }
+        hks_push_string(s,status==1 ? "1" : "0");return 1;
+    }
+    char *result = t7o_platform_call(operation, count - 1, arguments);
+    if (result == NULL) {
+        hks_push_nil(s);
+        hks_push_string(s, "required native operation is unavailable");
+        return 2;
+    }
+    hks_push_string(s, result);
+    free(result);
+    return 1;
+}
+
 // Our version of T7Overcharged's init(): raises the mod's asset limits, then sets up the Lua libraries it provides.
 static int t7o_init(lua_State *s) {
     // the stack can be reallocated while our Lua runs, so remember the top as an index
     ptrdiff_t top = HKS_TOP(s) - HKS_BASE(s);
+    bool initialized = false;
+    t7o_platform_begin_mod(dll_file);
+    t7o_platform_ticket_provider(steam_http_ticket_copy);
+    char *save_codec=t7o_platform_call("capability",1,(const char *const[]){"save_codec"});
+    steam_http_auth_begin(save_codec && !strcmp(save_codec,"1"));
+    free(save_codec);
+    uint32_t capabilities=0;
+    if (t7o_mac_fx_activate()) capabilities|=T7O_CAP_FX;
+    if (t7o_mac_script_activate()) capabilities|=T7O_CAP_CSC;
+    if (t7o_mac_movement_activate()) capabilities|=T7O_CAP_MOVEMENT;
+    if (t7o_mac_pause_activate()) capabilities|=T7O_CAP_PAUSE;
+    if (t7o_mac_lifecycle_ready()) capabilities|=T7O_CAP_UNLOAD;
+    if (t7o_mac_presentation_activate()) capabilities|=T7O_CAP_AIM;
+    t7o_platform_engine_capabilities(capabilities);
     apply_asset_limits();
     if (hks_load_source(s, (const char *)t7overcharged_lua, t7overcharged_lua_len, "=BO3MacFix T7Overcharged")) {
         hks_push_cfunction(s, lua_create_directory, "CreateDirectory");
@@ -137,13 +178,20 @@ static int t7o_init(lua_State *s) {
         hks_push_cfunction(s, lua_clipboard_get, "ClipboardGet");
         hks_push_cfunction(s, lua_clipboard_set, "ClipboardSet");
         hks_push_cfunction(s, lua_print, "Print");
-        hks_pcall(s, 5, 0);
+        hks_push_cfunction(s, lua_native_call, "NativeCall");
+        if (hks_pcall(s, 6, 2)) {
+            HksObject *result = HKS_BASE(s) + top;
+            initialized = (result->t & 0xf) == HKS_TBOOLEAN && result->v.boolean != 0;
+        }
     }
     HKS_TOP(s) = HKS_BASE(s) + top;
-    return 0;
+    hks_push_boolean(s, initialized);
+    if (!initialized) printf("T7Overcharged: initialization failed; mod compatibility is unavailable\n");
+    return 1;
 }
 
 void t7o_push_init(lua_State *s, const char *dll_path) {
+    snprintf(dll_file, sizeof(dll_file), "%s", dll_path);
     strncpy(dll_dir, dll_path, sizeof(dll_dir) - 1);
     char *last_slash = strrchr(dll_dir, '/');
     if (last_slash != NULL)

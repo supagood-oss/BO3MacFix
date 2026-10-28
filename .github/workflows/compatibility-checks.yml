@@ -1,0 +1,74 @@
+name: Compatibility foundation checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  portable:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Create isolated test environment
+        run: |
+          python3 -m venv build/checks-env
+          build/checks-env/bin/pip install -r requirements-dev.txt
+      - name: Portable core, Lua contracts and build-profile checks
+        run: make test PYTHON=build/checks-env/bin/python
+  macos-build:
+    strategy:
+      fail-fast: false
+      matrix:
+        # Retry on the current M1 image after macos-15/14 capacity delays.
+        runner: [macos-15-intel, macos-26]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: HTTP transport and installer transactions (synthetic data only)
+        run: |
+          make test-macos
+          make test-steam-auth
+          python3 -m unittest discover -s tests -p test_map_support.py
+          make -C installer test
+          make test-converter-process
+      - name: Compile the Intel game patch and universal graphical app
+        run: |
+          make -j2 DEV_MOD_HOOKS=1 EXPERIMENTAL_MOD_TEST=1
+          make -C launcher
+          make -C installer gui
+          arch -x86_64 'installer/BO3MacFix Setup.app/Contents/Resources/Rosetta Check.app/Contents/MacOS/RosettaCheck'
+      - name: Assemble and verify a diagnostic-only app
+        run: |
+          codesign --force --sign - BO3MacFix.dylib
+          codesign --force --sign - launcher/AppBundleExe
+          python3 tools/package_setup.py --development --output 'build/BO3MacFix Diagnostics.app'
+          codesign --force --sign - 'build/BO3MacFix Diagnostics.app'
+          codesign --verify --deep --strict 'build/BO3MacFix Diagnostics.app'
+          ditto -c -k --keepParent 'build/BO3MacFix Diagnostics.app' build/BO3MacFix-Diagnostics.zip
+      - name: Assemble the explicit first-Mac-test installer
+        run: |
+          python3 tools/package_setup.py --test-candidate --output 'build/BO3MacFix Setup.app'
+          codesign --force --sign - 'build/BO3MacFix Setup.app'
+          codesign --verify --deep --strict 'build/BO3MacFix Setup.app'
+          ditto -c -k --keepParent 'build/BO3MacFix Setup.app' build/BO3MacFix-Mac-Test-1.4.zip
+      - name: Exercise the automatic dependency installer and converter startup
+        timeout-minutes: 12
+        run: |
+          make -C installer dependency-check
+          build/prepare_dependencies 'build/BO3MacFix Setup.app/Contents/Resources/payload' build/prepared-payload
+          cc -std=c11 -O1 -Wall -Wextra -Werror tools/converter_check.c source/converter_process.c -o build/converter-check
+          python3 tools/check_converter.py build/prepared-payload build/converter-check
+      - name: An incomplete source tree must not produce a gameplay release
+        run: |
+          if python3 tools/package_setup.py --output build/not-ready.app; then
+            echo 'Unexpected gameplay release from incomplete profiles'
+            exit 1
+          fi
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: Mac-build-checks-${{ matrix.runner }}
+          path: |
+            build/BO3MacFix-Diagnostics.zip
+            build/BO3MacFix-Mac-Test-1.4.zip
+          if-no-files-found: error

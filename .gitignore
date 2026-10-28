@@ -15,3 +15,26 @@ BO3MacFixLauncher
 *.bin
 source/t7overcharged_lua.h
 tests/test_stream_stall_recovery
+tests/test_t7o_core
+tests/test_t7o_payload
+tests/test_t7o_mac_fx_adapter
+tests/test_t7o_mac_script_adapter
+tests/test_t7o_platform
+tests/test_setup_engine
+*.o
+__pycache__/
+*.pyc
+installer/BO3MacFix Setup.app/
+installer/**/Rosetta Check.app/
+build/
+tests/test_t7o_mac_pause_adapter
+tests/test_t7o_mac_pause_adapter.exe
+tests/test_t7o_mac_movement_adapter
+tests/test_t7o_mac_movement_adapter.exe
+tests/test_t7o_codegen
+tests/test_t7o_codegen.exe
+tests/test_t7o_mac_lifecycle_adapter
+tests/test_t7o_mac_presentation_adapter
+tests/test_converter_process
+tests/test_steam_auth
+tests/test_t7o_json

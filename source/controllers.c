@@ -16,6 +16,7 @@
 #include "controllers.h"
 #include "prepatch.h"
 #include "gc_bridge.h"
+#include "t7o_mac_presentation.h"
 
 #define Controller_DB_Path "../../../BO3MacFix/gamecontrollerdb.txt"
 
@@ -195,6 +196,7 @@ static bool is_playstation_port(int port) {
 // Aspyr's version returns DURANGO for any gamepad on a port. The Lua UI (Engine.GamepadType, which uses the
 // ps3button_* images for ORBIS) and the ^B button glyphs in text both ask this function.
 install_hook_name(GPad_GetGamepadType, int, int controllerIndex) {
+    if ((unsigned)controllerIndex>=2) return GAMEPAD_TYPE_COUNT;
     int port = *(int *)(base_address + ADDR_g_gpads + controllerIndex * 0x70 + 4);
     if ((unsigned int)port > 3)
         return GAMEPAD_TYPE_COUNT;
@@ -205,7 +207,7 @@ install_hook_name(GPad_GetGamepadType, int, int controllerIndex) {
         printf("BO3MacFix: using %s button prompts\n", playstation ? "PlayStation" : "Xbox");
         last_type = type;
     }
-    return type;
+    return t7o_mac_presentation_gamepad(type);
 }
 
 void controllers_init(uint64_t base, int add_mappings, int button_prompts) {
@@ -215,7 +217,7 @@ void controllers_init(uint64_t base, int add_mappings, int button_prompts) {
         add_sdl_mappings();
     }
     button_prompts_mode = button_prompts;
-    if (button_prompts != 1) {
+    {
         // push rbp; mov rbp, rsp; movsxd rax, edi; imul rax, rax, 0x70
         static const uint8_t expected[] = { 0x55, 0x48, 0x89, 0xE5, 0x48, 0x63, 0xC7, 0x48, 0x6B, 0xC0, 0x70 };
         void *func = (void *)(base + ADDR_GPad_GetGamepadType);

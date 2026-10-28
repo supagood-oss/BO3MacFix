@@ -1,0 +1,935 @@
+{
+  "as_of": "2026-10-28",
+  "scope": "Selected native images, fastfiles, scripts and configuration files; twelve complete localized XPak pairs. Bulk media was not downloaded wholesale.",
+  "gameplay_tested": false,
+  "windows_coop_tested": false,
+  "original_mod_native_initialization_executed": false,
+  "map_backends_contacted": false,
+  "counts": {
+    "packages": 40,
+    "verified_files": 742,
+    "fastfiles": 649,
+    "lua_objects": 2593,
+    "lua_objects_fully_parsed": 2593,
+    "gsc_csc_import_inventories": 4081
+  },
+  "asset_checks": [
+    {
+      "id": "2910206016",
+      "name": "Call of the Dead",
+      "selected": true,
+      "missing_meshes": 35,
+      "hash_verified": true
+    },
+    {
+      "id": "2271346839",
+      "name": "Der Riese: Declassified",
+      "selected": true,
+      "missing_meshes": 23,
+      "hash_verified": true
+    },
+    {
+      "id": "3313949094",
+      "name": "Karma Rezort",
+      "selected": true,
+      "missing_meshes": 43,
+      "hash_verified": true
+    },
+    {
+      "id": "3242453013",
+      "name": "Super Mario 64",
+      "selected": true,
+      "missing_meshes": 18,
+      "hash_verified": true
+    },
+    {
+      "id": "3064355026",
+      "name": "Vae Victis",
+      "selected": true,
+      "missing_meshes": 23,
+      "hash_verified": true
+    },
+    {
+      "id": "3814067303",
+      "name": "Reaper Collection Rebuilt",
+      "selected": true,
+      "missing_meshes": 7,
+      "hash_verified": true
+    },
+    {
+      "id": "1535759989",
+      "name": "Modern Warfare Zombies",
+      "selected": true,
+      "missing_meshes": 18,
+      "hash_verified": true
+    },
+    {
+      "id": "1663631538",
+      "name": "Wanted",
+      "selected": true,
+      "missing_meshes": 32,
+      "hash_verified": true
+    },
+    {
+      "id": "1617497358",
+      "name": "Return to Das Herrenhaus",
+      "selected": false,
+      "missing_meshes": 4,
+      "hash_verified": true
+    },
+    {
+      "id": "2142193861",
+      "name": "Europa",
+      "selected": true,
+      "missing_meshes": 32,
+      "hash_verified": true
+    },
+    {
+      "id": "1807713320",
+      "name": "Atonement",
+      "selected": true,
+      "missing_meshes": 32,
+      "hash_verified": true
+    },
+    {
+      "id": "3811706779",
+      "name": "Silent Hill Zombies",
+      "selected": false,
+      "missing_meshes": 0,
+      "hash_verified": true
+    }
+  ],
+  "packages": [
+    {
+      "id": "2631943123",
+      "name": "AAE Current",
+      "manifest": "9050534316474466018",
+      "verified_files": 19,
+      "fastfiles": 13,
+      "lua_objects": 539,
+      "gsc_csc_import_inventories": 215,
+      "native_images": [
+        {
+          "file": "T7Overcharged.ff",
+          "sha256": "016ba5559c4f66cd8de864e4a85a8e7de573e97f4716ec0fd476558c9b4165c3",
+          "bytes": 3121152
+        },
+        {
+          "file": "discord_game_sdk.dll",
+          "sha256": "a6b6d7df00a58dc50248d91048578d0fe52182286b487ef89a961fd10467dbd1",
+          "bytes": 3488768
+        },
+        {
+          "file": "AAEUnified.dll",
+          "sha256": "577b4d054128b39bd4999197fc9ce51dc04c3710e49ca547c8f037fec7aa9eac",
+          "bytes": 438784
+        }
+      ],
+      "recovered_direct_api_accesses": {
+        "winOs.execute": 1,
+        "FileIO.ClipboardGet": 4,
+        "DiscordRPC.IsAvailable": 2,
+        "FileIO.FileExists": 13,
+        "FileIO.ReadFile": 13,
+        "FileIO.WriteFile": 11,
+        "DiscordRPC.ClearPresence": 2,
+        "DiscordRPC.Shutdown": 2,
+        "FileIO.FileSize": 5,
+        "FileIO.ClipboardSet": 4,
+        "Axios.PostEncrypted": 10,
+        "FileIO.Copy": 8,
+        "DiscordRPC.Enable": 2,
+        "MainLUA.ModuleLoaded": 2,
+        "Axios.GetRetrieve": 25,
+        "Axios.GetUpdateEncrypted": 18,
+        "Axios.GetUpdate": 10,
+        "FileIO.DirectoryExists": 2,
+        "FileIO.CreateDirectory": 2,
+        "FileIO.Wine": 8
+      },
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2631943123",
+      "steam_snapshot": {
+        "title": "[ZM] All-around Enhancement",
+        "stats": {
+          "Unique Visitors": "769,927",
+          "Current Subscribers": "530,019",
+          "Current Favorites": "23,208"
+        },
+        "rating_count": 7780,
+        "required_items": [
+          {
+            "id": "2994481309",
+            "title": "[ZM] All-around Enhancement Lite"
+          }
+        ]
+      }
+    },
+    {
+      "id": "2994481309",
+      "name": "AAE Lite",
+      "manifest": "7694158027624644005",
+      "verified_files": 19,
+      "fastfiles": 13,
+      "lua_objects": 509,
+      "gsc_csc_import_inventories": 213,
+      "native_images": [
+        {
+          "file": "T7Overcharged.ff",
+          "sha256": "016ba5559c4f66cd8de864e4a85a8e7de573e97f4716ec0fd476558c9b4165c3",
+          "bytes": 3121152
+        },
+        {
+          "file": "discord_game_sdk.dll",
+          "sha256": "a6b6d7df00a58dc50248d91048578d0fe52182286b487ef89a961fd10467dbd1",
+          "bytes": 3488768
+        },
+        {
+          "file": "AAEUnified.dll",
+          "sha256": "577b4d054128b39bd4999197fc9ce51dc04c3710e49ca547c8f037fec7aa9eac",
+          "bytes": 438784
+        }
+      ],
+      "recovered_direct_api_accesses": {
+        "winOs.execute": 1,
+        "FileIO.ClipboardGet": 4,
+        "DiscordRPC.IsAvailable": 2,
+        "FileIO.FileExists": 13,
+        "FileIO.ReadFile": 13,
+        "FileIO.WriteFile": 11,
+        "DiscordRPC.ClearPresence": 2,
+        "DiscordRPC.Shutdown": 2,
+        "FileIO.FileSize": 5,
+        "FileIO.ClipboardSet": 4,
+        "Axios.PostEncrypted": 10,
+        "FileIO.Copy": 8,
+        "DiscordRPC.Enable": 2,
+        "MainLUA.ModuleLoaded": 2,
+        "Axios.GetRetrieve": 25,
+        "Axios.GetUpdateEncrypted": 18,
+        "Axios.GetUpdate": 10,
+        "FileIO.DirectoryExists": 2,
+        "FileIO.CreateDirectory": 2,
+        "FileIO.Wine": 8
+      },
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2994481309",
+      "steam_snapshot": {
+        "title": "[ZM] All-around Enhancement Lite",
+        "stats": {
+          "Unique Visitors": "402,640",
+          "Current Subscribers": "330,182",
+          "Current Favorites": "9,883"
+        },
+        "rating_count": 3260,
+        "required_items": [
+          {
+            "id": "2631943123",
+            "title": "[ZM] All-around Enhancement"
+          }
+        ]
+      }
+    },
+    {
+      "id": "1807713320",
+      "name": "Atonement",
+      "manifest": "1821250525786925486",
+      "verified_files": 16,
+      "fastfiles": 13,
+      "lua_objects": 17,
+      "gsc_csc_import_inventories": 88,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=1807713320",
+      "steam_snapshot": {
+        "title": "ATONEMENT",
+        "stats": {
+          "Unique Visitors": "389,878",
+          "Current Subscribers": "97,855",
+          "Current Favorites": "13,066"
+        },
+        "rating_count": 3189,
+        "required_items": []
+      }
+    },
+    {
+      "id": "3667377161",
+      "name": "BO3 Reforged Public",
+      "manifest": "1130523989656347214",
+      "verified_files": 34,
+      "fastfiles": 27,
+      "lua_objects": 204,
+      "gsc_csc_import_inventories": 94,
+      "native_images": [
+        {
+          "file": "T7Overcharged.ff",
+          "sha256": "a2a8d492f1fabcf3f1a3912f46a8ac790570569208232e87fbda4f360a294153",
+          "bytes": 3030016
+        },
+        {
+          "file": "discord_game_sdk.dll",
+          "sha256": "a6b6d7df00a58dc50248d91048578d0fe52182286b487ef89a961fd10467dbd1",
+          "bytes": 3488768
+        }
+      ],
+      "recovered_direct_api_accesses": {
+        "MainLUA.ModuleLoaded": 2,
+        "MainLUA.UnloadMod": 2,
+        "FileIO.DirectoryExists": 8,
+        "FileIO.CreateDirectory": 8,
+        "FileIO.WriteFile": 12,
+        "FileIO.FileExists": 8,
+        "FileIO.ReadFile": 8
+      },
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=3667377161"
+    },
+    {
+      "id": "3446990455",
+      "name": "BO3 Wonder Weapon Pack",
+      "manifest": "7279098585285158557",
+      "verified_files": 14,
+      "fastfiles": 13,
+      "lua_objects": 33,
+      "gsc_csc_import_inventories": 151,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=3446990455",
+      "steam_snapshot": {
+        "title": "Black Ops 3 Wonder Weapon Pack",
+        "stats": {
+          "Unique Visitors": "249,995",
+          "Current Subscribers": "107,610",
+          "Current Favorites": "5,654"
+        },
+        "rating_count": 1373,
+        "required_items": []
+      }
+    },
+    {
+      "id": "3798094543",
+      "name": "BO3 Workshop Stack",
+      "manifest": "7906374633770306365",
+      "verified_files": 16,
+      "fastfiles": 13,
+      "lua_objects": 2,
+      "gsc_csc_import_inventories": 0,
+      "native_images": [
+        {
+          "file": "bo3_stack.dll",
+          "sha256": "c0b71daaa20736e658cb1861a994c91eb57664c62a35f1b76173520382343691",
+          "bytes": 2293760
+        }
+      ],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=3798094543",
+      "steam_snapshot": {
+        "title": "BO3 Workshop Stack (Experimental)",
+        "stats": {
+          "Unique Visitors": "69,213",
+          "Current Subscribers": "32,759",
+          "Current Favorites": "1,810"
+        },
+        "rating_count": 646,
+        "required_items": []
+      }
+    },
+    {
+      "id": "2910206016",
+      "name": "Call of the Dead",
+      "manifest": "6137960997622097531",
+      "verified_files": 16,
+      "fastfiles": 13,
+      "lua_objects": 2,
+      "gsc_csc_import_inventories": 48,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2910206016"
+    },
+    {
+      "id": "2272246143",
+      "name": "Daybreak",
+      "manifest": "7434582417752811363",
+      "verified_files": 14,
+      "fastfiles": 13,
+      "lua_objects": 37,
+      "gsc_csc_import_inventories": 42,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2272246143"
+    },
+    {
+      "id": "885119667",
+      "name": "Dead High",
+      "manifest": "6852605559916940411",
+      "verified_files": 15,
+      "fastfiles": 13,
+      "lua_objects": 99,
+      "gsc_csc_import_inventories": 256,
+      "native_images": [
+        {
+          "file": "T7Overcharged.dll",
+          "sha256": "9a115ad7b7cb20c01b5bcaec66777467f570171df0a5bdf2972f334c9f66214f",
+          "bytes": 531456
+        }
+      ],
+      "recovered_direct_api_accesses": {
+        "Axios.PostQueued": 2,
+        "Axios.Result": 2,
+        "Crypto.Encode": 6,
+        "Crypto.Decode": 4,
+        "Files.Delete": 4,
+        "Files.Exists": 4,
+        "Files.IsDir": 2,
+        "Files.MakeDir": 2,
+        "Axios.PostAndResponse": 1,
+        "Axios.Post": 4,
+        "Axios.Get": 1,
+        "UIErrorHash.Remove": 1,
+        "DiscordRPC.Enable": 1
+      },
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=885119667"
+    },
+    {
+      "id": "2271346839",
+      "name": "Der Riese: Declassified",
+      "manifest": "128794641000842476",
+      "verified_files": 16,
+      "fastfiles": 13,
+      "lua_objects": 21,
+      "gsc_csc_import_inventories": 65,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2271346839"
+    },
+    {
+      "id": "3435762796",
+      "name": "Die Rise",
+      "manifest": "5436249663728243636",
+      "verified_files": 14,
+      "fastfiles": 13,
+      "lua_objects": 125,
+      "gsc_csc_import_inventories": 96,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=3435762796"
+    },
+    {
+      "id": "2142193861",
+      "name": "Europa",
+      "manifest": "2070349762333510413",
+      "verified_files": 16,
+      "fastfiles": 13,
+      "lua_objects": 19,
+      "gsc_csc_import_inventories": 87,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2142193861",
+      "steam_snapshot": {
+        "title": "EUROPA",
+        "stats": {
+          "Unique Visitors": "624,884",
+          "Current Subscribers": "154,440",
+          "Current Favorites": "15,922"
+        },
+        "rating_count": 4441,
+        "required_items": []
+      }
+    },
+    {
+      "id": "3757218836",
+      "name": "FIVE",
+      "manifest": "2236342221687249921",
+      "verified_files": 14,
+      "fastfiles": 13,
+      "lua_objects": 34,
+      "gsc_csc_import_inventories": 71,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=3757218836"
+    },
+    {
+      "id": "1617936945",
+      "name": "Herrenhaus Intro Fix",
+      "manifest": "5876655703089170580",
+      "verified_files": 14,
+      "fastfiles": 13,
+      "lua_objects": 0,
+      "gsc_csc_import_inventories": 0,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=1617936945",
+      "steam_snapshot": {
+        "title": "[Optional] Return to Das Herrenhaus - INTRO FIX",
+        "stats": {
+          "Unique Visitors": "176,420",
+          "Current Subscribers": "95,059",
+          "Current Favorites": "5,744"
+        },
+        "rating_count": 1342,
+        "required_items": [
+          {
+            "id": "1617497358",
+            "title": "Return to Das Herrenhaus [v1.05]"
+          }
+        ]
+      }
+    },
+    {
+      "id": "3313949094",
+      "name": "Karma Rezort",
+      "manifest": "8363197827506874369",
+      "verified_files": 18,
+      "fastfiles": 15,
+      "lua_objects": 53,
+      "gsc_csc_import_inventories": 195,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=3313949094"
+    },
+    {
+      "id": "2370179373",
+      "name": "Kowloon",
+      "manifest": "4956032268620881583",
+      "verified_files": 14,
+      "fastfiles": 13,
+      "lua_objects": 30,
+      "gsc_csc_import_inventories": 79,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2370179373"
+    },
+    {
+      "id": "2112576356",
+      "name": "Leviathan",
+      "manifest": "1607977206495548614",
+      "verified_files": 14,
+      "fastfiles": 13,
+      "lua_objects": 12,
+      "gsc_csc_import_inventories": 121,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2112576356"
+    },
+    {
+      "id": "3326914199",
+      "name": "Lifetime",
+      "manifest": "6848821523746606594",
+      "verified_files": 14,
+      "fastfiles": 13,
+      "lua_objects": 4,
+      "gsc_csc_import_inventories": 71,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=3326914199",
+      "steam_snapshot": {
+        "title": "LIFETIME",
+        "stats": {
+          "Unique Visitors": "10,850",
+          "Current Subscribers": "1,015",
+          "Current Favorites": "181"
+        },
+        "rating_count": 65,
+        "required_items": []
+      }
+    },
+    {
+      "id": "3373649394",
+      "name": "Mob of the Dead (2024)",
+      "manifest": "4966803697729669535",
+      "verified_files": 14,
+      "fastfiles": 13,
+      "lua_objects": 20,
+      "gsc_csc_import_inventories": 60,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=3373649394"
+    },
+    {
+      "id": "1535759989",
+      "name": "Modern Warfare Zombies",
+      "manifest": "8441366201809633885",
+      "verified_files": 30,
+      "fastfiles": 26,
+      "lua_objects": 100,
+      "gsc_csc_import_inventories": 273,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=1535759989",
+      "steam_snapshot": {
+        "title": "[MWZ] Modern Warfare Zombies: Complete Edition",
+        "stats": {
+          "Unique Visitors": "593,890",
+          "Current Subscribers": "155,892",
+          "Current Favorites": "14,962"
+        },
+        "rating_count": 3955,
+        "required_items": []
+      }
+    },
+    {
+      "id": "3236409516",
+      "name": "Monkey Village",
+      "manifest": "8177726125933200784",
+      "verified_files": 14,
+      "fastfiles": 13,
+      "lua_objects": 2,
+      "gsc_csc_import_inventories": 71,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=3236409516"
+    },
+    {
+      "id": "2561343259",
+      "name": "Nightmare",
+      "manifest": "8504801845596464545",
+      "verified_files": 14,
+      "fastfiles": 13,
+      "lua_objects": 99,
+      "gsc_csc_import_inventories": 103,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2561343259"
+    },
+    {
+      "id": "2180904327",
+      "name": "Nuketown Zombies Legacy",
+      "manifest": "1837645455528299543",
+      "verified_files": 15,
+      "fastfiles": 13,
+      "lua_objects": 125,
+      "gsc_csc_import_inventories": 186,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2180904327"
+    },
+    {
+      "id": "2926551695",
+      "name": "Quiet Cosmos",
+      "manifest": "6886428553884458568",
+      "verified_files": 14,
+      "fastfiles": 13,
+      "lua_objects": 45,
+      "gsc_csc_import_inventories": 143,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2926551695"
+    },
+    {
+      "id": "2671909054",
+      "name": "Rainy Death",
+      "manifest": "106319372512373297",
+      "verified_files": 14,
+      "fastfiles": 13,
+      "lua_objects": 53,
+      "gsc_csc_import_inventories": 95,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2671909054"
+    },
+    {
+      "id": "2801151115",
+      "name": "Reaper Collection",
+      "manifest": "7904804334374433458",
+      "verified_files": 54,
+      "fastfiles": 52,
+      "lua_objects": 81,
+      "gsc_csc_import_inventories": 196,
+      "native_images": [
+        {
+          "file": "T7Overcharged.dll",
+          "sha256": "2d8d13be6534f54b7a26cad21ad2018c0f028e7971c9f8efc206bdd376ed6698",
+          "bytes": 3034112
+        }
+      ],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2801151115",
+      "steam_snapshot": {
+        "title": "Reaper Collection v1.115.1",
+        "stats": {
+          "Unique Visitors": "514,464",
+          "Current Subscribers": "241,059",
+          "Current Favorites": "13,810"
+        },
+        "rating_count": 3836,
+        "required_items": []
+      }
+    },
+    {
+      "id": "3814067303",
+      "name": "Reaper Collection Rebuilt",
+      "manifest": "410887434855966130",
+      "verified_files": 29,
+      "fastfiles": 26,
+      "lua_objects": 74,
+      "gsc_csc_import_inventories": 230,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=3814067303",
+      "steam_snapshot": {
+        "title": "REAPER COLLECTION REBUILT",
+        "stats": {
+          "Unique Visitors": "35,705",
+          "Current Subscribers": "13,623",
+          "Current Favorites": "724"
+        },
+        "rating_count": 210,
+        "required_items": []
+      }
+    },
+    {
+      "id": "1617497358",
+      "name": "Return to Das Herrenhaus",
+      "manifest": "4865859246755388079",
+      "verified_files": 16,
+      "fastfiles": 13,
+      "lua_objects": 3,
+      "gsc_csc_import_inventories": 45,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=1617497358",
+      "steam_snapshot": {
+        "title": "Return to Das Herrenhaus [v1.05]",
+        "stats": {
+          "Unique Visitors": "561,343",
+          "Current Subscribers": "175,677",
+          "Current Favorites": "17,129"
+        },
+        "rating_count": 4443,
+        "required_items": [
+          {
+            "id": "1617936945",
+            "title": "[Optional] Return to Das Herrenhaus - INTRO FIX"
+          }
+        ]
+      }
+    },
+    {
+      "id": "3771837767",
+      "name": "Rogue Run",
+      "manifest": "3138703722887462563",
+      "verified_files": 14,
+      "fastfiles": 13,
+      "lua_objects": 3,
+      "gsc_csc_import_inventories": 21,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=3771837767",
+      "steam_snapshot": {
+        "title": "Rogue Run: Black Ops 3",
+        "stats": {
+          "Unique Visitors": "135,935",
+          "Current Subscribers": "56,445",
+          "Current Favorites": "1,890"
+        },
+        "rating_count": 518,
+        "required_items": []
+      }
+    },
+    {
+      "id": "3811706779",
+      "name": "Silent Hill Zombies",
+      "manifest": "3956734039020680499",
+      "verified_files": 16,
+      "fastfiles": 13,
+      "lua_objects": 1,
+      "gsc_csc_import_inventories": 14,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=3811706779",
+      "steam_snapshot": {
+        "title": "SILENT HILL Zombies - 2.0 Halloween Update",
+        "stats": {
+          "Unique Visitors": "28,660",
+          "Current Subscribers": "13,187",
+          "Current Favorites": "716"
+        },
+        "rating_count": 289,
+        "required_items": []
+      }
+    },
+    {
+      "id": "1944930083",
+      "name": "Solo Easter Eggs",
+      "manifest": "3161215550821427146",
+      "verified_files": 14,
+      "fastfiles": 13,
+      "lua_objects": 2,
+      "gsc_csc_import_inventories": 6,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=1944930083",
+      "steam_snapshot": {
+        "title": "Solo Easter Eggs",
+        "stats": {
+          "Unique Visitors": "274,871",
+          "Current Subscribers": "143,538",
+          "Current Favorites": "6,567"
+        },
+        "rating_count": 2029,
+        "required_items": []
+      }
+    },
+    {
+      "id": "3242453013",
+      "name": "Super Mario 64",
+      "manifest": "8347288781730080402",
+      "verified_files": 19,
+      "fastfiles": 13,
+      "lua_objects": 32,
+      "gsc_csc_import_inventories": 97,
+      "native_images": [
+        {
+          "file": "T7Overcharged.dll",
+          "sha256": "2d8d13be6534f54b7a26cad21ad2018c0f028e7971c9f8efc206bdd376ed6698",
+          "bytes": 3034112
+        }
+      ],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=3242453013"
+    },
+    {
+      "id": "2983136028",
+      "name": "The Iron Dragon",
+      "manifest": "6839226825292875790",
+      "verified_files": 14,
+      "fastfiles": 13,
+      "lua_objects": 12,
+      "gsc_csc_import_inventories": 134,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2983136028"
+    },
+    {
+      "id": "3721898725",
+      "name": "The Last Vessel",
+      "manifest": "465332509797089324",
+      "verified_files": 14,
+      "fastfiles": 13,
+      "lua_objects": 21,
+      "gsc_csc_import_inventories": 50,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=3721898725"
+    },
+    {
+      "id": "1624257987",
+      "name": "Town Reimagined",
+      "manifest": "4053905155445406266",
+      "verified_files": 14,
+      "fastfiles": 13,
+      "lua_objects": 0,
+      "gsc_csc_import_inventories": 94,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=1624257987"
+    },
+    {
+      "id": "3064355026",
+      "name": "Vae Victis",
+      "manifest": "6239299069862283273",
+      "verified_files": 16,
+      "fastfiles": 13,
+      "lua_objects": 23,
+      "gsc_csc_import_inventories": 114,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=3064355026"
+    },
+    {
+      "id": "1663631538",
+      "name": "Wanted",
+      "manifest": "5033130416910548672",
+      "verified_files": 16,
+      "fastfiles": 13,
+      "lua_objects": 33,
+      "gsc_csc_import_inventories": 97,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=1663631538",
+      "steam_snapshot": {
+        "title": "WANTED",
+        "stats": {
+          "Unique Visitors": "1,020,746",
+          "Current Subscribers": "400,728",
+          "Current Favorites": "29,473"
+        },
+        "rating_count": 9744,
+        "required_items": []
+      }
+    },
+    {
+      "id": "3294815890",
+      "name": "Water Park Zombies",
+      "manifest": "4041788647611248200",
+      "verified_files": 14,
+      "fastfiles": 13,
+      "lua_objects": 59,
+      "gsc_csc_import_inventories": 91,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=3294815890"
+    },
+    {
+      "id": "3554303768",
+      "name": "ZM Expanded Experience",
+      "manifest": "4078568122437287745",
+      "verified_files": 31,
+      "fastfiles": 26,
+      "lua_objects": 58,
+      "gsc_csc_import_inventories": 29,
+      "native_images": [
+        {
+          "file": "T7Overcharged.ff",
+          "sha256": "016ba5559c4f66cd8de864e4a85a8e7de573e97f4716ec0fd476558c9b4165c3",
+          "bytes": 3121152
+        },
+        {
+          "file": "discord_game_sdk.dll",
+          "sha256": "a6b6d7df00a58dc50248d91048578d0fe52182286b487ef89a961fd10467dbd1",
+          "bytes": 3488768
+        }
+      ],
+      "recovered_direct_api_accesses": {
+        "FileIO.DirectoryExists": 1,
+        "FileIO.CreateDirectory": 1,
+        "FileIO.ReadFile": 1,
+        "JSON.ReadJson": 8,
+        "FileIO.FileExists": 3,
+        "DiscordRPC.Enable": 2,
+        "FileIO.WriteFile": 4,
+        "JSON.WriteJson": 8
+      },
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=3554303768",
+      "steam_snapshot": {
+        "title": "ZM Expanded Experience v4.62",
+        "stats": {
+          "Unique Visitors": "6,271",
+          "Current Subscribers": "445",
+          "Current Favorites": "90"
+        },
+        "rating_count": 36,
+        "required_items": []
+      }
+    },
+    {
+      "id": "2833912385",
+      "name": "Zombie Plus",
+      "manifest": "7888439752263722762",
+      "verified_files": 49,
+      "fastfiles": 48,
+      "lua_objects": 7,
+      "gsc_csc_import_inventories": 40,
+      "native_images": [],
+      "recovered_direct_api_accesses": {},
+      "source": "https://steamcommunity.com/sharedfiles/filedetails/?id=2833912385",
+      "steam_snapshot": {
+        "title": "Zombie [Plus] Mod",
+        "stats": {
+          "Unique Visitors": "543,464",
+          "Current Subscribers": "103,479",
+          "Current Favorites": "8,305"
+        },
+        "rating_count": 2157,
+        "required_items": []
+      }
+    }
+  ]
+}

@@ -31,6 +31,20 @@ const char *get_wine_path() {
     if (env_wine_path != NULL)
         return (const char *)env_wine_path;
 
+    // The graphical installer can bundle a qualified runtime so players do
+    // not need a package manager or a command-line Wine installation.
+    const char *bundled_wine[] = {
+        "../../../BO3MacFix/runtime/wine/bin/wine64",
+        "../../../BO3MacFix/runtime/wine/bin/wine"
+    };
+    for (size_t i = 0; i < sizeof(bundled_wine) / sizeof(bundled_wine[0]); ++i) {
+        if (access(bundled_wine[i], X_OK) == 0) {
+            snprintf(wine_path, sizeof(wine_path), "%s", bundled_wine[i]);
+            wine_found = true;
+            return wine_path;
+        }
+    }
+
     // neither of these worked? let's go searching!
     char wine_path_test[2048];
 

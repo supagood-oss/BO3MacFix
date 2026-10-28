@@ -1,9 +1,27 @@
+> Earlier public test downloads were withdrawn. The clean installer is being
+> rebuilt; do not reuse an earlier archive. Credential-dependent online features
+> are disabled, while gameplay and ordinary HTTP support are retained.
+
 # BO3MacFix
 
 Fixes Black Ops 3 on Mac so custom maps from the Steam Workshop can be played and online matches can be played
 with people running the Windows version of the game.
 
 by Emma / InvoxiPlayGames and Anthony / serious.
+
+## AAE/UEM development branch
+
+This branch implements shared AAE/UEM native APIs and all eleven movement
+options, with an experimental graphical installer for the first Mac test.
+**Windows-Mac co-op is unverified.** The ordinary production release remains
+blocked until that test passes. See [implementation status](docs/MOD_COMPATIBILITY.md)
+and the [Mac test procedure](docs/MAC_TEST.md).
+
+[Download the experimental Mac Test 1.4 installer](https://github.com/supagood-oss/BO3MacFix/releases/tag/aae-uem-mac-test-1.4).
+It adds Expanded JSON settings, dvar flags and controller glyphs, with credential recovery removed. The shared missing-mesh fallback covers ten inspected
+packages; Dead High API/save support is retained. See [map support and remaining gaps](docs/MAP_SUPPORT.md).
+Gameplay and Windows-Mac co-op remain unverified. AAE 4.0 ships a new native
+plugin whose additional features are not yet ported; see the support record.
 
 ### Any issues you run into with custom maps or workshop mods should be reported here, and *not* to the mod's author!
 

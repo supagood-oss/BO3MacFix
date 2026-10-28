@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "id": "upstream-1.2-beta3-dual-mac-wine-v3",
+  "archives": [
+    {
+      "kind": "upstream",
+      "label": "game conversion helpers",
+      "url": "https://github.com/InvoxiPlayGames/BO3MacFix/releases/download/1.2-beta3/BO3MacFix-1.2-beta3.tar.gz",
+      "bytes": 84827399,
+      "sha256": "aa954df5a912e8c0131a4178c0983e9d65313487fcc9092ea49a78bf6aa2b14c"
+    },
+    {
+      "kind": "wine",
+      "label": "map conversion support",
+      "url": "https://github.com/Sikarugir-App/Engines/releases/download/v1.0/WS12WineSikarugir10.0_6.tar.xz",
+      "bytes": 166304096,
+      "sha256": "9da7ee0cbf386522f3a9906943726d9c3c125dbbd9ab120e3cde80e88d6091b2",
+      "host_arch": "arm64"
+    },
+    {
+      "kind": "wine",
+      "host_arch": "x86_64",
+      "label": "map conversion support",
+      "url": "https://github.com/Sikarugir-App/Engines/releases/download/v1.0/WS12WineCX24.0.7_7.tar.xz",
+      "bytes": 172348356,
+      "sha256": "203f9e9fd6c2cc77e6525d798a434ced326145db34a356355e05659d3445fd1c"
+    },
+    {
+      "kind": "frameworks",
+      "label": "conversion libraries",
+      "url": "https://github.com/Sikarugir-App/Template/releases/download/v1.0/Template-1.0.11.tar.xz",
+      "bytes": 84533420,
+      "sha256": "9fa15479e7ff6abd99c1d07be285fb95f41fc6991586502427152b1f7d6ccb8a"
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include "steam/CSteamAPIContext.h"
 #include "steam/CCallback.h"
+#include "steam_auth.h"
 
 void init_steam_context(CSteamAPIContext *context);
 

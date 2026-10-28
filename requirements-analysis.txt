@@ -1,0 +1,3 @@
+# Optional developer-only checks against a locally owned Mac executable.
+# End users do not install this dependency.
+unicorn==2.1.4

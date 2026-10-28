@@ -13,6 +13,7 @@ static ISteamApps isteamapps;
 
 void init_steam_context(CSteamAPIContext *context) {
     ctx = context;
+    steam_http_auth_context(ctx->m_pSteamUser);
     // keep note of our steamid and original name
     myId = (*ctx->m_pSteamUser)->GetSteamID(ctx->m_pSteamUser);
     originalName = (*ctx->m_pSteamFriends)->GetPersonaName(ctx->m_pSteamFriends);

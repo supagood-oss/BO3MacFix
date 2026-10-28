@@ -25,6 +25,11 @@ const void *prepatch_original_code(const void *address, size_t size);
 // points the call through objc_msgSend's pointer at offset at function, which the pre-patched copy does through a
 // slot. Returns false when not running from the copy, or it has no such call.
 bool prepatch_redirect_call(uint32_t offset, void *function);
+/* Development gameplay settings: update an existing DATA slot only. Never
+ * falls back to writing code when a site/build is missing. */
+bool prepatch_native_site_present(uint32_t offset);
+bool prepatch_set_native_value(uint32_t offset,uint32_t value,bool enabled);
+bool prepatch_set_inline_callback(uint32_t offset,void (*callback)(void));
 
 // prints what was set up from the pre-patched copy, and whether any game code page was written
 void prepatch_report(void);

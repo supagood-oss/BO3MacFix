@@ -26,21 +26,30 @@
 #include "dobby.h"
 #include "offsets.h"
 #include "prepatch.h"
+#include "t7o_mac_offsets.h"
+#include "t7o_core.h"
+#include "t7o_codegen.h"
 
 #define EXPORT __attribute__((visibility("default")))
 
 #define Prepatch_Magic "BO3MFPP1"
 #define Prepatch_Version 2
 #define Game_Base 0x100000000ULL
+/* Verified zero padding between load commands (ending 0x17f8) and the first
+ * __TEXT section (0x2100). No load command or game section is overwritten. */
+#define Native_Code_Start 0x1800u
+#define Native_Code_End 0x2100u
 
 #pragma mark - what goes into the copy
 
-// a hooked function, with the whole instructions the 5-byte jump at its entry replaces (none rip-relative)
+// Whole instructions replaced by the entry jump. The explicitly identified
+// client-pause LEA and strafe float load are relocated below; other entries
+// have no RIP-relative instructions in their replaced prefix.
 typedef struct {
     uint32_t function;
     uint8_t length;
     uint8_t short_jcc_at; // 1 + the offset of a short conditional jump among them, made near in the trampoline
-    uint8_t stolen[10];
+    uint8_t stolen[16];
 } hook_def_t;
 
 #define Push_R15 6, 0, { 0x55, 0x48, 0x89, 0xE5, 0x41, 0x57 } // push rbp; mov rbp, rsp; push r15
@@ -48,6 +57,31 @@ typedef struct {
 
 // every function BO3MacFix hooks
 static const hook_def_t hook_defs[] = {
+#if T7O_DEV_NATIVE
+    { T7O_MAC_HOLD_BREATH_HINT,Push_R15 },
+    { T7O_MAC_JUMP_PENALTY,5,0,{0x55,0x48,0x89,0xe5,0x53} },
+    { T7O_MAC_APPLY_JUMP_PENALTY,5,0,{0x55,0x48,0x89,0xe5,0x53} },
+    { T7O_MAC_JUMP,Push_R15 },
+    { T7O_MAC_LAND_SEVERITY,6,0,{0x55,0x48,0x89,0xe5,0x31,0xc9} },
+    { T7O_MAC_SLIDE_ELIGIBLE,5,0,{0x55,0x48,0x89,0xe5,0x53} },
+    { T7O_MAC_CLAMP_PITCH,9,0,{0x55,0x48,0x89,0xe5,0xf3,0x0f,0x2a,0x4e,0x10} },
+    { T7O_MAC_FORCE_VIEW,6,0,{0x55,0x48,0x89,0xe5,0x85,0xf6} },
+    { T7O_MAC_FRICTION, Push_R15 },
+    { T7O_MAC_ACCELERATE, Push_R15 },
+    { T7O_MAC_FRICTION_SCALE, 12,0,{0x55,0x48,0x89,0xe5,0xf3,0x0f,0x10,0x05,0x75,0xa1,0x7c,0} },
+    { T7O_MAC_LOAD_MOD_CORE, Push_R15 },
+    { T7O_MAC_SLIDE_ACCELERATE, Push_R15 },
+    { T7O_MAC_STRAFE_SCALE, 12, 0, { 0x55,0x48,0x89,0xE5,0xF3,0x0F,0x10,0x05,0x3B,0xB3,0x82,0x00 } },
+    { T7O_MAC_UPDATE_SPRINT, Push_R15 },
+    { T7O_MAC_CLIENT_CAN_PAUSE, 11, 0, { 0x55,0x48,0x89,0xE5,0x48,0x8D,0x0D,0x4A,0xC1,0x04,0x10 } },
+    { T7O_MAC_SERVER_CAN_PAUSE, 5, 0, { 0x55,0x48,0x89,0xE5,0x53 } },
+    { T7O_MAC_FX_REGISTER_DEF, Push_R15 },
+    { T7O_MAC_FX_GET_POINTER, 6, 0, { 0x55,0x48,0x89,0xE5,0x89,0xF8 } },
+    { T7O_MAC_FX_GET_NAME, 6, 0, { 0x55,0x48,0x89,0xE5,0x89,0xF8 } },
+    { T7O_MAC_FX_GET_INDEX, 7, 0, { 0x55,0x48,0x89,0xE5,0x48,0x89,0xF0 } },
+    { T7O_MAC_FX_UNREGISTER, 7, 0, { 0x55,0x48,0x89,0xE5,0x48,0x89,0xF0 } },
+    { T7O_MAC_CACHE_RESET, 5, 0, { 0x55,0x48,0x89,0xE5,0x53 } },
+#endif
     { ADDR_ASL_SleepEx, Push_R15 },
     { ADDR_ASL_ToNativePath, Push_R15 },
     { ADDR_ASL_XInputGetState, Push_R14 },
@@ -77,10 +111,32 @@ static const hook_def_t hook_defs[] = {
 // a "mov r32, imm32" that a setting changes, with the flags dead after it (its stub tests the slot)
 typedef struct {
     uint32_t site;
-    uint8_t original[5];
+    uint8_t original[8];
+    uint8_t kind; /* 0 mov; 1 cmp; 2 force Jcc taken; 3 force fall-through */
+    uint8_t length; /* zero means the original five-byte MOV form */
 } value_def_t;
 
 static const value_def_t value_defs[] = {
+#if T7O_DEV_NATIVE
+    { T7O_MAC_SLIDE_FRICTION_LOAD,{0xf3,0x0f,0x10,0x05,0xb2,0x4d,0x6a,0},7,8 },
+    { T7O_MAC_SWAP_TIMING_A,{0xf3,0x0f,0x5e,0x05,0x3b,0x77,0x96,0},7,8 },
+    { T7O_MAC_SWAP_TIMING_B,{0xf3,0x0f,0x5e,0x05,0xb3,0x75,0x96,0},7,8 },
+    { T7O_MAC_SWAP_ANIMATION,{0xf3,0x0f,0x5e,0x05,0x27,0xa8,0xab,0},7,8 },
+    { T7O_MAC_SWAP_PRESENTATION,{0xf3,0x0f,0x59,0x05,0xa7,0x94,0xab,0},7,8 },
+    { T7O_MAC_JUMP_CAP_BRANCH,{0x76,0x47,0xf3,0x0f,0x51,0xd2},6,6 },
+    { T7O_MAC_LAND_BEGIN,{0x4d,0x8b,0x24,0x24,0x4c,0x89,0xe7},5,7 },
+    { T7O_MAC_LAND_END,{0x48,0x8d,0x9d,0xa0,0xfe,0xff,0xff},5,7 },
+    { T7O_MAC_JUMP_PENALTY_BRANCH,{0x0f,0x84,0x42,0x02,0,0},3,6 },
+    { T7O_MAC_SPRINT_LEAP_COMPARE_A, {0x81,0xf9,0xdc,0x05,0,0}, 1,6 },
+    { T7O_MAC_ADS_MODE_BRANCH_A, {0x74,0x20,0x45,0x8b,0x7c,0x24,0x68}, 3,7 },
+    { T7O_MAC_ADS_MODE_BRANCH_B, {0x74,0x0c,0x0f,0x28,0x45,0xc0}, 3,6 },
+    { T7O_MAC_ADS_SCALE, {0xf3,0x0f,0x58,0xc0,0x0f,0x29,0x45,0xc0}, 4,8 },
+    { T7O_MAC_SPRINT_LEAP_COMPARE_B, {0x3d,0xdc,0x05,0,0}, 1,5 },
+    { T7O_MAC_SPRINT_LERP_COMPARE, {0x3d,0x5d,0x01,0,0}, 1,5 },
+    { T7O_MAC_JUMP_INTERVAL_COMPARE, {0x81,0xf9,0xf4,0x01,0,0}, 1,6 },
+    { T7O_MAC_SLIDE_SLOW_BRANCH, {0x7d,0x2e,0x0f,0x57,0xc0}, 2,5 },
+    { T7O_MAC_SLIDE_SPRINT_BRANCH, {0x0f,0x84,0x4b,0x01,0,0}, 3,6 },
+#endif
     { ADDR_JobThreadsDvar_DefaultInstr, { 0xBA, 0x02, 0x00, 0x00, 0x00 } },      // mov edx, 2
     { ADDR_JQ_IdleWait_TimeoutInstr, { 0xBE, 0x01, 0x00, 0x00, 0x00 } },         // mov esi, 1
     { ADDR_ASL_FramesInFlightSemaphoreInstr, { 0xBF, 0x02, 0x00, 0x00, 0x00 } }, // mov edi, 2
@@ -325,7 +381,7 @@ int BO3MacFix_CodePatch(void *address, uint8_t *buffer, uint32_t buffer_size) {
     }
     for (uint32_t i = 0; i < header->value_count; i++) {
         const prepatch_site_t *v = &values[i];
-        if (v->site == offset && buffer_size == v->length && buffer[0] == v->original[0]) {
+        if (v->pad[0]==0 && v->site == offset && buffer_size == v->length && buffer[0] == v->original[0]) {
             uint32_t value;
             memcpy(&value, buffer + 1, sizeof(value));
             *(uint32_t *)(base + v->slot) = value;
@@ -353,6 +409,31 @@ bool prepatch_redirect_call(uint32_t offset, void *function) {
             calls_set++;
             return true;
         }
+    }
+    return false;
+}
+
+bool prepatch_native_site_present(uint32_t offset) {
+    if (!prepatch_active() || header->table_id!=table_id()) return false;
+    for (uint32_t i=0;i<header->value_count;++i)
+        if (values[i].site==offset && values[i].pad[0]!=0) return true;
+    return false;
+}
+bool prepatch_set_native_value(uint32_t offset,uint32_t value,bool enabled) {
+    if (!prepatch_native_site_present(offset)) return false;
+    for (uint32_t i=0;i<header->value_count;++i) if (values[i].site==offset &&
+        (values[i].pad[0]<=4 || values[i].pad[0]==7)) {
+        uint64_t setting=enabled ? UINT64_C(0x100000000)|value : 0;
+        __atomic_store_n((uint64_t *)(uintptr_t)(base+values[i].slot),setting,__ATOMIC_RELEASE);
+        return true;
+    }
+    return false;
+}
+bool prepatch_set_inline_callback(uint32_t offset,void (*callback)(void)) {
+    if (!prepatch_native_site_present(offset)) return false;
+    for (uint32_t i=0;i<header->value_count;++i) if (values[i].site==offset &&
+        (values[i].pad[0]==5 || values[i].pad[0]==6)) {
+        __atomic_store_n((uint64_t *)(uintptr_t)(base+values[i].slot),(uintptr_t)callback,__ATOMIC_RELEASE);return true;
     }
     return false;
 }
@@ -396,6 +477,7 @@ typedef struct {
     uint32_t patch_count;
     char *message;
     size_t message_size;
+    uint32_t tail_code_end;
 } build_t;
 
 static int fail(char *message, size_t message_size, const char *format, ...) {
@@ -458,6 +540,19 @@ static void put_rel32(uint8_t *at, uint64_t target, uint64_t next) {
     int32_t rel = (int32_t)((int64_t)target - (int64_t)next);
     memcpy(at, &rel, sizeof(rel));
 }
+static int code_room(build_t *b,uint32_t *code,uint32_t required) {
+    if (*code>=ADDR_Prepatch_Header) {
+        if (*code<=ADDR_Prepatch_CodeEnd && required<=ADDR_Prepatch_CodeEnd-*code) return 0;
+#if T7O_DEV_NATIVE
+        b->tail_code_end=*code;*code=Native_Code_Start;
+#else
+        return fail(b->message,b->message_size,"out of room for code stubs");
+#endif
+    }
+    if (*code<Native_Code_Start || *code>Native_Code_End || required>Native_Code_End-*code)
+        return fail(b->message,b->message_size,"out of room for native code stubs");
+    return 0;
+}
 
 // checks that the padding and slots BO3MacFix uses are where it expects in this executable
 static int check_layout(build_t *b) {
@@ -465,7 +560,8 @@ static int check_layout(build_t *b) {
     if (b->size < sizeof(*mh) || mh->magic != MH_MAGIC_64 || mh->cputype != CPU_TYPE_X86_64 || mh->filetype != MH_EXECUTE ||
         sizeof(*mh) + mh->sizeofcmds > b->size)
         return fail(b->message, b->message_size, "it isn't the x86_64 game executable");
-    uint64_t text_file_end = 0, text_sections_end = 0, data_start = 0, data_end = 0, data_sections_end = 0;
+    uint64_t text_file_end = 0, text_sections_end = 0, text_first_section=UINT64_MAX,
+        data_start = 0, data_end = 0, data_sections_end = 0;
     const uint8_t *p = b->data + sizeof(*mh);
     for (uint32_t i = 0; i < mh->ncmds; i++) {
         const struct load_command *lc = (const struct load_command *)p;
@@ -482,6 +578,9 @@ static int check_layout(build_t *b) {
             if (strcmp(seg->segname, "__TEXT") == 0 && seg->vmaddr == Game_Base && seg->fileoff == 0) {
                 text_file_end = seg->filesize;
                 text_sections_end = sections_end - Game_Base;
+                for (uint32_t s=0;s<seg->nsects;++s)
+                    if (sections[s].size && sections[s].addr-Game_Base<text_first_section)
+                        text_first_section=sections[s].addr-Game_Base;
             } else if (strcmp(seg->segname, "__DATA") == 0) {
                 data_start = seg->vmaddr - Game_Base;
                 data_end = data_start + seg->vmsize;
@@ -498,6 +597,13 @@ static int check_layout(build_t *b) {
         if (b->data[o] != 0)
             return fail(b->message, b->message_size, "the padding after its code isn't empty");
     }
+#if T7O_DEV_NATIVE
+    if (sizeof(*mh)+mh->sizeofcmds>Native_Code_Start || text_first_section<Native_Code_End ||
+        text_file_end<Native_Code_End)
+        return fail(b->message,b->message_size,"native code padding overlaps the Mach-O layout");
+    for (uint32_t o=Native_Code_Start;o<Native_Code_End;++o)
+        if (b->data[o]) return fail(b->message,b->message_size,"native header padding is not empty");
+#endif
     return 0;
 }
 
@@ -604,9 +710,11 @@ EXPORT int BO3MacFix_BuildPrepatched(const char *original, const char *output, c
         goto done;
 
     for (size_t i = 0; i < hook_count; i++) {
+        if (code_room(b,&code,64)) goto done;
         const hook_def_t *def = &hook_defs[i];
         uint32_t f = def->function, tramp = code + 16;
-        if (memcmp(b->data + f, def->stolen, def->length) != 0 || def->length < 5) {
+        if (def->length < 5 || def->length>sizeof(def->stolen) ||
+            memcmp(b->data + f, def->stolen, def->length) != 0) {
             fail(message, message_size, "unexpected code at %08x", f);
             goto done;
         }
@@ -627,7 +735,16 @@ EXPORT int BO3MacFix_BuildPrepatched(const char *original, const char *output, c
             put_rel32(stub + n, target, code + n + 4); n += 4;
             memcpy(stub + n, def->stolen + at + 2, def->length - at - 2); n += def->length - at - 2;
         } else {
-            memcpy(stub + n, def->stolen, def->length); n += def->length;
+            memcpy(stub + n, def->stolen, def->length);
+            if (f==T7O_MAC_CLIENT_CAN_PAUSE &&
+                !t7o_relocate_rip32(stub+n,def->length,7,f+11,code+n+11)) {
+                fail(message,message_size,"client pause trampoline does not fit");goto done;
+            }
+            if ((f==T7O_MAC_STRAFE_SCALE || f==T7O_MAC_FRICTION_SCALE) &&
+                !t7o_relocate_rip32(stub+n,def->length,8,f+12,code+n+12)) {
+                fail(message,message_size,"strafe trampoline does not fit");goto done;
+            }
+            n += def->length;
         }
         stub[n++] = 0xE9;                                                    // jmp back
         put_rel32(stub + n, f + def->length, code + n + 4); n += 4;
@@ -645,8 +762,30 @@ EXPORT int BO3MacFix_BuildPrepatched(const char *original, const char *output, c
     }
 
     for (size_t i = 0; i < value_count; i++) {
+        if (code_room(b,&code,64)) goto done;
         const value_def_t *def = &value_defs[i];
         uint32_t site = def->site;
+        if (def->kind!=0) {
+            size_t length=def->length;
+            if (length>sizeof(def->original) || length<5 || memcmp(b->data+site,def->original,length)) {
+                fail(message,message_size,"unexpected native setting code at %08x",site);goto done;
+            }
+            uint8_t stub[64];size_t n=0;
+            if (def->kind==1) n=t7o_codegen_cmp32(stub,sizeof(stub),code,site,slot,def->original,length);
+            else if (def->kind==4) n=t7o_codegen_ads_scale(stub,sizeof(stub),code,site,slot,def->original);
+            else if (def->kind==5 || def->kind==6)
+                n=t7o_codegen_inline(stub,sizeof(stub),code,site,slot,def->original,length,def->kind==6);
+            else if (def->kind==7) n=t7o_codegen_float(stub,sizeof(stub),code,site,slot,def->original);
+            else n=t7o_codegen_branch(stub,sizeof(stub),code,site,slot,def->original,length,def->kind==2);
+            if (!n || claim(b,code,(uint32_t)n,"a native setting stub") || claim(b,site,(uint32_t)length,"a native setting")) {
+                fail(message,message_size,"native setting stub failed at %08x",site);goto done;
+            }
+            memcpy(b->data+code,stub,n);b->data[site]=0xe9;
+            put_rel32(b->data+site+1,code,site+5);memset(b->data+site+5,0x90,length-5);
+            value_records[i]=(prepatch_site_t){.site=site,.slot=slot,.length=(uint8_t)length};
+            value_records[i].pad[0]=def->kind;memcpy(value_records[i].original,def->original,length);
+            slot+=8;code=(code+(uint32_t)n+15)&~15u;continue;
+        }
         uint8_t reg = def->original[0] - 0xB8;
         if (memcmp(b->data + site, def->original, 5) != 0 || def->original[0] < 0xB8 || def->original[0] > 0xBF) {
             fail(message, message_size, "unexpected code at %08x", site);
@@ -673,6 +812,7 @@ EXPORT int BO3MacFix_BuildPrepatched(const char *original, const char *output, c
     }
 
     for (size_t i = 0; i < call_count; i++) {
+        if (code_room(b,&code,32)) goto done;
         const call_def_t *def = &call_defs[i];
         uint32_t site = def->site;
         if (memcmp(b->data + site, def->original, 6) != 0) {
@@ -704,7 +844,7 @@ EXPORT int BO3MacFix_BuildPrepatched(const char *original, const char *output, c
         code = (code + (uint32_t)n + 15) & ~15u;
     }
 
-    if (code > ADDR_Prepatch_CodeEnd || slot > ADDR_Prepatch_SlotsEnd) {
+    if (slot > ADDR_Prepatch_SlotsEnd) {
         fail(message, message_size, "out of room for the stubs");
         goto done;
     }
@@ -734,7 +874,8 @@ EXPORT int BO3MacFix_BuildPrepatched(const char *original, const char *output, c
     }
     snprintf(message, message_size, "made the pre-patched executable: %zu hooks, %zu settings, %zu calls, %u byte "
              "patches, %u of %u bytes of padding used", hook_count, value_count, call_count, b->patch_count,
-             code - ADDR_Prepatch_Header, ADDR_Prepatch_CodeEnd - ADDR_Prepatch_Header);
+             b->tail_code_end ? b->tail_code_end-ADDR_Prepatch_Header+code-Native_Code_Start : code-ADDR_Prepatch_Header,
+             ADDR_Prepatch_CodeEnd-ADDR_Prepatch_Header+(T7O_DEV_NATIVE ? Native_Code_End-Native_Code_Start : 0));
     result = 0;
 done:
     free(b->data);

@@ -1,0 +1,338 @@
+{
+  "schema": 1,
+  "ready_for_coop": false,
+  "release_blockers": [
+    "Live Mac initialization, all movement/native hook paths and mod-switch lifecycle need the step 4 test",
+    "Mac HTTP/backend identity acceptance needs a real mod session",
+    "Windows-Mac host/guest co-op and matching ordinary-Steam Windows mod versions are unqualified",
+    "Clean-machine installation, Rosetta and actual Havok conversion need Mac testing",
+    "Developer ID signing and notarization are not configured; the test app is ad-hoc signed"
+  ],
+  "mac_builds": [
+    {
+      "executable_sha256": "932f0918fb9871bc625b69a587135a5c2976e9f9e6b7289cfadda8ab996e1cd0",
+      "executable_sha1": "5e42371b6a16f2b11e637f48e38554625570aa9f",
+      "uuid": "3c8ec670-ccac-3fb4-b303-50ac356e845f",
+      "architecture": "x86_64",
+      "verified": false,
+      "verified_capabilities": [],
+      "binding_evidence": "docs/MAC_BINDINGS.md",
+      "development_adapters": [
+        "client_fx",
+        "csc_bridge",
+        "pause",
+        "movement_all_11",
+        "mod_unload",
+        "aim_status"
+      ],
+      "bounded_machine_code_checks": {
+        "cases_passed": 133,
+        "engine_hooks_qualified": false,
+        "game_or_os_initialization_executed": false,
+        "reproduce": "tools/verify_mac_contracts.py"
+      },
+      "default_native_hooks_enabled": false,
+      "candidate_capabilities": [
+        "fileio",
+        "http",
+        "identity",
+        "mod_unload",
+        "movement",
+        "csc_bridge",
+        "client_fx",
+        "pause",
+        "aim_status"
+      ]
+    }
+  ],
+  "mods": {
+    "2631943123": {
+      "name": "AAE",
+      "version": "4.0.0 (downloaded Workshop package; displayed labels may change independently)",
+      "native_sha256": "016ba5559c4f66cd8de864e4a85a8e7de573e97f4716ec0fd476558c9b4165c3",
+      "required_capabilities": [
+        "fileio",
+        "http",
+        "movement",
+        "csc_bridge",
+        "client_fx"
+      ],
+      "manifest": "9050534316474466018",
+      "plugin_sha256": "577b4d054128b39bd4999197fc9ce51dc04c3710e49ca547c8f037fec7aa9eac",
+      "plugin_parity_complete": false,
+      "plugin_components_not_ported": [
+        "arc_prediction_anchor",
+        "tag.arc_prediction_anchor",
+        "coop_pause (different implementation from the original shared pause hooks)",
+        "free_aim",
+        "host_migration",
+        "interactive_prompt",
+        "lan_browser",
+        "mantle_hint",
+        "pool_fix (2 GiB to 4 GiB arena feature)",
+        "t7_traversal",
+        "viewmodel_ui_anchor"
+      ],
+      "plugin_stub_components": [
+        "checkpoint_fix",
+        "link_to_camera"
+      ],
+      "plugin_lua_start_methods_are_noops": true,
+      "notes": "Embedded-service credential recovery is removed; guarded online integrations are absent. Ordinary HTTP and shared gameplay adapters remain available. AAEUnified feature parity is still in progress."
+    },
+    "2942053577": {
+      "name": "UEM",
+      "version": "1.3.4 Build-001",
+      "native_sha256": "a2a8d492f1fabcf3f1a3912f46a8ac790570569208232e87fbda4f360a294153",
+      "required_capabilities": [
+        "fileio",
+        "http",
+        "identity",
+        "mod_unload",
+        "client_fx",
+        "pause"
+      ],
+      "optional_capabilities": [
+        "movement"
+      ],
+      "manifest": "3514276820181770986",
+      "current_manifest_checked": "2026-10-28",
+      "selected_cached_files_reverified": 33,
+      "manifest_unchanged_from_prior_analysis": true
+    },
+    "2994481309": {
+      "name": "AAE Lite",
+      "manifest": "7694158027624644005",
+      "shares_current_aae_native_images": true
+    },
+    "3554303768": {
+      "name": "ZM Expanded Experience",
+      "manifest": "4078568122437287745",
+      "native_sha256": "016ba5559c4f66cd8de864e4a85a8e7de573e97f4716ec0fd476558c9b4165c3",
+      "additional_implemented": [
+        "JSON.ReadJson",
+        "JSON.WriteJson",
+        "dvarflag",
+        "t7o_override_gamepadtype"
+      ],
+      "optional_native_features_not_ported": [
+        "Windows cursor files",
+        "cosmetic viewmodel leaning",
+        "forced third-person crosshair",
+        "extra Windows logging/authoring settings"
+      ],
+      "gameplay_tested": false
+    }
+  },
+  "windows_reference": {
+    "client_target": "ordinary Steam BO3 (owner reports this is probably the friends setup)",
+    "steam_build_id": 24784313,
+    "executable_sha256": "51ca63bbc660e0826943c60da67606f6bcb4b3b519528b5e0548c68c9423a323",
+    "initialized_code_read_with_owner_authorization": true,
+    "game_memory_written": false,
+    "original_mod_dll_initialized": false,
+    "mod_gameplay_tested": false,
+    "evidence": "docs/GAMEPLAY_PORTING.md"
+  },
+  "source_implementation_complete": true,
+  "optional_native_features_not_ported": [
+    "bullet depletion model/bone visuals",
+    "Windows-only authoring, hot reload and Discord integration"
+  ],
+  "build_validation": {
+    "runtime_commit": "9608b99227e46c383afe6b9f9edcf4435d56ca1f",
+    "workflow_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40766110728",
+    "portable_c_programs_passed": 12,
+    "python_lua_tests_passed": 27,
+    "synthetic_machine_cases_passed": 754,
+    "mac_runner_checks_passed": [
+      "macos-15-intel"
+    ],
+    "apple_silicon_runner_status": "queued; hosted runner capacity delays (earlier macos-15 acquisition failed)",
+    "full_intel_patch_and_universal_gui_compiled": true,
+    "json_settings_fixtures_passed": true,
+    "v2_http_and_redirect_fixtures_passed": true,
+    "http_and_installer_fixtures_passed": true,
+    "steam_callback_and_map_save_fixtures_passed": true,
+    "automatic_dependency_preparation_and_converter_startup_passed": true,
+    "artifact_name": "BO3MacFix-Mac-Test-1.3.zip",
+    "published_artifact_sha256": "58ec6b0fddd1c1ac3034c8db15d3d70676274d17dd3bf3f57a92aa4349c838ee",
+    "gameplay_or_coop_tested": false,
+    "status": "withdrawn; retained only as historical build evidence",
+    "artifact_withdrawn": true
+  },
+  "map_support": {
+    "candidate_version": "1.4",
+    "gameplay_tested": false,
+    "windows_coop_tested": false,
+    "evidence": "docs/MAP_SUPPORT.md",
+    "asset_fallback": {
+      "scope": "Workshop/usermaps/mods localized XPaks with missing referenced meshes and a content-equivalent complete sibling",
+      "verified_local_pairs": {
+        "2910206016": 35,
+        "2271346839": 23,
+        "3313949094": 43,
+        "3242453013": 18,
+        "3064355026": 23,
+        "3814067303": 7,
+        "1535759989": 18,
+        "1663631538": 32,
+        "2142193861": 32,
+        "1807713320": 32
+      },
+      "workshop_files_modified": false
+    },
+    "legacy_dead_high": {
+      "manifest": "6852605559916940411",
+      "native_sha256": "9a115ad7b7cb20c01b5bcaec66777467f570171df0a5bdf2972f334c9f66214f",
+      "implemented": [
+        "Files",
+        "save_codec_two_key_generations",
+        "legacy_http",
+        "numbered_http_queue",
+        "UIErrorHash.Remove",
+        "steam_ticket_headers"
+      ],
+      "backend_acceptance_tested": false
+    },
+    "shared_save_parents": true,
+    "additional_packages_inspected": [
+      "2631943123",
+      "2994481309",
+      "1807713320",
+      "3667377161",
+      "3446990455",
+      "3798094543",
+      "2910206016",
+      "2272246143",
+      "885119667",
+      "2271346839",
+      "3435762796",
+      "2142193861",
+      "3757218836",
+      "1617936945",
+      "3313949094",
+      "2370179373",
+      "2112576356",
+      "3326914199",
+      "3373649394",
+      "1535759989",
+      "3236409516",
+      "2561343259",
+      "2180904327",
+      "2926551695",
+      "2671909054",
+      "2801151115",
+      "3814067303",
+      "1617497358",
+      "3771837767",
+      "3811706779",
+      "1944930083",
+      "3242453013",
+      "2983136028",
+      "3721898725",
+      "1624257987",
+      "3064355026",
+      "1663631538",
+      "3294815890",
+      "3554303768",
+      "2833912385"
+    ],
+    "remaining": [
+      "Nuketown Legacy undefined-value/stutter root cause",
+      "Town Reimagined reported stutter",
+      "Herrenhaus: localized reference/name metadata differs; companion substitution refused",
+      "AAE 4.0 AAEUnified native feature parity",
+      "Expanded optional cursor/lean/crosshair and Windows-only debugging/presentation features",
+      "Workshop Stack native loader and composition system",
+      "Physical Mac gameplay, service acceptance and both co-op host roles"
+    ],
+    "mac_build_checks_passed": false,
+    "survey_counts": {
+      "packages": 40,
+      "verified_files": 742,
+      "fastfiles": 649,
+      "lua_objects": 2593,
+      "lua_objects_fully_parsed": 2593,
+      "gsc_csc_import_inventories": 4081
+    },
+    "survey_evidence": "docs/map-survey-2026-10-28.json"
+  },
+  "previous_build_validation": {
+    "runtime_commit": "ff85d809bf273be01f44b5c618910c618cd68b17",
+    "workflow_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40646959814",
+    "portable_c_programs_passed": 12,
+    "python_lua_tests_passed": 26,
+    "synthetic_machine_cases_passed": 754,
+    "mac_runner_checks_passed": [
+      "macos-15-intel",
+      "macos-15"
+    ],
+    "full_intel_patch_and_universal_gui_compiled": true,
+    "http_and_installer_fixtures_passed": true,
+    "steam_callback_and_map_save_fixtures_passed": true,
+    "automatic_dependency_preparation_and_converter_startup_passed": true,
+    "artifact_name": "BO3MacFix-Mac-Test-1.2.zip",
+    "published_artifact_sha256": "577e7b4baf608fcf56225a7da8ac11d77418b7a7d7b48db2ba3658328b177341",
+    "gameplay_or_coop_tested": false
+  },
+  "source_implementation_scope": "The original shared adapter groups and the additional shared APIs documented in MAP_SUPPORT.md. This field does not claim AAEUnified feature parity or qualification of every surveyed package.",
+  "previous_aae_reference": {
+    "name": "AAE",
+    "version": "3.9.5",
+    "native_sha256": "dbaed33f51853ffdf2be390dacc50e8af442506f603f331df15f4381ca775261",
+    "required_capabilities": [
+      "fileio",
+      "http",
+      "movement",
+      "csc_bridge",
+      "client_fx"
+    ]
+  },
+  "build_validation_history": [
+    {
+      "runtime_commit": "d936fe0ba0b181e9012a23bca7d3877bf6db9ff2",
+      "workflow_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40274197043",
+      "portable_c_programs_passed": 11,
+      "python_lua_tests_passed": 19,
+      "synthetic_machine_cases_passed": 754,
+      "mac_runner_checks_passed": [
+        "macos-15-intel",
+        "macos-15"
+      ],
+      "full_intel_patch_and_universal_gui_compiled": true,
+      "http_and_installer_fixtures_passed": true,
+      "automatic_dependencies_and_converter_startup_passed": true,
+      "live_gameplay_or_coop_tested": false,
+      "installer_revision": "aae-uem-test-1.1",
+      "missing_helper_repair_and_rollback_passed": true
+    },
+    {
+      "runtime_commit": "ff85d809bf273be01f44b5c618910c618cd68b17",
+      "workflow_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40646959814",
+      "portable_c_programs_passed": 12,
+      "python_lua_tests_passed": 26,
+      "synthetic_machine_cases_passed": 754,
+      "mac_runner_checks_passed": [
+        "macos-15-intel",
+        "macos-15"
+      ],
+      "full_intel_patch_and_universal_gui_compiled": true,
+      "http_and_installer_fixtures_passed": true,
+      "steam_callback_and_map_save_fixtures_passed": true,
+      "automatic_dependency_preparation_and_converter_startup_passed": true,
+      "artifact_name": "BO3MacFix-Mac-Test-1.2.zip",
+      "published_artifact_sha256": "577e7b4baf608fcf56225a7da8ac11d77418b7a7d7b48db2ba3658328b177341",
+      "gameplay_or_coop_tested": false
+    }
+  ],
+  "credential_recovery_removed": true,
+  "disabled_integrations": [
+    "Mod-embedded Steam Web API credential recovery",
+    "Mod-embedded Discord webhook credential recovery"
+  ],
+  "pending_build_validation": {
+    "status": "clean source validation pending",
+    "artifact_name": "BO3MacFix-Mac-Test-1.4.zip"
+  }
+}

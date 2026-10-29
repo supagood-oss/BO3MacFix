@@ -151,6 +151,9 @@ tests/test_t7o_mac_prompt_adapter: tests/test_t7o_mac_prompt_adapter.c source/t7
 test-mantle-adapter: tests/test_t7o_mac_mantle_adapter
 	./tests/test_t7o_mac_mantle_adapter
 
+# Header changes must rebuild fixtures that embed the production adapter.
+tests/test_t7o_mac_movement_adapter tests/test_t7o_mac_traversal_adapter tests/test_t7o_mac_ui_adapter tests/test_t7o_mac_freeaim_adapter tests/test_t7o_mac_prompt_adapter tests/test_t7o_mac_mantle_adapter: source/t7o_inline.h source/t7o_mac_offsets.h
+
 tests/test_t7o_mac_mantle_adapter: tests/test_t7o_mac_mantle_adapter.c source/t7o_mac_mantle.c source/t7o_mac_mantle.h source/t7o_mac_offsets.h source/t7o_mantle.c source/t7o_mantle.h
 	$(HOST_CC) -std=c11 -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_mac_mantle_adapter.c source/t7o_mantle.c -pthread -lm
 

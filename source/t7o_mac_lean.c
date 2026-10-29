@@ -9,7 +9,7 @@
 #ifndef T7O_DEV_NATIVE
 #define T7O_DEV_NATIVE 0
 #endif
-typedef struct { float from[3],target[3],current[3],elapsed,duration;unsigned curve,tag;int time;bool moving; } Lean;
+typedef struct { float from[3],target[3],current[3],elapsed,duration;unsigned curve,tag;int time;bool moving,engaged; } Lean;
 static Lean clients[2];
 static uint64_t base;
 static bool installed;
@@ -43,7 +43,7 @@ static void retarget(Lean *state,const float angles[3]) {
     memcpy(state->from,state->current,sizeof(state->from));
     for (unsigned i=0;i<3;++i) state->target[i]=different ? angles[i] : 0;
     state->duration=different ? 1.0f : 0.6f;state->curve=different ? 3 : 2;
-    state->elapsed=0;state->moving=true;
+    state->elapsed=0;state->moving=true;state->engaged=true;
 }
 static void step(Lean *state) {
     if (!state->moving) return;
@@ -93,7 +93,11 @@ static void update_bones(void *cg,void *player,void *object,void *weapon,void *e
     if (client<0 || client>=2 || !integer("leaning_enabled",1)) return;
     Lean *state=&clients[client];int now=read32((const uint8_t *)cg+T7O_MAC_CG_TIME);
     if (now<state->time) memset(state,0,sizeof(*state));
-    state->time=now;step(state);
+    state->time=now;
+    /* Other T7Overcharged mods share this adapter. Leave their normal bone
+     * animation alone until a configured lean key actually requests a lean. */
+    if (!state->engaged) return;
+    step(state);
     /* GScr_AllocString assigns the engine's level-owned string user, exactly
      * as its own static tag initialization does. Reacquire after time resets. */
     if (!state->tag) state->tag=alloc_string("tag_ads");
@@ -102,6 +106,7 @@ static void update_bones(void *cg,void *player,void *object,void *weapon,void *e
         const uint32_t bits[12]={UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,
             UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX,UINT32_MAX};
         const float origin[3]={0};set_tag(object,bits,bone,origin,state->current);
+        if (!state->moving && !state->current[0] && !state->current[1] && !state->current[2]) state->engaged=false;
     }
 }
 void t7o_mac_lean_deactivate(void) { atomic_store(&active,false);memset(clients,0,sizeof(clients)); }

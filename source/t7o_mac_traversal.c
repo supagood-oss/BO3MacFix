@@ -101,9 +101,14 @@ void t7o_mac_traversal_inline_dispatch(T7oInlineContext *context,unsigned operat
         uint32_t flags=read32(trace+0x18);
         bool ignore=configured("aae_t7_ignore_mantle_checks",0)!=0;
         int permission=ignore ? -1 : vault_permission(trace,player,movement);
-        flags=permission==0 ? flags|0x1000000 : flags&~UINT32_C(0x1000000);
+        /* Match the plugin's two exits exactly: its unknown-context fallback
+         * reverses the vanilla bit-24 test; explicit allow/ignore bypass it.
+         * The animation word (+0x14) and tested word (+0x18) differ. */
+        if (permission==0) flags|=0x1000000;
+        else if (ignore || permission>0) flags&=~UINT32_C(0x1000000);
+        else flags^=UINT32_C(0x1000000);
         memcpy(trace+0x18,&flags,4);
-        if (permission!=0 && (flags&0x38000000)==0x18000000) {
+        if (permission!=0 && (read32(trace+0x14)&0x38000000)==0x18000000) {
             uint32_t state=read32(player+0x7f4)|1;memcpy(player+0x7f4,&state,4);
         }
     }

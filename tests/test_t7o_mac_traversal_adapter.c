@@ -86,14 +86,25 @@ int main(void) {
     put32(ps,1);put32(ps+0x16bf8,1);put16(vehicle+0x1a0,15);put_pointer(vehicle+0x270,vehicle);
     put_pointer(entities+T7O_MAC_SERVER_ENTITY_STRIDE+0x250,ps);
     put32(trace+0x24,1);put16(trace+0x28,100);
-    put32(trace+0x18,0x19000000);permission=4;
+    put32(trace+0x14,0x18000000);put32(trace+0x18,0x1000001);permission=4;
     t7o_mac_traversal_inline_dispatch(&c,T7O_INLINE_TRAVERSAL_SURFACE);
-    assert(read32(trace+0x18)==0x19000000 && !read32(ps+0x7f4) && vehicle_calls==1);
+    assert(read32(trace+0x18)==0x1000001 && !read32(ps+0x7f4) && vehicle_calls==1);
     permission=1;t7o_mac_traversal_inline_dispatch(&c,T7O_INLINE_TRAVERSAL_SURFACE);
-    assert(read32(trace+0x18)==0x18000000 && read32(ps+0x7f4)==1 && vehicle_calls==2);
-    ignore="1";permission=4;put32(trace+0x18,0x19000000);
+    assert(read32(trace+0x18)==1 && read32(ps+0x7f4)==1 && vehicle_calls==2);
+    ignore="1";permission=4;put32(trace+0x18,0x1000001);
     t7o_mac_traversal_inline_dispatch(&c,T7O_INLINE_TRAVERSAL_SURFACE);
-    assert(read32(trace+0x18)==0x18000000 && vehicle_calls==2);
+    assert(read32(trace+0x18)==1 && vehicle_calls==2);
+    /* The native unknown-context branch reverses the vanilla bit-24 test.
+     * Its animation flag uses a different word, at trace +0x14. */
+    ignore="0";put32(trace+0x24,0);put32(trace+0x18,0x1000001);put32(ps+0x7f4,0);
+    t7o_mac_traversal_inline_dispatch(&c,T7O_INLINE_TRAVERSAL_SURFACE);
+    assert(read32(trace+0x18)==1 && read32(ps+0x7f4)==1 && vehicle_calls==2);
+    put32(trace+0x14,0);put32(ps+0x7f4,0);put32(trace+0x18,0x19000000);
+    t7o_mac_traversal_inline_dispatch(&c,T7O_INLINE_TRAVERSAL_SURFACE);
+    assert(!read32(ps+0x7f4) && read32(trace+0x18)==0x18000000);
+    put32(trace+0x18,0);t7o_mac_traversal_inline_dispatch(&c,T7O_INLINE_TRAVERSAL_SURFACE);
+    assert(read32(trace+0x18)==0x1000000);
+    put32(trace+0x24,1);
     ignore="0";movement[0x2ac]=1;
     assert(vault_permission(trace,ps,movement)==0); /* Authoritative vehicle denial. */
     permission=1;assert(vault_permission(trace,ps,movement)==1);

@@ -21,6 +21,7 @@
 #include "t7o_mac_presentation.h"
 #include "t7o_mac_traversal.h"
 #include "t7o_mac_lean.h"
+#include "t7o_mac_migration.h"
 #include "utilities.h"
 #include "mod_fileio.h"
 #include "steam.h"
@@ -167,11 +168,13 @@ static int t7o_init(lua_State *s) {
     free(save_codec);
     uint32_t capabilities=0;
     t7o_mac_traversal_deactivate();
+    t7o_mac_migration_deactivate();
     char plugin[4200];
     int plugin_length=snprintf(plugin,sizeof(plugin),"%s/T7Overcharged/plugins/AAEUnified.dll",dll_dir);
-    if (plugin_length>0 && (size_t)plugin_length<sizeof(plugin) && access(plugin,F_OK)==0 &&
-        !t7o_mac_traversal_activate())
-        printf("T7Overcharged: AAE traversal hooks are unavailable\n");
+    if (plugin_length>0 && (size_t)plugin_length<sizeof(plugin) && access(plugin,F_OK)==0) {
+        if (!t7o_mac_traversal_activate()) printf("T7Overcharged: AAE traversal hooks are unavailable\n");
+        if (!t7o_mac_migration_activate()) printf("T7Overcharged: AAE migration hooks are unavailable\n");
+    }
     if (t7o_mac_fx_activate()) capabilities|=T7O_CAP_FX;
     if (t7o_mac_script_activate()) capabilities|=T7O_CAP_CSC;
     if (t7o_mac_movement_activate()) capabilities|=T7O_CAP_MOVEMENT;

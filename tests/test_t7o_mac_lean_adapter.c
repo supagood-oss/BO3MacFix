@@ -44,6 +44,7 @@ int main(void) {
     alloc_string=string_mock;bone_index=index_mock;set_tag=tag_mock;
     assert(!t7o_mac_lean_install(1,false) && !t7o_mac_lean_activate());
     installed=true;assert(t7o_mac_lean_activate());put32(ui+8,11);put32(ui+0x1078+8,11);
+    render(0,50);assert(!tag_calls && !alloc_calls); /* Unbound/default mods retain their bones. */
     key_event(0,81,1,0);assert(!clients[0].moving && keys[0][81]);
     key_event(0,81,0,0);assert(clients[0].moving && clients[0].target[2]==-25 && !keys[0][81]);
     render(0,100);assert(fabsf(clients[0].current[2]+0.28125f)<0.00001f && tag_calls==1 && alloc_calls==1);
@@ -61,7 +62,7 @@ int main(void) {
     enabled="0";int before=tag_calls;render(1,101);assert(tag_calls==before);enabled="1";
     is_main=false;render(1,102);assert(tag_calls==before);is_main=true;
     has_bone=false;render(1,103);assert(tag_calls==before);has_bone=true;
-    render(1,1);assert(alloc_calls==3 && !clients[1].current[2]);
+    render(1,1);assert(alloc_calls==2 && !clients[1].current[2] && !clients[1].engaged);
     float out[3];angles="nan 0 1";assert(!angles_setting(out));angles="0 0 999";
     assert(angles_setting(out) && out[2]==180);left="9999999999999999999999999";
     key_event(0,81,1,0);key_event(0,81,0,0);assert(!clients[0].moving);

@@ -15,22 +15,38 @@ removed. The published 1.4 build retains its recorded source commit and checksum
 | Traversal input comparisons | `14c3e6a`, `14c4fc4` | Original strict comparisons and zero-input asymmetry retained; 5,140 adapter cases; command axes unchanged |
 | Traversal surface / vehicle permission | `14c4101`, helper `d691e0` | Mac gclient stride `17210`, level/client/entity relationships, server/predicted fallbacks and deny result 4 checked |
 | Expanded viewmodel lean | `d37a72`, key processing `1549275` | Mac DObj lookup `f74d4f`, local tag setter `f74879`, key query `15467e4`; key-up ordering, easing, fire reset, UI/main-thread guards and local-client isolation tests |
+| AAE migration eligibility and host ratings | `140dae8`, `e07413` | Mac eligibility wrapper matched by call flow; host-selection table/stride and caller checked; 300 bounded comparisons against the Windows rating helper |
 
 All locations are RVAs in the independently hashed Mac executable recorded in
 `t7o_mac_offsets.h`. Native hooks require that engine build and the generated
 prepatched executable. That is an engine-layout requirement, not a general
 Workshop version allowlist. Inactive hooks retain original engine paths.
 
-The development prepatch fixture accepts 53 hooks and 24 settings using
-5,504 of 6,272 bytes of verified existing padding. It passes 106 real-image
-redirect/fallback cases. Six assembly bridges pass 826 synthetic machine cases,
+The development prepatch fixture accepts 55 hooks and 24 settings using
+5,632 of 6,272 bytes of verified existing padding. It passes 110 real-image
+redirect/fallback cases. The migration entry's relative call is relocated and
+its original callee is substituted with RET for that bounded fallback check.
+Six assembly bridges pass 826 synthetic machine cases,
 covering integer/SIMD registers, flags, stack alignment and red-zone preservation.
 These are offline tests; they do not exercise Rosetta or actual engine gameplay.
 
 Expanded's lean code rotates `tag_ads`; it does not alter player collision,
 aim or movement. The native key-up callback occurs before the Windows event
 queue dispatch; the Mac adapter operates before key-state processing instead.
-Input routing and render timing remain part of the Mac test.
+Input routing and render timing remain part of the Mac test. Other mods' bones
+remain unchanged until a configured lean key actually requests a lean.
+
+The traversal surface helper also matches 120 bounded original-stub cases.
+Its unknown-vehicle-context branch reverses the vanilla bit-24 test; explicit
+permission and the ignore setting follow separate exits. The animation word at
+trace `+14` is independent of the tested word at `+18`.
+
+Migration transport differs between executables. The Mac `mhead` path sends
+to clients directly through `e077de` / `14022b6`; the Windows helper also retries
+a game-lobby notification using the private lobby. The two common eligibility
+and rating changes are ported. An equivalent additional lobby notification is
+not implemented; transport/host-change parity requires further work and a real
+Windows-Mac session. No new packet or transport format is invented here.
 
 ## Still separate work
 
@@ -40,7 +56,7 @@ methods say nothing about deferred engine or UI registration.
 
 Remaining AAE components include prediction/tag anchors, viewmodel UI widget
 registration/layout and bone snapshots, checkpoint/save and link-to-camera,
-the new co-op pause implementation, host migration, free aim, interaction
+the new co-op pause implementation, migration transport parity, free aim, interaction
 prompts, LAN browser and mantle-hint probe/latch/UI behavior. The existing shared
 pause and movement adapters are not substitutes for those components.
 

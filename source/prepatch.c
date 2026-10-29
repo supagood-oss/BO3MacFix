@@ -43,8 +43,8 @@
 #pragma mark - what goes into the copy
 
 // Whole instructions replaced by the entry jump. The explicitly identified
-// client-pause LEA and strafe float load are relocated below; other entries
-// have no RIP-relative instructions in their replaced prefix.
+// client-pause LEA, strafe float load and migration relative call are relocated
+// below; other entries have no relative instructions in their replaced prefix.
 typedef struct {
     uint32_t function;
     uint8_t length;
@@ -58,6 +58,8 @@ typedef struct {
 // every function BO3MacFix hooks
 static const hook_def_t hook_defs[] = {
 #if T7O_DEV_NATIVE
+    { T7O_MAC_MIGRATION_CHECK,9,0,{0x55,0x48,0x89,0xe5,0xe8,0xd1,0xd5,0xe6,0xff} },
+    { T7O_MAC_SELECT_HOST,Push_R15 },
     { T7O_MAC_VIEWMODEL_BONES,Push_R15 },
     { T7O_MAC_KEY_EVENT,Push_R15 },
     { T7O_MAC_TRAVERSAL_TYPE,9,0,{0x55,0x48,0x89,0xe5,0xf3,0x0f,0x5c,0x4f,0x38} },
@@ -752,6 +754,10 @@ EXPORT int BO3MacFix_BuildPrepatched(const char *original, const char *output, c
             if ((f==T7O_MAC_STRAFE_SCALE || f==T7O_MAC_FRICTION_SCALE) &&
                 !t7o_relocate_rip32(stub+n,def->length,8,f+12,code+n+12)) {
                 fail(message,message_size,"strafe trampoline does not fit");goto done;
+            }
+            if (f==T7O_MAC_MIGRATION_CHECK &&
+                !t7o_relocate_rip32(stub+n,def->length,5,f+9,code+n+9)) {
+                fail(message,message_size,"migration call trampoline does not fit");goto done;
             }
             n += def->length;
         }

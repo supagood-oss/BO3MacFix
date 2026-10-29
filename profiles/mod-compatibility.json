@@ -65,7 +65,7 @@
         "tag.arc_prediction_anchor",
         "coop_pause (different implementation from the original shared pause hooks)",
         "free_aim",
-        "host_migration",
+        "host_migration transport parity (eligibility/rating source adapters added)",
         "interactive_prompt",
         "lan_browser",
         "mantle_hint",
@@ -82,7 +82,8 @@
       ],
       "plugin_source_adapters_after_1_4": [
         "pool_fix: boot-time main reserve 2 GiB to 4 GiB",
-        "t7_traversal: classifier, height, input comparisons and vehicle permission; mantle hint remains separate"
+        "t7_traversal: classifier, height, input comparisons and vehicle permission; mantle hint remains separate",
+        "host_migration: eligibility and temporary host ratings; transport parity unqualified"
       ]
     },
     "2942053577": {
@@ -297,10 +298,15 @@
       "main_pool_reservation_4GiB",
       "aae_traversal",
       "expanded_crosshair",
-      "expanded_lean"
+      "expanded_lean",
+      "aae_migration_eligibility_and_ratings"
     ],
     "local_synthetic_machine_cases": 826,
-    "real_image_redirect_fallback_cases": 106,
-    "mac_sdk_build_pending": true
+    "real_image_redirect_fallback_cases": 110,
+    "mac_sdk_build_pending": true,
+    "native_surface_differential_cases": 120,
+    "native_rating_differential_cases": 300,
+    "first_increment_mac_build_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40790863433",
+    "latest_increment_mac_sdk_build_pending": true
   }
 }

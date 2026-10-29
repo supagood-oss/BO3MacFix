@@ -61,8 +61,6 @@
       "plugin_sha256": "577b4d054128b39bd4999197fc9ce51dc04c3710e49ca547c8f037fec7aa9eac",
       "plugin_parity_complete": false,
       "plugin_components_not_ported": [
-        "arc_prediction_anchor",
-        "tag.arc_prediction_anchor",
         "coop_pause (different implementation from the original shared pause hooks)",
         "free_aim",
         "host_migration transport parity (eligibility/rating source adapters added)",
@@ -83,9 +81,9 @@
         "pool_fix: boot-time main reserve 2 GiB to 4 GiB",
         "t7_traversal: classifier, height, input comparisons and vehicle permission; mantle hint remains separate",
         "host_migration: eligibility and temporary host ratings; transport parity unqualified",
-        "viewmodel_ui_anchor: two widget methods, rooted callbacks/tables and bone snapshots; prediction anchors remain separate",
+        "viewmodel_ui_anchor: two widget methods, rooted callbacks/tables and bone snapshots; render timing unqualified",
         "checkpoint_fix: effects free-list relocation after restore; additional serializers/callbacks remain separate",
-        "arc display anchors: selected/default viewmodel tags and smoothed first sections; weapon selection/prediction remains separate"
+        "arc display anchors: selected/default viewmodel tags and smoothed first sections; scoped worker weapon override and five-segment guard also added"
       ]
     },
     "2942053577": {
@@ -304,10 +302,11 @@
       "aae_migration_eligibility_and_ratings",
       "aae_viewmodel_ui_anchor",
       "aae_checkpoint_fx_restore",
-      "aae_arc_display_anchors"
+      "aae_arc_display_anchors",
+      "aae_arc_prediction_override_and_segment_guard"
     ],
     "local_synthetic_machine_cases": 850,
-    "real_image_redirect_fallback_cases": 118,
+    "real_image_redirect_fallback_cases": 122,
     "mac_sdk_build_pending": true,
     "native_surface_differential_cases": 120,
     "native_rating_differential_cases": 300,
@@ -316,6 +315,7 @@
     "native_ui_position_differential_cases": 304,
     "latest_completed_increment_mac_build_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40796343802",
     "native_checkpoint_fx_differential_cases": 300,
-    "native_arc_smoothing_differential_cases": 488
+    "native_arc_smoothing_differential_cases": 488,
+    "native_arc_weapon_validation_differential_cases": 56
   }
 }

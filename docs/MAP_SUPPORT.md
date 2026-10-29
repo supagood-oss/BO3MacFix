@@ -96,9 +96,9 @@ in the published 1.4 download** and have no physical Mac qualification:
   additional Windows private-lobby notification behavior remains separate work.
 - AAE's two viewmodel widget methods now have Mac layout/projection, bone
   snapshots and rooted Lua callbacks. Displayed grenade arcs now use selected
-  or default viewmodel tag positions with native smoothing. Weapon selection
-  and prediction changes remain pending; VM reload retention and render timing
-  need a real Mac test.
+  or default viewmodel tag positions with native smoothing. The scoped arc
+  weapon-definition override and five-segment guard also have Mac adapters.
+  Predictor behavior, VM reload retention and render timing need a real Mac test.
 - AAE checkpoint effects-list pointers have a validated post-restore repair.
   Its other checkpoint serialization/callbacks and link-to-camera remain pending.
 

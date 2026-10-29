@@ -19,14 +19,15 @@ removed. The published 1.4 build retains its recorded source commit and checksum
 | AAE viewmodel UI widgets and bone snapshots | `d884f4`, `f73f60`, method chain `b2c9278` | Both widget methods, per-client bone positions/quaternions, rooted Lua callback/table objects and Mac projection/layout; 304 position calculations match bounded Windows execution bit for bit |
 | AAE checkpoint effects-list relocation | `12d4629`, restore return `10405d3` | Mac pool initializer `12d4115` and allocator initialization `12d4209` confirm offsets; 300 bounded comparisons against the Windows repair, including damaged inputs |
 | AAE displayed grenade-arc anchors | draw `11f4926`, enqueue `1392bda`, returns `11f4b43` / `11f4c56` | Mac descriptor layout and the first two draw passes matched; 488 smoothing cases match original Windows arithmetic bit for bit; native-sized persistent point ring |
+| AAE arc prediction weapon override and segment guard | definition `12362cd`, lookup `1236c1b`, sample `11f531b` | Definition replacement scoped to worker return `11f2643`; same Mac projectile field offsets; 56 bounded comparisons against native override validation; SysV two-float/two-GP sample arguments forwarded |
 
 All locations are RVAs in the independently hashed Mac executable recorded in
 `t7o_mac_offsets.h`. Native hooks require that engine build and the generated
 prepatched executable. That is an engine-layout requirement, not a general
 Workshop version allowlist. Inactive hooks retain original engine paths.
 
-The development prepatch fixture accepts 59 hooks and 25 settings using
-5,952 of 6,272 bytes of verified existing padding. It passes 118 real-image
+The development prepatch fixture accepts 61 hooks and 25 settings using
+6,080 of 6,272 bytes of verified existing padding. It passes 122 real-image
 redirect/fallback cases. The migration entry's relative call is relocated and
 its original callee is substituted with RET for that bounded fallback check.
 Seven assembly bridges pass 850 synthetic machine cases,
@@ -58,9 +59,15 @@ limit are preserved. Positions remain separate from the quaternion validation
 needed by rotated UI offsets. Only the first descriptor at each of the two
 matched draw sites changes; other calls and descriptors pass through. The
 original join point and endpoint remain fixed. Persistent buffers retain the
-same 1024-descriptor lifetime as the Windows helper. The Mac worker's weapon
-selection, `aae_arc_weapondef` override and prediction-path changes remain
-unported; display anchoring alone does not change projectile simulation.
+same 1024-descriptor lifetime as the Windows helper. The arc worker alone can
+select `aae_arc_weapondef` from the Mac engine's loaded weapon-name table.
+Matching weapon type, native speed/fuse/lifetime bounds and boolean projectile
+flags are required; invalid overrides use the original definition. This affects
+the arc predictor, not the firing or projectile-spawn paths. The two matched
+sample call sites retain the native five-segment limit with the Mac argument
+registers. Unlike the native one-second cache, the adapter checks the selected
+loaded definition directly each time, avoiding stale cache pointers on reload.
+Actual predictor behavior, render timing and Rosetta execution need Mac testing.
 
 Expanded's lean code rotates `tag_ads`; it does not alter player collision,
 aim or movement. The native key-up callback occurs before the Windows event
@@ -86,7 +93,7 @@ AAEUnified has real deferred callbacks for checkpoint and link-to-camera.
 Earlier classification of these as stubs was incorrect. The empty `lua_start`
 methods say nothing about deferred engine or UI registration.
 
-Remaining AAE components include arc weapon selection/prediction, checkpoint serialization/callbacks and link-to-camera,
+Remaining AAE components include checkpoint serialization/callbacks and link-to-camera,
 the new co-op pause implementation, migration transport parity, free aim, interaction
 prompts, LAN browser and mantle-hint probe/latch/UI behavior. The existing shared
 pause and movement adapters are not substitutes for those components.

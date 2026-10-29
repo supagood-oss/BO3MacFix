@@ -1,6 +1,7 @@
 #include "t7o_mac_camera.h"
 #include "t7o_mac_offsets.h"
 #include "t7o_core.h"
+#include "t7o_mac_checkpoint.h"
 #include "prepatch.h"
 #include "dobby.h"
 #include <math.h>
@@ -191,8 +192,9 @@ static void save_client(void *file) {
     original_save(file);
 }
 static void load_client(void *file) {
+    t7o_mac_checkpoint_client_load_begin(file);
     int slot=atomic_load(&active) ? save_slot(file) : -1;
-    if (slot<0) { original_load(file);return; }
+    if (slot<0) { original_load(file);t7o_mac_checkpoint_client_load_end(file);return; }
     pthread_mutex_lock(&lock);++loading;memset(cameras,0,sizeof(cameras));
     for (unsigned c=0;c<CLIENTS;++c) { uint8_t *cg=cg_for(c);if (cg) put32(cg+LINK_OFFSET,0); }
     pthread_mutex_unlock(&lock);
@@ -205,6 +207,7 @@ static void load_client(void *file) {
         eligible(&cameras[c],cg);
     }
     --loading;pthread_mutex_unlock(&lock);
+    t7o_mac_checkpoint_client_load_end(file);
 }
 void t7o_mac_camera_deactivate(void) {
     atomic_store(&active,false);

@@ -135,11 +135,15 @@ test-camera-adapter: tests/test_t7o_mac_camera_adapter
 tests/test_t7o_mac_camera_adapter: tests/test_t7o_mac_camera_adapter.c source/t7o_mac_camera.c source/t7o_mac_camera.h source/t7o_mac_offsets.h source/t7o_core.c
 	$(HOST_CC) -std=c11 -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_mac_camera_adapter.c source/t7o_core.c -pthread -lm
 
-test-checkpoint-adapter: tests/test_t7o_mac_checkpoint_adapter
+test-checkpoint-adapter: tests/test_t7o_mac_checkpoint_adapter tests/test_t7o_mac_checkpoint_engine
 	./tests/test_t7o_mac_checkpoint_adapter
+	./tests/test_t7o_mac_checkpoint_engine
 
-tests/test_t7o_mac_checkpoint_adapter: tests/test_t7o_mac_checkpoint_adapter.c source/t7o_mac_checkpoint.c source/t7o_mac_checkpoint.h source/t7o_mac_offsets.h
-	$(HOST_CC) -std=c11 -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_mac_checkpoint_adapter.c
+tests/test_t7o_mac_checkpoint_engine: tests/test_t7o_mac_checkpoint_engine.c source/t7o_mac_checkpoint.c source/t7o_mac_checkpoint.h source/t7o_mac_offsets.h source/t7o_core.c
+	$(HOST_CC) -std=c11 -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_mac_checkpoint_engine.c source/t7o_core.c -pthread
+
+tests/test_t7o_mac_checkpoint_adapter: tests/test_t7o_mac_checkpoint_adapter.c source/t7o_mac_checkpoint.c source/t7o_mac_checkpoint.h source/t7o_mac_offsets.h source/t7o_core.c
+	$(HOST_CC) -std=c11 -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_mac_checkpoint_adapter.c source/t7o_core.c -pthread
 
 test-arc-adapter: tests/test_t7o_mac_arc_adapter
 	./tests/test_t7o_mac_arc_adapter

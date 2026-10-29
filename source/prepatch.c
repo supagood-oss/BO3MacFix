@@ -60,6 +60,9 @@ typedef struct {
 // every function BO3MacFix hooks
 static const hook_def_t hook_defs[] = {
 #if T7O_DEV_NATIVE
+    { T7O_MAC_CHECKPOINT_FRAME,Push_R15 },
+    { T7O_MAC_CHECKPOINT_SERVER_LOAD,5,0,{0x55,0x48,0x89,0xe5,0x53} },
+    { T7O_MAC_MESSAGE_STRING,Push_R14 },
     { T7O_MAC_CAMERA_DRAW,Push_R15 },
     { T7O_MAC_ANGLES_TO_AXIS,8,0,{0x55,0x48,0x89,0xe5,0xf2,0x0f,0xf0,0x27} },
     { T7O_MAC_CHECKPOINT_CLIENT_SAVE,5,0,{0x55,0x48,0x89,0xe5,0x53} },

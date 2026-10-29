@@ -9,11 +9,17 @@ static void *test_address(uint32_t);
 static uint8_t fx[0x2d90],state[POOL_OFFSET+POOL_SIZE],saved_fx[sizeof(fx)],saved_pool[POOL_SIZE];
 static uint32_t session;
 static unsigned originals;
+static CheckpointBuiltin savegame_row;
+static void savegame_mock(unsigned i) { (void)i;abort(); }
 static uintptr_t old_pool=UINT64_C(0x2000000000),delta=0x300000;
-static void *test_address(uint32_t rva) { assert(rva==T7O_MAC_SESSION_FLAGS);return &session; }
+static void *test_address(uint32_t rva) {
+    if (rva==T7O_MAC_SESSION_FLAGS) return &session;
+    if (rva==T7O_MAC_SAVEGAME_CREATE_ROW) return &savegame_row;
+    if (rva==T7O_MAC_SAVEGAME_CREATE) return (void *)savegame_mock;
+    abort();
+}
 const void *prepatch_original_code(const void *p,size_t n) { (void)p;(void)n;abort(); }
 int BO3MacFix_Hook(void *p,void *replacement,void **original) { (void)p;(void)replacement;(void)original;abort(); }
-static void put32(void *p,uint32_t value) { memcpy(p,&value,4); }
 static void original_mock(void *p,uintptr_t d) { assert(p==fx && d==delta);++originals; }
 static void fixture(void) {
     memset(fx,0,sizeof(fx));memset(state,0,sizeof(state));session=0;
@@ -30,6 +36,7 @@ static void snapshot(void) { memcpy(saved_fx,fx,sizeof(fx));memcpy(saved_pool,st
 static void unchanged(void) { assert(!memcmp(saved_fx,fx,sizeof(fx)) && !memcmp(saved_pool,state+POOL_OFFSET,POOL_SIZE)); }
 int main(void) {
     assert(!t7o_mac_checkpoint_install(0,false) && !t7o_mac_checkpoint_activate());
+    savegame_row=(CheckpointBuiltin){.hash=t7o_script_hash("savegame_create"),.max_args=1,.function=savegame_mock};
     installed=true;assert(t7o_mac_checkpoint_activate());original_restore=original_mock;base=0x100000000;
     fixture();assert(relocate_fx(fx,delta));uintptr_t pool=(uintptr_t)state+POOL_OFFSET,sentinel=(uintptr_t)fx+SENTINEL;
     assert(read_pointer(fx+0x2d78)==pool && read_pointer(fx+SENTINEL+8)==pool+96 && read_pointer(fx+SENTINEL+16)==pool+52);

@@ -21,6 +21,8 @@ static void *test_address(uint32_t rva) {
 }
 const void *prepatch_original_code(const void *p,size_t n) { (void)p;(void)n;abort(); }
 int BO3MacFix_Hook(void *p,void *f,void **o) { (void)p;(void)f;(void)o;abort(); }
+void t7o_mac_checkpoint_client_load_begin(void *file) { (void)file; }
+void t7o_mac_checkpoint_client_load_end(void *file) { (void)file; }
 static void axis_mock(const float *angles,float *axis) {
     ++axis_calls;memset(axis,0,36);axis[0]=angles[0]+1;axis[4]=angles[1]+1;axis[8]=angles[2]+1;
 }

@@ -66,7 +66,7 @@
         "interactive_prompt",
         "lan_browser",
         "mantle_hint",
-        "checkpoint_fix (real deferred engine/save hooks)",
+        "checkpoint_fix disk slot/container and cross-session restore workflow",
         "mantle_hint probe/latch (separate from new traversal classifier)"
       ],
       "plugin_lua_start_methods_are_noops": true,
@@ -80,7 +80,7 @@
         "t7_traversal: classifier, height, input comparisons and vehicle permission; mantle hint remains separate",
         "host_migration: eligibility and temporary host ratings; transport parity unqualified",
         "viewmodel_ui_anchor: two widget methods, rooted callbacks/tables and bone snapshots; render timing unqualified",
-        "checkpoint_fix: effects free-list relocation after restore; additional serializers/callbacks remain separate",
+        "checkpoint_fix: FX free-list repair, Zombies save buffers/script dispatch, two-part restore and reliable queue cleanup; disk slot/container workflow remains separate",
         "arc display anchors: selected/default viewmodel tags and smoothed first sections; scoped worker weapon override and five-segment guard also added",
         "coop_pause: reliable acknowledgement barrier, nonce heartbeats, frame/menu hooks, guest timeout and resets",
         "link_to_camera: deferred scene submission, pose refresh, delete/forcedelete cleanup and client checkpoint link restoration"
@@ -266,7 +266,7 @@
     },
     "survey_evidence": "docs/map-survey-2026-10-28.json"
   },
-  "source_implementation_scope": "Original shared required T7Overcharged API family only; not full AAEUnified or Expanded feature parity.",
+  "source_implementation_scope": "Shared T7Overcharged APIs plus the AAE/Expanded native adapters recorded in docs/NATIVE_DEVELOPMENT.md; full AAEUnified and Expanded feature parity remains incomplete.",
   "previous_aae_reference": {
     "name": "AAE",
     "version": "3.9.5",
@@ -305,24 +305,27 @@
       "aae_arc_display_anchors",
       "aae_arc_prediction_override_and_segment_guard",
       "aae_coop_pause_synchronization",
-      "aae_camera_links_and_checkpoint_link_restore"
+      "aae_camera_links_and_checkpoint_link_restore",
+      "aae_checkpoint_buffers_script_and_reliable_restore"
     ],
     "local_synthetic_machine_cases": 850,
-    "real_image_redirect_fallback_cases": 138,
+    "real_image_redirect_fallback_cases": 144,
     "mac_sdk_build_pending": true,
     "native_surface_differential_cases": 120,
     "native_rating_differential_cases": 300,
     "first_increment_mac_build_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40790863433",
     "latest_increment_mac_sdk_build_pending": true,
     "native_ui_position_differential_cases": 304,
-    "latest_completed_increment_mac_build_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40805224308",
+    "latest_completed_increment_mac_build_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40807660788",
     "native_checkpoint_fx_differential_cases": 300,
     "native_arc_smoothing_differential_cases": 488,
     "native_arc_weapon_validation_differential_cases": 56,
-    "latest_completed_runtime_commit": "436ef69",
+    "latest_completed_runtime_commit": "64100cfe14cddacacfdeb1303c186e6be65da22a",
     "native_cooppause_differential_cases": 840,
     "native_cooppause_map_name_cases": 104,
-    "prepatch_original_overlay_cases": 2329,
-    "native_camera_pose_differential_cases": 630
+    "prepatch_original_overlay_cases": 2380,
+    "native_camera_pose_differential_cases": 630,
+    "native_checkpoint_buffer_differential_cases": 192,
+    "native_checkpoint_restore_mask_cases": 128
   }
 }

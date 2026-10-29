@@ -4,8 +4,8 @@ Status: source work in progress; **not a new published installer**. No physical
 Mac gameplay or Windows co-op has been tested. Credential recovery remains
 removed. The published 1.4 build retains its recorded source commit and checksum.
 
-Runtime source `436ef69`
-[passes portable, Intel and Apple Silicon build jobs](https://github.com/supagood-oss/BO3MacFix/actions/runs/40805224308),
+Runtime source `64100cfe14cddacacfdeb1303c186e6be65da22a`
+[passes portable, Intel and Apple Silicon build jobs](https://github.com/supagood-oss/BO3MacFix/actions/runs/40807660788),
 including compilation, signing, installer recovery and converter startup.
 The CI archive is named `BO3MacFix-Native-Development.zip`; no replacement
 release or installer version has been published for this source work.
@@ -27,15 +27,16 @@ release or installer version has been published for this source work.
 | AAE displayed grenade-arc anchors | draw `11f4926`, enqueue `1392bda`, returns `11f4b43` / `11f4c56` | Mac descriptor layout and the first two draw passes matched; 488 smoothing cases match original Windows arithmetic bit for bit; native-sized persistent point ring |
 | AAE arc prediction weapon override and segment guard | definition `12362cd`, lookup `1236c1b`, sample `11f531b` | Definition replacement scoped to worker return `11f2643`; same Mac projectile field offsets; 56 bounded comparisons against native override validation; SysV two-float/two-GP sample arguments forwarded |
 | AAE co-op pause synchronization | server frame `11d64a6`, client frame `e1a4c3`, paused check `11d5ba4`, tokenizer `f76456` | Reliable command/ACK barrier, heartbeat, guest state/timeout and menu policy; 840 bounded native comparisons and 104 native map-name comparisons; Mac argument/layout fixtures |
-| AAE camera links and checkpoint link restoration | draw `e0f8b8`, axis `1352ba1`, pose refresh `104b9ab`, save `fb16a0`, load `fb4a92` | 630 bit-exact native pose comparisons; deferred draw queue, copied shader descriptors, deletion cleanup, Mac CSC by-value entity references, two rotating memory-file slots and split-screen isolation tests; Mac SDK build pending for this increment |
+| AAE camera links and checkpoint link restoration | draw `e0f8b8`, axis `1352ba1`, pose refresh `104b9ab`, save `fb16a0`, load `fb4a92` | 630 bit-exact native pose comparisons; deferred draw queue, copied shader descriptors, deletion cleanup, Mac CSC by-value entity references, two rotating memory-file slots and split-screen isolation tests |
+| AAE shared checkpoint engine support | frame `1225cee`, server load `fb3965`, message string `12477a5`, builtin row `694cce0` | Server/client buffers, `savegame_create` Zombies dispatch, two-part restore mask and reliable-queue cleanup; 192 native buffer and 128 restore-mask comparisons; Mac SDK build pending for this increment |
 
 All locations are RVAs in the independently hashed Mac executable recorded in
 `t7o_mac_offsets.h`. Native hooks require that engine build and the generated
 prepatched executable. That is an engine-layout requirement, not a general
 Workshop version allowlist. Inactive hooks retain original engine paths.
 
-The development prepatch fixture accepts 69 hooks and 25 settings using
-5,244 of 6,272 bytes of verified existing padding. It passes 138 real-image
+The development prepatch fixture accepts 72 hooks and 25 settings using
+5,364 of 6,272 bytes of verified existing padding. It passes 144 real-image
 redirect/fallback cases. The migration entry's relative call is relocated and
 its original callee is substituted with RET for that bounded fallback check.
 Seven assembly bridges pass 850 synthetic machine cases,
@@ -62,7 +63,7 @@ The actual-image fallback tests cover every hook at its generated address.
 Format 3 omits the hook records' duplicate sixteen-byte original-code copy:
 the verified compiled hook table supplies exactly the overwritten prefix, and
 untouched bytes remain in the image. The launcher rebuilds its cache for this
-format/table change; a mismatched runtime table is refused. All 2,329 tested
+format/table change; a mismatched runtime table is refused. All 2,380 tested
 original-code overlay windows match the actual unpatched Mac image.
 
 The camera adapter uses the Mac's five-argument DObj scene submission routine,
@@ -87,13 +88,31 @@ reused its address. A surviving VM can retain up to two roots per line widget
 per activation until its destruction. This bounded-per-activation retention and
 actual render timing still need Mac testing. Prediction/arc anchors are separate.
 
-The checkpoint addition repairs only the effects allocator's restored free list.
+The effects allocator component repairs the restored free list.
 It runs after the engine's restore call, for the matched save-load caller and
 Zombies session mode. The complete physical block partition and doubly linked
 free list must validate before any pointer is changed. Other modes, damaged
 lists and inactive mods retain the engine result. No save is rewritten on disk.
-AAE's additional checkpoint serialization, save/load callbacks and script APIs
-are still separate work; this repair does not establish checkpoint parity.
+The additional shared checkpoint adapter enables two 4.5 MiB server buffers and
+two 2.5 MiB client buffers before engine memory-file initialization. The ordinary
+Mac Zombies initialization leaves the client buffers absent. Existing adequate
+buffers are retained; replacement invalidates the engine's checkpoint slots and
+state just as the native repair does. The owned buffers stay allocated for the
+process lifetime because engine memory-files can retain their addresses.
+
+The `savegame_create` builtin follows the original path outside Zombies and
+schedules the existing engine checkpoint operation in a running Zombies map,
+unless another create/commit/restore is pending. Its original callback is
+restored on mod unload. The server load and shared camera/client load chain
+clear stale reliable strings and advance acknowledgements to the restored
+sequence. Client and server completion bits retain the native ordering behavior.
+During restoration, a scoped reliable-string writer substitutes an empty string
+only when a bounded read of the existing pointer fails; valid commands and all
+other writer callers are preserved. The Mac uses its own memory-read API.
+
+AAE's separate on-disk checkpoint container, slot/date menu commands and
+cross-session restore workflow are still separate work. These additions do not
+establish full checkpoint parity or Windows-Mac restore qualification.
 
 Arc rendering uses `aae_arc_tag` when its selected bone has a valid position,
 then falls back to `tag_weapon_right`. The native name alphabet and 63-character
@@ -135,7 +154,7 @@ AAEUnified has real deferred callbacks for checkpoint and link-to-camera.
 Earlier classification of these as stubs was incorrect. The empty `lua_start`
 methods say nothing about deferred engine or UI registration.
 
-Remaining AAE components include the additional checkpoint transaction/script callbacks,
+Remaining AAE components include the on-disk checkpoint slot/container workflow,
 migration transport parity, free aim, interaction
 prompts, LAN browser and mantle-hint probe/latch/UI behavior. The existing shared
 pause and movement adapters are not substitutes for those components.

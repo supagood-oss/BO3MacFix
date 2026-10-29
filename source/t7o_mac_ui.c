@@ -12,7 +12,7 @@
 #endif
 enum { TAGS=128,WIDGETS=1024,CLIENTS=2,REGISTRY=-10000 };
 typedef void (*Layout)(uintptr_t,uintptr_t,uintptr_t,uintptr_t,uintptr_t,uintptr_t);
-typedef struct { bool valid;float position[3],quaternion[4]; } Sample;
+typedef struct { bool valid,position_valid;float position[3],quaternion[4]; } Sample;
 typedef struct { char name[256];unsigned id;Sample sample[CLIENTS]; } Tag;
 typedef struct {
     void *element;unsigned tag;float offset[3];bool line,failed,in_callback;
@@ -36,6 +36,8 @@ static int (*reference)(lua_State *,int);
 static void (*unreference)(lua_State *,int,int);
 static void (*project)(int,const float *,float *);
 static Layout generic_layout;
+static void *(*dvar_find)(const char *);
+static const char *(*dvar_string)(const void *);
 #ifndef T7O_MAC_ADDRESS
 #define T7O_MAC_ADDRESS(offset) ((void *)(uintptr_t)(base+(offset)))
 #endif
@@ -44,6 +46,42 @@ static void *pointer(const void *p) { void *v;memcpy(&v,p,sizeof(v));return v; }
 static uint32_t read32(const void *p) { uint32_t v;memcpy(&v,p,4);return v; }
 static uint16_t read16(const void *p) { uint16_t v;memcpy(&v,p,2);return v; }
 static bool bounded(float value,float maximum) { return isfinite(value) && fabsf(value)<maximum; }
+static unsigned request_tag(const char *name) {
+    size_t length=strlen(name);unsigned result=UINT32_MAX;
+    pthread_mutex_lock(&lock);
+    for (unsigned i=0;i<tag_count;++i) if (!strcmp(tags[i].name,name)) { result=i;break; }
+    bool full=tag_count==TAGS;pthread_mutex_unlock(&lock);
+    if (result!=UINT32_MAX || full || length>=sizeof(tags[0].name)) return result;
+    unsigned id=intern_string(name,0,(unsigned)length+1,3);if (!id) return UINT32_MAX;
+    pthread_mutex_lock(&lock);
+    for (unsigned i=0;i<tag_count;++i) if (tags[i].id==id) { result=i;break; }
+    if (result==UINT32_MAX && tag_count<TAGS) {
+        result=tag_count++;tags[result].id=id;memcpy(tags[result].name,name,length+1);
+    }
+    pthread_mutex_unlock(&lock);return result;
+}
+static void refresh_arc(unsigned choices[2]) {
+    choices[0]=UINT32_MAX;choices[1]=request_tag("tag_weapon_right");
+    void *dvar=dvar_find ? dvar_find("aae_arc_tag") : NULL;
+    const char *name=dvar && dvar_string ? dvar_string(dvar) : NULL;
+    if (!name || !*name) return;
+    unsigned n=0;
+    for (;n<64 && name[n];++n) {
+        unsigned c=(unsigned char)name[n];
+        if (!(c>='a' && c<='z') && !(c>='A' && c<='Z') && !(c>='0' && c<='9') && c!='_') return;
+    }
+    if (n>=64) return;
+    choices[0]=request_tag(name);
+}
+bool t7o_mac_ui_arc_position(unsigned client,float out[3]) {
+    if (!atomic_load(&active) || client>=CLIENTS) return false;
+    unsigned choices[2];refresh_arc(choices);pthread_mutex_lock(&lock);bool valid=false;
+    for (unsigned i=0;i<2 && !valid;++i) if (choices[i]<tag_count) {
+        const Sample *sample=&tags[choices[i]].sample[client];
+        if (sample->position_valid) { memcpy(out,sample->position,12);valid=true; }
+    }
+    pthread_mutex_unlock(&lock);return valid;
+}
 static Widget *find_widget(void *element) {
     for (unsigned i=0;i<widget_count;++i) if (widgets[i].element==element) return &widgets[i];
     return NULL;
@@ -178,21 +216,27 @@ static Method basic_method={"setupViewmodelTagWidget",setup_basic,&line_method};
 static void *get_matrices(void *object) {
     void *result=original_matrices(object);uintptr_t value=(uintptr_t)object;
     if (!atomic_load(&active) || (value!=atomic_load(&objects[0]) && value!=atomic_load(&objects[1]))) return result;
+    unsigned choices[2];refresh_arc(choices);
     pthread_mutex_lock(&lock);
     for (unsigned client=0;client<CLIENTS;++client) {
-        if (value!=atomic_load(&objects[client]) || models[client]!=pointer((uint8_t *)object+0x18)) continue;
+        if (value!=atomic_load(&objects[client])) continue;
+        if (!models[client] || models[client]!=pointer((uint8_t *)object+0x18)) {
+            for (unsigned i=0;i<tag_count;++i) tags[i].sample[client]=(Sample){0};
+            continue;
+        }
         unsigned count=read16((uint8_t *)object+0x120);
         for (unsigned i=0;i<tag_count;++i) {
             uint16_t bone=0xfffe;
             if (!result || !count || count>384 || !bone_index(object,tags[i].id,&bone,UINT32_MAX) || bone>=count) {
-                tags[i].sample[client].valid=false;continue;
+                tags[i].sample[client].valid=false;tags[i].sample[client].position_valid=false;continue;
             }
             if (!(read32((uint8_t *)object+0xc8+4*(bone>>5))&(UINT32_C(0x80000000)>>(bone&31)))) continue;
-            const uint8_t *matrix=(const uint8_t *)result+(size_t)bone*32;Sample sample={.valid=true};
+            const uint8_t *matrix=(const uint8_t *)result+(size_t)bone*32;Sample sample={.valid=true,.position_valid=true};
             memcpy(sample.quaternion,matrix,16);memcpy(sample.position,matrix+16,12);
             float norm=0;for (unsigned j=0;j<4;++j) { norm+=sample.quaternion[j]*sample.quaternion[j];sample.valid&=isfinite(sample.quaternion[j]); }
             sample.valid&=norm>0.25f && norm<4;
-            for (unsigned j=0;j<3;++j) sample.valid&=bounded(sample.position[j],10000000);
+            for (unsigned j=0;j<3;++j) sample.position_valid&=bounded(sample.position[j],10000000);
+            sample.valid&=sample.position_valid;
             tags[i].sample[client]=sample;
         }
     }
@@ -206,7 +250,7 @@ void t7o_mac_ui_inline_dispatch(T7oInlineContext *context,unsigned operation) {
     void *model=object ? pointer((uint8_t *)object+0x18) : NULL;
     pthread_mutex_lock(&lock);
     if (atomic_load(&objects[client])!=(uintptr_t)object || models[client]!=model) {
-        for (unsigned i=0;i<tag_count;++i) tags[i].sample[client].valid=false;
+        for (unsigned i=0;i<tag_count;++i) tags[i].sample[client]=(Sample){0};
         models[client]=model;atomic_store(&objects[client],(uintptr_t)object);
     }
     pthread_mutex_unlock(&lock);
@@ -217,7 +261,7 @@ void t7o_mac_ui_deactivate(void) {
     pthread_mutex_lock(&lock);
     for (unsigned client=0;client<CLIENTS;++client) {
         atomic_store(&objects[client],0);models[client]=NULL;
-        for (unsigned i=0;i<tag_count;++i) tags[i].sample[client].valid=false;
+        for (unsigned i=0;i<tag_count;++i) tags[i].sample[client]=(Sample){0};
     }
     /* The engine owns VM destruction. Do not touch old registry handles here;
      * their VM may already be gone. Reconfiguration within the current active
@@ -245,6 +289,7 @@ bool t7o_mac_ui_activate(lua_State *s) {
         if (!methods_registered) { line_method.next=generic->next;generic->next=&basic_method;methods_registered=true; }
     }
     if (!prepatch_set_inline_callback(T7O_MAC_VIEWMODEL_OBJECT,t7o_inline_viewmodel_object)) return false;
+    unsigned choices[2];refresh_arc(choices);
     atomic_store(&active,true);return true;
 }
 bool t7o_mac_ui_install(uint64_t game_base,bool exact_build_verified) {
@@ -258,6 +303,7 @@ bool t7o_mac_ui_install(uint64_t game_base,bool exact_build_verified) {
     element_arg=address(T7O_MAC_UI_ELEMENT_ARG);generic_layout=address(T7O_MAC_GENERIC_WIDGET_LAYOUT);
     create_table=address(T7O_MAC_HKS_CREATE_TABLE);reference=address(T7O_MAC_HKS_REF);unreference=address(T7O_MAC_HKS_UNREF);
     project=address(T7O_MAC_PROJECT_WIDGET);
+    dvar_find=address(T7O_MAC_DVAR_FIND_NAME);dvar_string=address(T7O_MAC_DVAR_VALUE_STRING);
     if (DobbyHook(address(T7O_MAC_BONE_MATRICES),(void *)get_matrices,(void **)&original_matrices)!=0) return false;
     installed=true;return true;
 }

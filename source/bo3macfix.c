@@ -47,6 +47,7 @@
 #include "t7o_mac_migration.h"
 #include "t7o_mac_ui.h"
 #include "t7o_mac_checkpoint.h"
+#include "t7o_mac_arc.h"
 #include "controllers.h"
 #include "gc_bridge.h"
 
@@ -987,6 +988,7 @@ __attribute__((constructor)) static void dylib_main() {
     t7o_mac_migration_install(game_base_address,t7o_exact_build);
     t7o_mac_ui_install(game_base_address,t7o_exact_build);
     t7o_mac_checkpoint_install(game_base_address,t7o_exact_build);
+    t7o_mac_arc_install(game_base_address,t7o_exact_build);
     t7o_mac_script_install(game_base_address,t7o_exact_build);
     t7o_mac_pause_install(game_base_address,t7o_exact_build);
     t7o_mac_movement_install(game_base_address,t7o_exact_build);

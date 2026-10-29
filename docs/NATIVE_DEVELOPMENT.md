@@ -18,14 +18,15 @@ removed. The published 1.4 build retains its recorded source commit and checksum
 | AAE migration eligibility and host ratings | `140dae8`, `e07413` | Mac eligibility wrapper matched by call flow; host-selection table/stride and caller checked; 300 bounded comparisons against the Windows rating helper |
 | AAE viewmodel UI widgets and bone snapshots | `d884f4`, `f73f60`, method chain `b2c9278` | Both widget methods, per-client bone positions/quaternions, rooted Lua callback/table objects and Mac projection/layout; 304 position calculations match bounded Windows execution bit for bit |
 | AAE checkpoint effects-list relocation | `12d4629`, restore return `10405d3` | Mac pool initializer `12d4115` and allocator initialization `12d4209` confirm offsets; 300 bounded comparisons against the Windows repair, including damaged inputs |
+| AAE displayed grenade-arc anchors | draw `11f4926`, enqueue `1392bda`, returns `11f4b43` / `11f4c56` | Mac descriptor layout and the first two draw passes matched; 488 smoothing cases match original Windows arithmetic bit for bit; native-sized persistent point ring |
 
 All locations are RVAs in the independently hashed Mac executable recorded in
 `t7o_mac_offsets.h`. Native hooks require that engine build and the generated
 prepatched executable. That is an engine-layout requirement, not a general
 Workshop version allowlist. Inactive hooks retain original engine paths.
 
-The development prepatch fixture accepts 57 hooks and 25 settings using
-5,824 of 6,272 bytes of verified existing padding. It passes 114 real-image
+The development prepatch fixture accepts 59 hooks and 25 settings using
+5,952 of 6,272 bytes of verified existing padding. It passes 118 real-image
 redirect/fallback cases. The migration entry's relative call is relocated and
 its original callee is substituted with RET for that bounded fallback check.
 Seven assembly bridges pass 850 synthetic machine cases,
@@ -51,6 +52,16 @@ lists and inactive mods retain the engine result. No save is rewritten on disk.
 AAE's additional checkpoint serialization, save/load callbacks and script APIs
 are still separate work; this repair does not establish checkpoint parity.
 
+Arc rendering uses `aae_arc_tag` when its selected bone has a valid position,
+then falls back to `tag_weapon_right`. The native name alphabet and 63-character
+limit are preserved. Positions remain separate from the quaternion validation
+needed by rotated UI offsets. Only the first descriptor at each of the two
+matched draw sites changes; other calls and descriptors pass through. The
+original join point and endpoint remain fixed. Persistent buffers retain the
+same 1024-descriptor lifetime as the Windows helper. The Mac worker's weapon
+selection, `aae_arc_weapondef` override and prediction-path changes remain
+unported; display anchoring alone does not change projectile simulation.
+
 Expanded's lean code rotates `tag_ads`; it does not alter player collision,
 aim or movement. The native key-up callback occurs before the Windows event
 queue dispatch; the Mac adapter operates before key-state processing instead.
@@ -75,7 +86,7 @@ AAEUnified has real deferred callbacks for checkpoint and link-to-camera.
 Earlier classification of these as stubs was incorrect. The empty `lua_start`
 methods say nothing about deferred engine or UI registration.
 
-Remaining AAE components include prediction/tag anchors, checkpoint serialization/callbacks and link-to-camera,
+Remaining AAE components include arc weapon selection/prediction, checkpoint serialization/callbacks and link-to-camera,
 the new co-op pause implementation, migration transport parity, free aim, interaction
 prompts, LAN browser and mantle-hint probe/latch/UI behavior. The existing shared
 pause and movement adapters are not substitutes for those components.

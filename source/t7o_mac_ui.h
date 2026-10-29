@@ -5,3 +5,4 @@
 bool t7o_mac_ui_install(uint64_t game_base,bool exact_build_verified);
 bool t7o_mac_ui_activate(lua_State *state);
 void t7o_mac_ui_deactivate(void);
+bool t7o_mac_ui_arc_position(unsigned client,float out[3]);

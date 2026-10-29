@@ -13,6 +13,9 @@ static uint8_t table_bytes[16][64];static HksObject table_arrays[16][2];
 static float matrices[2][8];static void *cg_array=cg;static uint32_t cg_count=1;
 static unsigned ref_count,unrefs,created,interns,layouts,callbacks,nil_callbacks;
 static bool fail_callback,found_bone=true,reenter;
+static const char *requested_tag;
+static void *find_dvar_mock(const char *name) { assert(!strcmp(name,"aae_arc_tag"));return &requested_tag; }
+static const char *dvar_string_mock(const void *p) { return *(const char *const *)p; }
 static Method tail={"existingMethod",NULL,NULL},method={"setupGeneric3DWidget",NULL,&tail};
 static lua_State *vm(void) { return (lua_State *)state_bytes; }
 static int generic_setup_mock(lua_State *s) { (void)s;return 0; }
@@ -31,10 +34,12 @@ bool hks_number_arg(lua_State *s,int index,float *out) {
     *out=value->v.number;return true;
 }
 static unsigned intern_mock(const char *name,unsigned user,unsigned length,unsigned type) {
-    assert(!strcmp(name,"tag_weapon_right") && !user && length==strlen(name)+1 && type==3);++interns;return 77;
+    assert(!user && length==strlen(name)+1 && type==3);++interns;
+    if (!strcmp(name,"tag_weapon_right")) return 77;
+    assert(!strcmp(name,"Tag_1"));return 78;
 }
 static int bone_mock(void *object,unsigned id,uint16_t *bone,unsigned mask) {
-    assert(object==object_bytes && id==77 && *bone==0xfffe && mask==UINT32_MAX);*bone=1;return found_bone;
+    assert(object==object_bytes && (id==77 || id==78) && *bone==0xfffe && mask==UINT32_MAX);*bone=id==77 ? 1 : 0;return found_bone;
 }
 static void *matrices_mock(void *object) { assert(object==object_bytes);return matrices; }
 static void table_mock(lua_State *s,int array,int hash) {
@@ -121,6 +126,14 @@ int main(void) {
     assert(method.next==&basic_method && line_method.next==&tail);
     arguments();assert(!setup_line(vm()));before=unrefs;
     HKS_GLOBAL(vm())=other_global;assert(t7o_mac_ui_activate(vm()) && unrefs==before); /* Never unref an old heap. */
+    dvar_find=find_dvar_mock;dvar_string=dvar_string_mock;requested_tag="Tag_1";
+    assert(!t7o_mac_ui_arc_position(0,point)); /* No stale pose after activation. */
+    matrices[0][3]=1;matrices[0][4]=123;matrices[0][5]=456;matrices[0][6]=789;
+    put32(object_bytes+0xc8,0xc0000000);t7o_mac_ui_inline_dispatch(&context,T7O_INLINE_VIEWMODEL_OBJECT);get_matrices(object_bytes);
+    assert(t7o_mac_ui_arc_position(0,point) && point[0]==123 && point[1]==456 && point[2]==789);
+    requested_tag="bad.tag";before=interns;
+    assert(t7o_mac_ui_arc_position(0,point) && point[0]==10 && interns==before); /* Native name alphabet; default fallback. */
+    assert(!t7o_mac_ui_arc_position(1,point));
     t7o_mac_ui_deactivate();before=layouts;layout_basic(0,(uintptr_t)element,0xaa,0xbb,0xcc,(uintptr_t)vm());
     assert(layouts==before+1);
     puts("AAE UI: method links, bone/rotation snapshots, Lua roots and tables, nil/error/reentry behavior, heap changes and inactive fallback passed (substituted engine)");

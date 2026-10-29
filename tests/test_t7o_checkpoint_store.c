@@ -31,6 +31,8 @@ int main(int argc,char **argv) {
     for (unsigned n=0;n<16;++n) { put32(chunks,n);if (n!=8) assert(!t7o_checkpoint_chunks_valid(chunks,16)); }put32(chunks,8);
     assert(!t7o_checkpoint_chunks_valid(chunks,15));
     strcpy(i.identity.folder,"../elsewhere");assert(!t7o_checkpoint_identity_valid(&i.identity));strcpy(i.identity.folder,"fixture");
+    strcpy(i.identity.folder,"fixture v1.5 (local)");assert(t7o_checkpoint_identity_valid(&i.identity));
+    strcpy(i.identity.folder,"..");assert(!t7o_checkpoint_identity_valid(&i.identity));strcpy(i.identity.folder,"fixture");
     assert(t7o_checkpoint_path(directory,&i.identity,path,sizeof(path)) && !t7o_checkpoint_path(directory,&i.identity,path,5));
     assert(t7o_checkpoint_path(directory,&i.identity,path,sizeof(path)));
     char *slash=strrchr(path,'/');assert(slash);*slash=0;assert(bo3_mkdirs(path));*slash='/';

@@ -31,9 +31,9 @@ static bool component(const char *text,size_t capacity) {
     size_t n=0;
     for (;n<capacity && text[n];++n) {
         unsigned char c=(unsigned char)text[n];
-        if (!((c>='a' && c<='z') || (c>='A' && c<='Z') || (c>='0' && c<='9') || c=='_' || c=='-' || c==' ')) return false;
+        if (c<32 || c==127 || strchr("/\\:*?\"<>|",c)) return false;
     }
-    return n>0 && n<capacity;
+    return n>0 && n<capacity && strcmp(text,".") && strcmp(text,"..");
 }
 bool t7o_checkpoint_identity_valid(const T7oCheckpointIdentity *i) {
     return i && i->owner && i->slot>=1 && i->slot<=6 && i->max_clients>=1 && i->max_clients<=18 &&

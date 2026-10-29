@@ -30,6 +30,7 @@ static atomic_uint selected_slot=1,request_serial;
 static atomic_bool autorestore;
 static unsigned handled_serial;
 static char root[4096];
+static char reported_status[128];
 static uint32_t written_indices[2];
 static bool have_written;
 static bool capture_seen[2];
@@ -64,7 +65,12 @@ static bool copy_text(char *out,size_t size,const char *text) {
     if (!text || strlen(text)>=size) return false;
     memset(out,0,size);memcpy(out,text,strlen(text));return true;
 }
-static void status(const char *value) { if (set_string) set_string("bo3macfix_checkpoint_status",value,true); }
+static void status(const char *value) {
+    if (!strcmp(reported_status,value)) return;
+    snprintf(reported_status,sizeof(reported_status),"%s",value);
+    if (set_string) set_string("bo3macfix_checkpoint_status",value,true);
+    printf("BO3MacFix checkpoint: %s\n",value);
+}
 static bool context(T7oCheckpointIdentity *i) {
     if (!active || !server_running() || (u32(address(T7O_MAC_SESSION_FLAGS))&0x3cf)!=0x40) return false;
     memset(i,0,sizeof(*i));i->owner=T7O_CHECKPOINT_OWNER();i->slot=atomic_load(&selected_slot);
@@ -298,7 +304,7 @@ static bool activate(void) {
     active=true;memset(&current,0,sizeof(current));have_written=false;stable_since=0;waiting_restore=false;
     memset(capture_seen,0,sizeof(capture_seen));
     if (atomic_load(&autorestore)) atomic_fetch_add(&request_serial,1);
-    status("ready");return true;
+    reported_status[0]=0;status("ready");return true;
 }
 bool t7o_mac_checkpoint_disk_activate(void) { pthread_mutex_lock(&disk_lock);bool ok=activate();pthread_mutex_unlock(&disk_lock);return ok; }
 bool t7o_mac_checkpoint_disk_install(uint64_t game_base) {

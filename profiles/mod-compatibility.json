@@ -61,7 +61,6 @@
       "plugin_sha256": "577b4d054128b39bd4999197fc9ce51dc04c3710e49ca547c8f037fec7aa9eac",
       "plugin_parity_complete": false,
       "plugin_components_not_ported": [
-        "coop_pause (different implementation from the original shared pause hooks)",
         "free_aim",
         "host_migration transport parity (eligibility/rating source adapters added)",
         "interactive_prompt",
@@ -83,7 +82,8 @@
         "host_migration: eligibility and temporary host ratings; transport parity unqualified",
         "viewmodel_ui_anchor: two widget methods, rooted callbacks/tables and bone snapshots; render timing unqualified",
         "checkpoint_fix: effects free-list relocation after restore; additional serializers/callbacks remain separate",
-        "arc display anchors: selected/default viewmodel tags and smoothed first sections; scoped worker weapon override and five-segment guard also added"
+        "arc display anchors: selected/default viewmodel tags and smoothed first sections; scoped worker weapon override and five-segment guard also added",
+        "coop_pause: reliable acknowledgement barrier, nonce heartbeats, frame/menu hooks, guest timeout and resets"
       ]
     },
     "2942053577": {
@@ -303,20 +303,23 @@
       "aae_viewmodel_ui_anchor",
       "aae_checkpoint_fx_restore",
       "aae_arc_display_anchors",
-      "aae_arc_prediction_override_and_segment_guard"
+      "aae_arc_prediction_override_and_segment_guard",
+      "aae_coop_pause_synchronization"
     ],
     "local_synthetic_machine_cases": 850,
-    "real_image_redirect_fallback_cases": 122,
-    "mac_sdk_build_pending": false,
+    "real_image_redirect_fallback_cases": 130,
+    "mac_sdk_build_pending": true,
     "native_surface_differential_cases": 120,
     "native_rating_differential_cases": 300,
     "first_increment_mac_build_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40790863433",
-    "latest_increment_mac_sdk_build_pending": false,
+    "latest_increment_mac_sdk_build_pending": true,
     "native_ui_position_differential_cases": 304,
     "latest_completed_increment_mac_build_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40798165724",
     "native_checkpoint_fx_differential_cases": 300,
     "native_arc_smoothing_differential_cases": 488,
     "native_arc_weapon_validation_differential_cases": 56,
-    "latest_completed_runtime_commit": "bee7abe0c0720e4bde544b3262b91e6f171dfbdc"
+    "latest_completed_runtime_commit": "bee7abe0c0720e4bde544b3262b91e6f171dfbdc",
+    "native_cooppause_differential_cases": 840,
+    "native_cooppause_map_name_cases": 104
   }
 }

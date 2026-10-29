@@ -7,3 +7,4 @@
 bool t7o_mac_pause_install(uint64_t game_base,bool exact_build_verified);
 bool t7o_mac_pause_activate(void);
 void t7o_mac_pause_deactivate(void);
+bool t7o_mac_pause_original_client(void);

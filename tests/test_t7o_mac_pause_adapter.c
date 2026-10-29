@@ -7,6 +7,7 @@
 static int mode,pending,client_calls,server_calls;
 static bool demo,paused,client_result,server_result;
 static const char *setting;
+bool t7o_mac_cooppause_force_menu(void) { return false; }
 static bool mode_mock(int value) { assert(value==3);return mode==3; }
 static bool demo_mock(void) { return demo; }
 static int pending_mock(void) { return pending; }

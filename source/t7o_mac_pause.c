@@ -1,4 +1,5 @@
 #include "t7o_mac_pause.h"
+#include "t7o_mac_cooppause.h"
 #include "t7o_mac_offsets.h"
 #include "prepatch.h"
 #include "dobby.h"
@@ -25,6 +26,7 @@ static bool requested(void) {
     return value && strtol(value,NULL,10)==1;
 }
 static bool client_can_pause(void) {
+    if (t7o_mac_cooppause_force_menu()) return true;
     if (!requested()) return original_client();
     if (session_mode(3) || demo_playing()) return false;
     /* AAE's native helper additionally makes a pure lobby-state query with
@@ -59,3 +61,4 @@ bool t7o_mac_pause_activate(void) {
     atomic_store(&active,true);return true;
 }
 void t7o_mac_pause_deactivate(void) { atomic_store(&active,false); }
+bool t7o_mac_pause_original_client(void) { return installed && original_client && original_client(); }

@@ -39,6 +39,7 @@
  * __TEXT section (0x2100). No load command or game section is overwritten. */
 #define Native_Code_Start 0x1800u
 #define Native_Code_End 0x2100u
+#define Hook_Code_Alignment 4u
 
 #pragma mark - what goes into the copy
 
@@ -58,6 +59,10 @@ typedef struct {
 // every function BO3MacFix hooks
 static const hook_def_t hook_defs[] = {
 #if T7O_DEV_NATIVE
+    { T7O_MAC_SERVER_FRAME,5,0,{0x55,0x48,0x89,0xe5,0x53} },
+    { T7O_MAC_CLIENT_FRAME,5,0,{0x55,0x48,0x89,0xe5,0x53} },
+    { T7O_MAC_CHECK_PAUSED,Push_R14 },
+    { T7O_MAC_TOKENIZE,Push_R14 },
     { T7O_MAC_ARC_SAMPLE,Push_R15 },
     { T7O_MAC_WEAPON_DEFINITION,10,0,{0x55,0x48,0x89,0xe5,0x81,0xe7,0xff,0x01,0,0} },
     { T7O_MAC_ARC_DRAW,Push_R15 },
@@ -246,6 +251,7 @@ static uint32_t fnv1a(uint32_t hash, const void *data, size_t size) {
 // identifies everything above, so the launcher remakes the copy when a new BO3MacFix changes any of it
 static uint32_t table_id(void) {
     uint32_t hash = fnv1a(2166136261u, &(uint32_t){ Prepatch_Version }, sizeof(uint32_t));
+    hash = fnv1a(hash, &(uint32_t){ Hook_Code_Alignment }, sizeof(uint32_t));
     hash = fnv1a(hash, hook_defs, sizeof(hook_defs));
     hash = fnv1a(hash, value_defs, sizeof(value_defs));
     hash = fnv1a(hash, call_defs, sizeof(call_defs));
@@ -780,7 +786,9 @@ EXPORT int BO3MacFix_BuildPrepatched(const char *original, const char *output, c
         memcpy(hook_records[i].original, def->stolen, def->length);
         memcpy(hook_records[i].original + def->length, b->data + f + def->length, 16 - def->length);
         slot += 8;
-        code = (code + (uint32_t)n + 15) & ~15u;
+        /* These x86 branch stubs use no instruction-address alignment contract.
+         * Four-byte packing preserves the verified padding for more adapters. */
+        code = (code + (uint32_t)n + Hook_Code_Alignment-1) & ~(Hook_Code_Alignment-1);
     }
 
     for (size_t i = 0; i < value_count; i++) {

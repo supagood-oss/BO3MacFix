@@ -8,6 +8,7 @@
 #include "t7o_mac_lean.h"
 #include "t7o_mac_migration.h"
 #include "t7o_mac_ui.h"
+#include "t7o_mac_checkpoint.h"
 #include "t7o_platform.h"
 #include "steam_auth.h"
 #include "prepatch.h"
@@ -31,7 +32,8 @@ static void load_core(int controller,const void *record,bool reload) {
      * records when the engine reaches the cache's own lifetime boundary. */
     t7o_mac_movement_deactivate();t7o_mac_pause_deactivate();
     t7o_mac_script_deactivate();t7o_mac_presentation_deactivate();t7o_mac_traversal_deactivate();
-    t7o_mac_lean_deactivate();t7o_mac_migration_deactivate();t7o_mac_ui_deactivate();t7o_platform_begin_mod(NULL);
+    t7o_mac_lean_deactivate();t7o_mac_migration_deactivate();t7o_mac_ui_deactivate();
+    t7o_mac_checkpoint_deactivate();t7o_platform_begin_mod(NULL);
     steam_http_auth_begin(false);
 }
 int t7o_mac_lifecycle_unload(void) {

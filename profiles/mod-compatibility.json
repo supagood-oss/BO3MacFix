@@ -83,7 +83,8 @@
         "pool_fix: boot-time main reserve 2 GiB to 4 GiB",
         "t7_traversal: classifier, height, input comparisons and vehicle permission; mantle hint remains separate",
         "host_migration: eligibility and temporary host ratings; transport parity unqualified",
-        "viewmodel_ui_anchor: two widget methods, rooted callbacks/tables and bone snapshots; prediction anchors remain separate"
+        "viewmodel_ui_anchor: two widget methods, rooted callbacks/tables and bone snapshots; prediction anchors remain separate",
+        "checkpoint_fix: effects free-list relocation after restore; additional serializers/callbacks remain separate"
       ]
     },
     "2942053577": {
@@ -300,16 +301,18 @@
       "expanded_crosshair",
       "expanded_lean",
       "aae_migration_eligibility_and_ratings",
-      "aae_viewmodel_ui_anchor"
+      "aae_viewmodel_ui_anchor",
+      "aae_checkpoint_fx_restore"
     ],
     "local_synthetic_machine_cases": 850,
-    "real_image_redirect_fallback_cases": 112,
+    "real_image_redirect_fallback_cases": 114,
     "mac_sdk_build_pending": true,
     "native_surface_differential_cases": 120,
     "native_rating_differential_cases": 300,
     "first_increment_mac_build_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40790863433",
     "latest_increment_mac_sdk_build_pending": true,
     "native_ui_position_differential_cases": 304,
-    "latest_completed_increment_mac_build_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40793765591"
+    "latest_completed_increment_mac_build_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40795646694",
+    "native_checkpoint_fx_differential_cases": 300
   }
 }

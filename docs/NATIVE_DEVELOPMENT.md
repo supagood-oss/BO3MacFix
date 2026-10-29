@@ -17,14 +17,15 @@ removed. The published 1.4 build retains its recorded source commit and checksum
 | Expanded viewmodel lean | `d37a72`, key processing `1549275` | Mac DObj lookup `f74d4f`, local tag setter `f74879`, key query `15467e4`; key-up ordering, easing, fire reset, UI/main-thread guards and local-client isolation tests |
 | AAE migration eligibility and host ratings | `140dae8`, `e07413` | Mac eligibility wrapper matched by call flow; host-selection table/stride and caller checked; 300 bounded comparisons against the Windows rating helper |
 | AAE viewmodel UI widgets and bone snapshots | `d884f4`, `f73f60`, method chain `b2c9278` | Both widget methods, per-client bone positions/quaternions, rooted Lua callback/table objects and Mac projection/layout; 304 position calculations match bounded Windows execution bit for bit |
+| AAE checkpoint effects-list relocation | `12d4629`, restore return `10405d3` | Mac pool initializer `12d4115` and allocator initialization `12d4209` confirm offsets; 300 bounded comparisons against the Windows repair, including damaged inputs |
 
 All locations are RVAs in the independently hashed Mac executable recorded in
 `t7o_mac_offsets.h`. Native hooks require that engine build and the generated
 prepatched executable. That is an engine-layout requirement, not a general
 Workshop version allowlist. Inactive hooks retain original engine paths.
 
-The development prepatch fixture accepts 56 hooks and 25 settings using
-5,760 of 6,272 bytes of verified existing padding. It passes 112 real-image
+The development prepatch fixture accepts 57 hooks and 25 settings using
+5,824 of 6,272 bytes of verified existing padding. It passes 114 real-image
 redirect/fallback cases. The migration entry's relative call is relocated and
 its original callee is substituted with RET for that bounded fallback check.
 Seven assembly bridges pass 850 synthetic machine cases,
@@ -41,6 +42,14 @@ not dereferenced because the engine can already have destroyed their VM and
 reused its address. A surviving VM can retain up to two roots per line widget
 per activation until its destruction. This bounded-per-activation retention and
 actual render timing still need Mac testing. Prediction/arc anchors are separate.
+
+The checkpoint addition repairs only the effects allocator's restored free list.
+It runs after the engine's restore call, for the matched save-load caller and
+Zombies session mode. The complete physical block partition and doubly linked
+free list must validate before any pointer is changed. Other modes, damaged
+lists and inactive mods retain the engine result. No save is rewritten on disk.
+AAE's additional checkpoint serialization, save/load callbacks and script APIs
+are still separate work; this repair does not establish checkpoint parity.
 
 Expanded's lean code rotates `tag_ads`; it does not alter player collision,
 aim or movement. The native key-up callback occurs before the Windows event
@@ -66,7 +75,7 @@ AAEUnified has real deferred callbacks for checkpoint and link-to-camera.
 Earlier classification of these as stubs was incorrect. The empty `lua_start`
 methods say nothing about deferred engine or UI registration.
 
-Remaining AAE components include prediction/tag anchors, checkpoint/save and link-to-camera,
+Remaining AAE components include prediction/tag anchors, checkpoint serialization/callbacks and link-to-camera,
 the new co-op pause implementation, migration transport parity, free aim, interaction
 prompts, LAN browser and mantle-hint probe/latch/UI behavior. The existing shared
 pause and movement adapters are not substitutes for those components.

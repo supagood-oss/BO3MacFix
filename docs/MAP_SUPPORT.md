@@ -97,6 +97,8 @@ in the published 1.4 download** and have no physical Mac qualification:
 - AAE's two viewmodel widget methods now have Mac layout/projection, bone
   snapshots and rooted Lua callbacks. The separate prediction/arc anchor changes
   remain pending; VM reload retention and render timing need a real Mac test.
+- AAE checkpoint effects-list pointers have a validated post-restore repair.
+  Its other checkpoint serialization/callbacks and link-to-camera remain pending.
 
 See [the native development record](NATIVE_DEVELOPMENT.md) for evidence and
 remaining components. These additions do not establish full AAEUnified parity.

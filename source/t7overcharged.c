@@ -23,6 +23,7 @@
 #include "t7o_mac_lean.h"
 #include "t7o_mac_migration.h"
 #include "t7o_mac_ui.h"
+#include "t7o_mac_checkpoint.h"
 #include "utilities.h"
 #include "mod_fileio.h"
 #include "steam.h"
@@ -171,12 +172,14 @@ static int t7o_init(lua_State *s) {
     t7o_mac_traversal_deactivate();
     t7o_mac_migration_deactivate();
     t7o_mac_ui_deactivate();
+    t7o_mac_checkpoint_deactivate();
     char plugin[4200];
     int plugin_length=snprintf(plugin,sizeof(plugin),"%s/T7Overcharged/plugins/AAEUnified.dll",dll_dir);
     if (plugin_length>0 && (size_t)plugin_length<sizeof(plugin) && access(plugin,F_OK)==0) {
         if (!t7o_mac_traversal_activate()) printf("T7Overcharged: AAE traversal hooks are unavailable\n");
         if (!t7o_mac_migration_activate()) printf("T7Overcharged: AAE migration hooks are unavailable\n");
         if (!t7o_mac_ui_activate(s)) printf("T7Overcharged: AAE viewmodel widget hooks are unavailable\n");
+        if (!t7o_mac_checkpoint_activate()) printf("T7Overcharged: AAE checkpoint FX repair is unavailable\n");
     }
     if (t7o_mac_fx_activate()) capabilities|=T7O_CAP_FX;
     if (t7o_mac_script_activate()) capabilities|=T7O_CAP_CSC;

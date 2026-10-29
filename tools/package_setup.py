@@ -118,7 +118,7 @@ def bundle(app: Path, output: Path, dylib: Path, launcher: Path, assets: Path | 
     if wine:
         shutil.copytree(wine, payload / "runtime/wine")
     shutil.copy2(REPO / "LICENSE.txt", payload / "LICENSE.txt")
-    manifest = {"schema": 1, "version": "aae-uem-development" if development else "aae-uem-test-1.4" if test_candidate else "aae-uem-qualified",
+    manifest = {"schema": 1, "version": "aae-uem-development" if development else "aae-uem-test-1.5" if test_candidate else "aae-uem-qualified",
         "ready_for_coop": not development and not test_candidate, "test_candidate": test_candidate,
         "game_sha256": game_hashes, "requires_bundled_wine": not development and not test_candidate}
     if test_candidate:

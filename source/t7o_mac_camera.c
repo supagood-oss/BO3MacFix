@@ -180,6 +180,31 @@ static int save_slot(void *file) {
     uintptr_t p=(uintptr_t)file,start=(uintptr_t)address(T7O_MAC_CHECKPOINT_FILES)+0x80070;
     return p==start ? 0 : p==start+0x40038 ? 1 : -1;
 }
+bool t7o_mac_camera_checkpoint_valid(const uint8_t bytes[176]) {
+    if (!bytes || u32(bytes)!=1 || (u32(bytes+4)&~3u)) return false;
+    for (unsigned c=0;c<CLIENTS;++c) {
+        Links links;memcpy(&links,bytes+8+c*sizeof(links),sizeof(links));
+        if (links.count>LINKS) return false;
+        for (unsigned i=0;i<links.count;++i) {
+            if (links.entity[i]>=1024) return false;
+            for (unsigned axis=0;axis<3;++axis) if (!isfinite(links.offset[i][axis])) return false;
+        }
+    }
+    return true;
+}
+void t7o_mac_camera_checkpoint_export(unsigned slot,uintptr_t buffer,uint8_t bytes[176]) {
+    memset(bytes,0,176);put32(bytes,1);
+    if (slot>=2) return;
+    pthread_mutex_lock(&lock);Saved *s=&saved[slot];
+    if (s->valid && s->buffer==buffer) { put32(bytes+4,s->present);memcpy(bytes+8,s->links,sizeof(s->links)); }
+    pthread_mutex_unlock(&lock);
+}
+bool t7o_mac_camera_checkpoint_import(unsigned slot,uintptr_t buffer,const uint8_t bytes[176]) {
+    if (slot>=2 || !buffer || !t7o_mac_camera_checkpoint_valid(bytes)) return false;
+    pthread_mutex_lock(&lock);Saved *s=&saved[slot];memset(s,0,sizeof(*s));
+    s->buffer=buffer;s->valid=true;s->present=(uint8_t)u32(bytes+4);memcpy(s->links,bytes+8,sizeof(s->links));
+    pthread_mutex_unlock(&lock);return true;
+}
 static void save_client(void *file) {
     if (atomic_load(&active)) {
         int slot=save_slot(file);

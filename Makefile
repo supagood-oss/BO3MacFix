@@ -46,9 +46,13 @@ SOURCES += source/t7o_mac_lean.c
 SOURCES += source/t7o_mac_migration.c
 SOURCES += source/t7o_mac_ui.c
 SOURCES += source/t7o_mac_checkpoint.c
+SOURCES += source/t7o_checkpoint_store.c source/t7o_mac_checkpoint_disk.c
 SOURCES += source/t7o_mac_arc.c
 SOURCES += source/t7o_cooppause.c source/t7o_mac_cooppause.c
 SOURCES += source/t7o_mac_camera.c
+SOURCES += source/t7o_freeaim.c source/t7o_mac_freeaim.c
+SOURCES += source/t7o_prompt.c source/t7o_mac_prompt.c
+SOURCES += source/t7o_mantle.c source/t7o_mac_mantle.c
 SOURCES += source/converter_process.c
 SOURCES += source/xpak_fallback.c source/mod_fileio.c
 SOURCES += source/t7o_save_codec.c
@@ -58,7 +62,7 @@ FRAMEWORKS += -framework Metal -framework QuartzCore -framework AppKit -weak_fra
 
 all: $(TARGET)
 
-test: $(TEST_TARGET) test-core test-codegen test-codegen-machine test-fx-adapter test-script-adapter test-pause-adapter test-movement-adapter test-lifecycle-adapter test-presentation-adapter test-memory-adapter test-traversal-adapter test-lean-adapter test-migration-adapter test-ui-adapter test-checkpoint-adapter test-arc-adapter test-cooppause test-cooppause-adapter test-camera-adapter test-converter-process test-steam-auth test-lua
+test: $(TEST_TARGET) test-core test-codegen test-codegen-machine test-fx-adapter test-script-adapter test-pause-adapter test-movement-adapter test-lifecycle-adapter test-presentation-adapter test-memory-adapter test-traversal-adapter test-lean-adapter test-migration-adapter test-ui-adapter test-checkpoint-adapter test-arc-adapter test-cooppause test-cooppause-adapter test-camera-adapter test-freeaim test-freeaim-adapter test-prompt-adapter test-mantle-adapter test-converter-process test-steam-auth test-lua
 	./$(TEST_TARGET)
 
 test-converter-process:
@@ -132,12 +136,44 @@ test-ui-adapter: tests/test_t7o_mac_ui_adapter
 test-camera-adapter: tests/test_t7o_mac_camera_adapter
 	./tests/test_t7o_mac_camera_adapter
 
+test-freeaim: tests/test_t7o_freeaim
+	./tests/test_t7o_freeaim
+
+test-freeaim-adapter: tests/test_t7o_mac_freeaim_adapter
+	./tests/test_t7o_mac_freeaim_adapter
+
+test-prompt-adapter: tests/test_t7o_mac_prompt_adapter
+	./tests/test_t7o_mac_prompt_adapter
+
+tests/test_t7o_mac_prompt_adapter: tests/test_t7o_mac_prompt_adapter.c source/t7o_mac_prompt.c source/t7o_mac_prompt.h source/t7o_mac_offsets.h source/t7o_prompt.c source/t7o_prompt.h
+	$(HOST_CC) -std=c11 -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_mac_prompt_adapter.c source/t7o_prompt.c -pthread -lm
+
+test-mantle-adapter: tests/test_t7o_mac_mantle_adapter
+	./tests/test_t7o_mac_mantle_adapter
+
+tests/test_t7o_mac_mantle_adapter: tests/test_t7o_mac_mantle_adapter.c source/t7o_mac_mantle.c source/t7o_mac_mantle.h source/t7o_mac_offsets.h source/t7o_mantle.c source/t7o_mantle.h
+	$(HOST_CC) -std=c11 -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_mac_mantle_adapter.c source/t7o_mantle.c -pthread -lm
+
+tests/test_t7o_mac_freeaim_adapter: tests/test_t7o_mac_freeaim_adapter.c source/t7o_mac_freeaim.c source/t7o_mac_freeaim.h source/t7o_mac_offsets.h source/t7o_freeaim.c
+	$(HOST_CC) -std=c11 -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_mac_freeaim_adapter.c source/t7o_freeaim.c -pthread -lm
+
+tests/test_t7o_freeaim: tests/test_t7o_freeaim.c source/t7o_freeaim.c source/t7o_freeaim.h
+	$(HOST_CC) -std=c11 -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_freeaim.c source/t7o_freeaim.c -lm
+
 tests/test_t7o_mac_camera_adapter: tests/test_t7o_mac_camera_adapter.c source/t7o_mac_camera.c source/t7o_mac_camera.h source/t7o_mac_offsets.h source/t7o_core.c
 	$(HOST_CC) -std=c11 -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_mac_camera_adapter.c source/t7o_core.c -pthread -lm
 
-test-checkpoint-adapter: tests/test_t7o_mac_checkpoint_adapter tests/test_t7o_mac_checkpoint_engine
+test-checkpoint-adapter: tests/test_t7o_mac_checkpoint_adapter tests/test_t7o_mac_checkpoint_engine tests/test_t7o_checkpoint_store tests/test_t7o_mac_checkpoint_disk
 	./tests/test_t7o_mac_checkpoint_adapter
 	./tests/test_t7o_mac_checkpoint_engine
+	./tests/test_t7o_checkpoint_store
+	./tests/test_t7o_mac_checkpoint_disk
+
+tests/test_t7o_checkpoint_store: tests/test_t7o_checkpoint_store.c source/t7o_checkpoint_store.c source/t7o_checkpoint_store.h source/mod_fileio.c
+	$(HOST_CC) -std=c11 -D_POSIX_C_SOURCE=200809L -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_checkpoint_store.c source/t7o_checkpoint_store.c source/mod_fileio.c
+
+tests/test_t7o_mac_checkpoint_disk: tests/test_t7o_mac_checkpoint_disk.c source/t7o_mac_checkpoint_disk.c source/t7o_checkpoint_store.c source/t7o_checkpoint_store.h source/t7o_mac_offsets.h source/mod_fileio.c
+	$(HOST_CC) -std=c11 -D_POSIX_C_SOURCE=200809L -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_mac_checkpoint_disk.c source/t7o_checkpoint_store.c source/mod_fileio.c -pthread
 
 tests/test_t7o_mac_checkpoint_engine: tests/test_t7o_mac_checkpoint_engine.c source/t7o_mac_checkpoint.c source/t7o_mac_checkpoint.h source/t7o_mac_offsets.h source/t7o_core.c
 	$(HOST_CC) -std=c11 -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_mac_checkpoint_engine.c source/t7o_core.c -pthread
@@ -215,6 +251,9 @@ source/t7overcharged_lua.h: source/t7overcharged.lua
 	cd source && xxd -i t7overcharged.lua > t7overcharged_lua.h
 
 clean:
+	rm -f -- tests/test_t7o_freeaim tests/test_t7o_mac_freeaim_adapter
+	rm -f -- tests/test_t7o_mac_prompt_adapter
+	rm -f -- tests/test_t7o_mac_mantle_adapter
 	rm -f -- tests/test_t7o_mac_memory_adapter
 	rm -f -- tests/test_t7o_mac_traversal_adapter
 	rm -f -- tests/test_t7o_mac_lean_adapter
@@ -225,3 +264,6 @@ clean:
 
 .PHONY: all clean test test-core test-codegen test-codegen-machine test-fx-adapter test-script-adapter test-pause-adapter test-movement-adapter test-lifecycle-adapter test-presentation-adapter test-converter-process test-lua test-macos check-sdk
 .PHONY: test-steam-auth test-memory-adapter test-traversal-adapter test-lean-adapter test-migration-adapter test-ui-adapter test-checkpoint-adapter test-arc-adapter test-cooppause test-cooppause-adapter test-camera-adapter
+.PHONY: test-freeaim test-freeaim-adapter
+.PHONY: test-prompt-adapter
+.PHONY: test-mantle-adapter

@@ -1,5 +1,6 @@
 #include "t7o_mac_presentation.h"
 #include "t7o_mac_offsets.h"
+#include "t7o_mac_freeaim.h"
 #include "t7o_core.h"
 #include "prepatch.h"
 #include "dobby.h"
@@ -29,12 +30,14 @@ static const char *(*dvar_text)(const void *);
 static void *address(uint32_t offset) { return T7O_MAC_ADDRESS(offset); }
 static int32_t integer(const void *p) { int32_t v;memcpy(&v,p,4);return v; }
 static bool crosshair_visible(const void *client,const void *player) {
+    uintptr_t caller=(uintptr_t)__builtin_return_address(0);
+    t7o_mac_freeaim_seen(client,caller);
     if (atomic_load(&active)) {
         void *variable=find_dvar("t7o_force_3rd_person_crosshair");
         const char *value=variable ? dvar_text(variable) : NULL;
         if (value && strtol(value,NULL,10)!=0) return true;
     }
-    return original_crosshair(client,player);
+    return t7o_mac_freeaim_crosshair(client,caller,original_crosshair(client,player));
 }
 int t7o_mac_presentation_gamepad(int fallback) {
     if (!atomic_load(&active) || !find_dvar || !dvar_text) return fallback;

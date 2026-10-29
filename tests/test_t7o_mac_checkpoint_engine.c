@@ -9,6 +9,11 @@ static bool test_readable(const char *);
 #define T7O_MAC_ADDRESS(offset) test_address(offset)
 #define T7O_MAC_READABLE_STRING(value) test_readable(value)
 #include "../source/t7o_mac_checkpoint.c"
+bool t7o_mac_checkpoint_disk_install(uint64_t b) { (void)b;return true; }
+bool t7o_mac_checkpoint_disk_activate(void) { return true; }
+void t7o_mac_checkpoint_disk_deactivate(void) { }
+void t7o_mac_checkpoint_disk_tick(void) { }
+void t7o_mac_checkpoint_disk_frame_begin(int c) { (void)c; }
 static uint32_t session,sizes[2],indices[4],states[4],server_count=2;
 static uintptr_t buffers[4],connection_pointer,server_pointer;
 static uint8_t files[0x1000e0],extra[0x2448],flags[6],ui[2*0x1078];

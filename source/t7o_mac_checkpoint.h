@@ -8,3 +8,6 @@ void t7o_mac_checkpoint_deactivate(void);
  * transaction callbacks in that chain instead of installing competing hooks. */
 void t7o_mac_checkpoint_client_load_begin(void *file);
 void t7o_mac_checkpoint_client_load_end(void *file);
+void t7o_mac_checkpoint_restore_prepare(void);
+void t7o_mac_checkpoint_restore_cancel(void);
+unsigned t7o_mac_checkpoint_restore_parts(void);

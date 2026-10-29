@@ -69,7 +69,6 @@
         "interactive_prompt",
         "lan_browser",
         "mantle_hint",
-        "viewmodel_ui_anchor",
         "checkpoint_fix (real deferred engine/save hooks)",
         "link_to_camera (real deferred native registration)",
         "mantle_hint probe/latch (separate from new traversal classifier)"
@@ -83,7 +82,8 @@
       "plugin_source_adapters_after_1_4": [
         "pool_fix: boot-time main reserve 2 GiB to 4 GiB",
         "t7_traversal: classifier, height, input comparisons and vehicle permission; mantle hint remains separate",
-        "host_migration: eligibility and temporary host ratings; transport parity unqualified"
+        "host_migration: eligibility and temporary host ratings; transport parity unqualified",
+        "viewmodel_ui_anchor: two widget methods, rooted callbacks/tables and bone snapshots; prediction anchors remain separate"
       ]
     },
     "2942053577": {
@@ -299,14 +299,17 @@
       "aae_traversal",
       "expanded_crosshair",
       "expanded_lean",
-      "aae_migration_eligibility_and_ratings"
+      "aae_migration_eligibility_and_ratings",
+      "aae_viewmodel_ui_anchor"
     ],
-    "local_synthetic_machine_cases": 826,
-    "real_image_redirect_fallback_cases": 110,
+    "local_synthetic_machine_cases": 850,
+    "real_image_redirect_fallback_cases": 112,
     "mac_sdk_build_pending": true,
     "native_surface_differential_cases": 120,
     "native_rating_differential_cases": 300,
     "first_increment_mac_build_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40790863433",
-    "latest_increment_mac_sdk_build_pending": true
+    "latest_increment_mac_sdk_build_pending": true,
+    "native_ui_position_differential_cases": 304,
+    "latest_completed_increment_mac_build_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40793765591"
   }
 }

@@ -92,6 +92,11 @@ in the published 1.4 download** and have no physical Mac qualification:
   different CG offset. Viewmodel leaning has a Mac key-up/bone adapter, native
   easing, per-local-client state and mod-unload reset. The original event-queue
   hook is replaced at Mac key-event processing; live input timing needs testing.
+- AAE migration eligibility and host-rating adapters retain the Mac transport;
+  additional Windows private-lobby notification behavior remains separate work.
+- AAE's two viewmodel widget methods now have Mac layout/projection, bone
+  snapshots and rooted Lua callbacks. The separate prediction/arc anchor changes
+  remain pending; VM reload retention and render timing need a real Mac test.
 
 See [the native development record](NATIVE_DEVELOPMENT.md) for evidence and
 remaining components. These additions do not establish full AAEUnified parity.

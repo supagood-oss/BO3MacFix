@@ -20,8 +20,9 @@ void t7o_mac_presentation_deactivate(void) { assert(stage==4);stage=5; }
 void t7o_mac_traversal_deactivate(void) { assert(stage==5);stage=6; }
 void t7o_mac_lean_deactivate(void) { assert(stage==6);stage=7; }
 void t7o_mac_migration_deactivate(void) { assert(stage==7);stage=8; }
-void t7o_platform_begin_mod(const char *path) { assert(stage==8 && !path);stage=9;++resets; }
-void steam_http_auth_begin(bool enabled) { assert(stage==9 && !enabled);stage=10; }
+void t7o_mac_ui_deactivate(void) { assert(stage==8);stage=9; }
+void t7o_platform_begin_mod(const char *path) { assert(stage==9 && !path);stage=10;++resets; }
+void steam_http_auth_begin(bool enabled) { assert(stage==10 && !enabled);stage=11; }
 const void *prepatch_original_code(const void *p,size_t n) { (void)p;(void)n;abort(); }
 int BO3MacFix_Hook(void *p,void *replacement,void **original) { (void)p;(void)replacement;(void)original;abort(); }
 int main(void) {
@@ -32,7 +33,7 @@ int main(void) {
     disabled="0";name[0]=0;assert(t7o_mac_lifecycle_unload()==2 && !requests);
     name[0]='m';assert(t7o_mac_lifecycle_unload()==1 && requests==1);
     int record=42;expected_record=&record;load_core(0,&record,true);
-    assert(stage==10 && resets==1);
+    assert(stage==11 && resets==1);
     assert(!t7o_mac_lifecycle_install(base,false));
     puts("Mac unload arguments, disable/no-mod guards and ordered lifecycle reset passed (substituted engine)");
 }

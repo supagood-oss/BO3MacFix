@@ -16,19 +16,31 @@ removed. The published 1.4 build retains its recorded source commit and checksum
 | Traversal surface / vehicle permission | `14c4101`, helper `d691e0` | Mac gclient stride `17210`, level/client/entity relationships, server/predicted fallbacks and deny result 4 checked |
 | Expanded viewmodel lean | `d37a72`, key processing `1549275` | Mac DObj lookup `f74d4f`, local tag setter `f74879`, key query `15467e4`; key-up ordering, easing, fire reset, UI/main-thread guards and local-client isolation tests |
 | AAE migration eligibility and host ratings | `140dae8`, `e07413` | Mac eligibility wrapper matched by call flow; host-selection table/stride and caller checked; 300 bounded comparisons against the Windows rating helper |
+| AAE viewmodel UI widgets and bone snapshots | `d884f4`, `f73f60`, method chain `b2c9278` | Both widget methods, per-client bone positions/quaternions, rooted Lua callback/table objects and Mac projection/layout; 304 position calculations match bounded Windows execution bit for bit |
 
 All locations are RVAs in the independently hashed Mac executable recorded in
 `t7o_mac_offsets.h`. Native hooks require that engine build and the generated
 prepatched executable. That is an engine-layout requirement, not a general
 Workshop version allowlist. Inactive hooks retain original engine paths.
 
-The development prepatch fixture accepts 55 hooks and 24 settings using
-5,632 of 6,272 bytes of verified existing padding. It passes 110 real-image
+The development prepatch fixture accepts 56 hooks and 25 settings using
+5,760 of 6,272 bytes of verified existing padding. It passes 112 real-image
 redirect/fallback cases. The migration entry's relative call is relocated and
 its original callee is substituted with RET for that bounded fallback check.
-Six assembly bridges pass 826 synthetic machine cases,
+Seven assembly bridges pass 850 synthetic machine cases,
 covering integer/SIMD registers, flags, stack alignment and red-zone preservation.
 These are offline tests; they do not exercise Rosetta or actual engine gameplay.
+
+The UI adapter registers `setupViewmodelTagWidget` and
+`setupViewmodelTagWidgetLine`. It uses the Mac HKS table/ref/unref functions,
+forwards all six Mac layout arguments, and never fabricates Windows Lua objects.
+Tests cover missing bones, invalid projections, callback errors and reentry,
+reconfiguration, heap changes and inactive fallback. Registry references replaced
+within one activation are released. At mod reload, old handles are deliberately
+not dereferenced because the engine can already have destroyed their VM and
+reused its address. A surviving VM can retain up to two roots per line widget
+per activation until its destruction. This bounded-per-activation retention and
+actual render timing still need Mac testing. Prediction/arc anchors are separate.
 
 Expanded's lean code rotates `tag_ads`; it does not alter player collision,
 aim or movement. The native key-up callback occurs before the Windows event
@@ -54,8 +66,7 @@ AAEUnified has real deferred callbacks for checkpoint and link-to-camera.
 Earlier classification of these as stubs was incorrect. The empty `lua_start`
 methods say nothing about deferred engine or UI registration.
 
-Remaining AAE components include prediction/tag anchors, viewmodel UI widget
-registration/layout and bone snapshots, checkpoint/save and link-to-camera,
+Remaining AAE components include prediction/tag anchors, checkpoint/save and link-to-camera,
 the new co-op pause implementation, migration transport parity, free aim, interaction
 prompts, LAN browser and mantle-hint probe/latch/UI behavior. The existing shared
 pause and movement adapters are not substitutes for those components.

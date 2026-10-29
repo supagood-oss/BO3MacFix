@@ -42,3 +42,4 @@ tests/test_t7o_mac_memory_adapter
 tests/test_t7o_mac_traversal_adapter
 tests/test_t7o_mac_lean_adapter
 tests/test_t7o_mac_migration_adapter
+tests/test_t7o_mac_ui_adapter

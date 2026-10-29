@@ -307,15 +307,16 @@
     ],
     "local_synthetic_machine_cases": 850,
     "real_image_redirect_fallback_cases": 122,
-    "mac_sdk_build_pending": true,
+    "mac_sdk_build_pending": false,
     "native_surface_differential_cases": 120,
     "native_rating_differential_cases": 300,
     "first_increment_mac_build_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40790863433",
-    "latest_increment_mac_sdk_build_pending": true,
+    "latest_increment_mac_sdk_build_pending": false,
     "native_ui_position_differential_cases": 304,
-    "latest_completed_increment_mac_build_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40796343802",
+    "latest_completed_increment_mac_build_url": "https://github.com/supagood-oss/BO3MacFix/actions/runs/40798165724",
     "native_checkpoint_fx_differential_cases": 300,
     "native_arc_smoothing_differential_cases": 488,
-    "native_arc_weapon_validation_differential_cases": 56
+    "native_arc_weapon_validation_differential_cases": 56,
+    "latest_completed_runtime_commit": "bee7abe0c0720e4bde544b3262b91e6f171dfbdc"
   }
 }

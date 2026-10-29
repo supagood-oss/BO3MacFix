@@ -4,6 +4,12 @@ Status: source work in progress; **not a new published installer**. No physical
 Mac gameplay or Windows co-op has been tested. Credential recovery remains
 removed. The published 1.4 build retains its recorded source commit and checksum.
 
+Runtime source `bee7abe0c0720e4bde544b3262b91e6f171dfbdc`
+[passes portable, Intel and Apple Silicon build jobs](https://github.com/supagood-oss/BO3MacFix/actions/runs/40798165724),
+including compilation, signing, installer recovery and converter startup.
+The CI archive is named `BO3MacFix-Native-Development.zip`; no replacement
+release or installer version has been published for this source work.
+
 ## Implemented adapters
 
 | Native contract | Mac binding | Evidence / qualification |

@@ -337,8 +337,14 @@
     "checkpoint_restart_comparisons": 144,
     "prepatch_padding_bytes": 6056,
     "prepatch_padding_capacity": 6272,
-    "mac_sdk_build": false,
+    "mac_sdk_build": true,
     "mac_gameplay_tested": false,
-    "windows_coop_tested": false
+    "windows_coop_tested": false,
+    "runtime_revision": "f12af1dbcc90f953798a750133dde10a5d94fe01",
+    "ci_run": 40822820940,
+    "intel_and_apple_silicon_jobs_passed": true,
+    "archive_inspection_passed": true,
+    "release_tag": "aae-uem-mac-test-1.5",
+    "installer_zip_sha256": "fa5d50afa5b74e0d07b4af9aac4c87388808c5482ae3cc8230237d923ca5eb0d"
   }
 }

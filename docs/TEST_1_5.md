@@ -1,14 +1,21 @@
-# Mac Test 1.5 preparation
+# Mac Test 1.5 — install and test
 
-No 1.5 download has been built or published yet. The existing 1.4 release does
-not contain the new native work. This page will receive the verified download
-and build revision after both Mac build jobs and archive inspection succeed.
+[Download Mac Test 1.5](https://github.com/supagood-oss/BO3MacFix/releases/download/aae-uem-mac-test-1.5/BO3MacFix-Mac-Test-1.5.zip) · [Shareable offline guide](https://github.com/supagood-oss/BO3MacFix/releases/download/aae-uem-mac-test-1.5/BO3MacFix-1.5-START-HERE.html) · [Release](https://github.com/supagood-oss/BO3MacFix/releases/tag/aae-uem-mac-test-1.5)
+
+The same download supports Intel and M-series Macs. Runtime revision
+`f12af1dbcc90f953798a750133dde10a5d94fe01` passed the
+[Intel and Apple Silicon CI checks](https://github.com/supagood-oss/BO3MacFix/actions/runs/40822820940).
+Both archives were inspected and the public download was independently re-read
+and hash-verified. ZIP SHA256:
+`fa5d50afa5b74e0d07b4af9aac4c87388808c5482ae3cc8230237d923ca5eb0d`.
+
+This is a first-Mac gameplay test candidate, not qualified AAE/UEM co-op support.
 
 ## Fresh BO3 installation
 
 1. Install BO3 in Steam. Open it once, then quit.
 2. Subscribe to AAE or UEM and the dependencies Steam lists. Wait for downloads.
-3. Unzip the supplied 1.5 installer and open **BO3MacFix Setup**.
+3. Unzip the 1.5 download and open **BO3MacFix Setup**.
 4. Click **Install**, accept Apple's Rosetta prompt on an M-series Mac if shown,
    and let the app finish.
 5. Click **Play** in Setup.
@@ -42,3 +49,8 @@ and build revision after both Mac build jobs and archive inspection succeed.
 The installer is intended to need no Terminal, Homebrew or manual file copying.
 Live gameplay, cross-session engine restoration and Windows co-op are tests,
 not verified compatibility claims.
+
+
+If macOS cannot verify the developer, after trying to open the app use
+**System Settings → Privacy & Security → Open Anyway**, then confirm **Open**.
+This app is ad-hoc signed and not notarized. [Apple instructions](https://support.apple.com/en-us/102445).

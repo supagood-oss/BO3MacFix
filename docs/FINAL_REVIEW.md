@@ -1,3 +1,8 @@
+> [Mac Test 1.5 is now available](TEST_1_5.md), with checkpoint disk persistence,
+> mantle hints and the newer native adapters. Intel/Apple Silicon builds and
+> archive checks passed; physical Mac gameplay and Windows co-op remain unqualified.
+> The review below records the earlier 1.4 installer baseline.
+
 > Earlier public test downloads were withdrawn. Use the clean 1.4 test installer;
 > do not reuse archives 1 through 1.3. Credential-dependent online features
 > are disabled, while gameplay and ordinary HTTP support are retained.

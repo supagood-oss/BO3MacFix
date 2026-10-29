@@ -166,7 +166,7 @@ and stride `30` are independently confirmed by its session/member routines.
 All 432 bounded native cases match results and sender arguments. This remains
 a source/fixture result; actual Windows-Mac host migration needs qualification.
 
-## Additional local adapters awaiting a Mac build
+## Additional adapters in the 1.5 test build
 
 Free aim's arithmetic, parsers, projectile adjustment and reticle fade have
 3,643 bounded native comparisons, including successful output bits. The local
@@ -197,7 +197,7 @@ The Windows patch bytes for its three CP mode calls are `mov al,1; nop*3`,
 not empty NOPs. The Mac mode hook returns true only for mode 2 at the matching
 three layout callers; other callers use the original mode predicate. The
 generic widget's parent `clamped` model is cleared at the matched layout point.
-These local additions still need Mac SDK compilation and gameplay qualification.
+These additions passed the 1.5 Mac SDK builds. Physical gameplay qualification remains pending.
 
 AAEUnified has real deferred callbacks for checkpoint and link-to-camera.
 Earlier classification of these as stubs was incorrect. The empty `lua_start`
@@ -281,5 +281,9 @@ change. No new executable segment is added: the actual image builder fits
 85 hooks, 36 settings, two calls and 41 byte patches in 6,056 of the existing
 6,272 padding bytes. Local checks cover 170 hook dispatches, 54 setting cases,
 2,788 original-code overlay windows, and 1,102 synthetic machine cases across
-17 assembly bridges. Mac SDK compilation, archive verification and physical
-Mac/Windows co-op qualification are still required before calling 1.5 ready.
+17 assembly bridges. Both Mac SDK builds, signature verification, automatic
+dependency/converter checks and archive inspection passed for runtime revision
+`f12af1dbcc90f953798a750133dde10a5d94fe01` in
+[run 40822820940](https://github.com/supagood-oss/BO3MacFix/actions/runs/40822820940).
+[Mac Test 1.5 is available](TEST_1_5.md). Physical Mac/Windows co-op and
+cross-session engine restoration remain unqualified.

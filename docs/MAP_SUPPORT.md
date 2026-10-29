@@ -265,7 +265,7 @@ None of these checks is a physical M-series game or Windows co-op test.
 The source adds six local checkpoint disk slots, menu dates, pointer-free camera
 state and cross-session resume through the Mac engine's existing restart path.
 It also adds mantle hint probes, warmup/latch timing and scoped HUD handling.
-These are development adapters, not additions to the published 1.4 installer.
+They are included in [Mac Test 1.5](TEST_1_5.md), and are absent from 1.4.
 See [native evidence and limits](NATIVE_DEVELOPMENT.md#checkpoint-disk-persistence-and-mantle-hints-15-source).
 Saves are Mac-specific; importing Windows AAE saves is unsupported. Test saving,
 quitting BO3 completely, reopening and resuming with the same mod/map and player

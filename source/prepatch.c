@@ -8,7 +8,8 @@
 //   so hooking it only means storing a pointer in its slot, in __DATA's zero-filled tail
 // - each "mov r32, imm32" a setting changes jumps to a stub that loads the value from a slot when it's set
 // - each call through objc_msgSend's pointer a setting redirects calls a stub that jumps through a slot when it's set
-// - a header at the start of the padding lists all of it, with the original bytes
+// - a header lists the sites; hook originals come from the matching compiled
+//   table, while setting/call/byte-patch records retain their original bytes
 // With every slot left at 0 the copy runs exactly like the original.
 #include <CommonCrypto/CommonDigest.h>
 #include <fcntl.h>
@@ -33,7 +34,7 @@
 #define EXPORT __attribute__((visibility("default")))
 
 #define Prepatch_Magic "BO3MFPP1"
-#define Prepatch_Version 2
+#define Prepatch_Version 3
 #define Game_Base 0x100000000ULL
 /* Verified zero padding between load commands (ending 0x17f8) and the first
  * __TEXT section (0x2100). No load command or game section is overwritten. */
@@ -59,6 +60,10 @@ typedef struct {
 // every function BO3MacFix hooks
 static const hook_def_t hook_defs[] = {
 #if T7O_DEV_NATIVE
+    { T7O_MAC_CAMERA_DRAW,Push_R15 },
+    { T7O_MAC_ANGLES_TO_AXIS,8,0,{0x55,0x48,0x89,0xe5,0xf2,0x0f,0xf0,0x27} },
+    { T7O_MAC_CHECKPOINT_CLIENT_SAVE,5,0,{0x55,0x48,0x89,0xe5,0x53} },
+    { T7O_MAC_CHECKPOINT_CLIENT_LOAD,Push_R15 },
     { T7O_MAC_SERVER_FRAME,5,0,{0x55,0x48,0x89,0xe5,0x53} },
     { T7O_MAC_CLIENT_FRAME,5,0,{0x55,0x48,0x89,0xe5,0x53} },
     { T7O_MAC_CHECK_PAUSED,Push_R14 },
@@ -228,8 +233,8 @@ typedef struct {
     uint32_t trampoline;
     uint8_t length;
     uint8_t pad[3];
-    uint8_t original[16];
 } prepatch_hook_t;
+_Static_assert(sizeof(prepatch_hook_t)==16,"compact hook record");
 
 // a value or call site
 typedef struct {
@@ -307,15 +312,21 @@ bool prepatch_init(uint64_t base_address) {
         printf("BO3MacFix: the pre-patched executable has format %u, this BO3MacFix needs %u\n", h->version, Prepatch_Version);
         return false;
     }
+    /* Format 3 reconstructs stolen bytes from this library's verified table.
+     * The launcher already rebuilds its cache whenever that table changes. */
+    if (h->table_id!=table_id() || h->hook_count!=sizeof(hook_defs)/sizeof(hook_defs[0])) {
+        printf("BO3MacFix: start the game through Steam to rebuild its pre-patched executable\n");
+        return false;
+    }
+    const prepatch_hook_t *records=(const void *)(base+h->hooks_offset);
+    for (uint32_t i=0;i<h->hook_count;++i)
+        if (records[i].function!=hook_defs[i].function || records[i].length!=hook_defs[i].length) return false;
     header = h;
     hooks = (const prepatch_hook_t *)(base + h->hooks_offset);
     values = (const prepatch_site_t *)(base + h->values_offset);
     calls = (const prepatch_site_t *)(base + h->calls_offset);
     printf("BO3MacFix: running from the pre-patched executable (%u hooks, %u settings, %u calls, %u byte patches)\n",
            h->hook_count, h->value_count, h->call_count, h->patch_count);
-    if (h->table_id != table_id())
-        printf("BO3MacFix: the pre-patched executable was made by a different BO3MacFix, start the game through "
-               "Steam to remake it\n");
     return true;
 }
 
@@ -342,7 +353,7 @@ const void *prepatch_original_code(const void *address, size_t size) {
     overlay_t o = { (uint64_t)address, (uint64_t)address + size, buffer, false };
     memcpy(buffer, address, size);
     for (uint32_t i = 0; i < header->hook_count; i++)
-        overlay(base + hooks[i].function, hooks[i].original, sizeof(hooks[i].original), &o);
+        overlay(base + hooks[i].function, hook_defs[i].stolen, hook_defs[i].length, &o);
     for (uint32_t i = 0; i < header->value_count; i++)
         overlay(base + values[i].site, values[i].original, values[i].length, &o);
     for (uint32_t i = 0; i < header->call_count; i++)
@@ -783,8 +794,6 @@ EXPORT int BO3MacFix_BuildPrepatched(const char *original, const char *output, c
         put_rel32(b->data + f + 1, code, f + 5);
         memset(b->data + f + 5, 0x90, def->length - 5);
         hook_records[i] = (prepatch_hook_t){ .function = f, .slot = slot, .trampoline = tramp, .length = def->length };
-        memcpy(hook_records[i].original, def->stolen, def->length);
-        memcpy(hook_records[i].original + def->length, b->data + f + def->length, 16 - def->length);
         slot += 8;
         /* These x86 branch stubs use no instruction-address alignment contract.
          * Four-byte packing preserves the verified padding for more adapters. */

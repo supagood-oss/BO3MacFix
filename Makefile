@@ -48,6 +48,7 @@ SOURCES += source/t7o_mac_ui.c
 SOURCES += source/t7o_mac_checkpoint.c
 SOURCES += source/t7o_mac_arc.c
 SOURCES += source/t7o_cooppause.c source/t7o_mac_cooppause.c
+SOURCES += source/t7o_mac_camera.c
 SOURCES += source/converter_process.c
 SOURCES += source/xpak_fallback.c source/mod_fileio.c
 SOURCES += source/t7o_save_codec.c
@@ -57,7 +58,7 @@ FRAMEWORKS += -framework Metal -framework QuartzCore -framework AppKit -weak_fra
 
 all: $(TARGET)
 
-test: $(TEST_TARGET) test-core test-codegen test-codegen-machine test-fx-adapter test-script-adapter test-pause-adapter test-movement-adapter test-lifecycle-adapter test-presentation-adapter test-memory-adapter test-traversal-adapter test-lean-adapter test-migration-adapter test-ui-adapter test-checkpoint-adapter test-arc-adapter test-cooppause test-cooppause-adapter test-converter-process test-steam-auth test-lua
+test: $(TEST_TARGET) test-core test-codegen test-codegen-machine test-fx-adapter test-script-adapter test-pause-adapter test-movement-adapter test-lifecycle-adapter test-presentation-adapter test-memory-adapter test-traversal-adapter test-lean-adapter test-migration-adapter test-ui-adapter test-checkpoint-adapter test-arc-adapter test-cooppause test-cooppause-adapter test-camera-adapter test-converter-process test-steam-auth test-lua
 	./$(TEST_TARGET)
 
 test-converter-process:
@@ -127,6 +128,12 @@ test-migration-adapter: tests/test_t7o_mac_migration_adapter
 
 test-ui-adapter: tests/test_t7o_mac_ui_adapter
 	./tests/test_t7o_mac_ui_adapter
+
+test-camera-adapter: tests/test_t7o_mac_camera_adapter
+	./tests/test_t7o_mac_camera_adapter
+
+tests/test_t7o_mac_camera_adapter: tests/test_t7o_mac_camera_adapter.c source/t7o_mac_camera.c source/t7o_mac_camera.h source/t7o_mac_offsets.h source/t7o_core.c
+	$(HOST_CC) -std=c11 -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_mac_camera_adapter.c source/t7o_core.c -pthread -lm
 
 test-checkpoint-adapter: tests/test_t7o_mac_checkpoint_adapter
 	./tests/test_t7o_mac_checkpoint_adapter
@@ -213,4 +220,4 @@ clean:
 	rm -f -- $(TARGET) $(TEST_TARGET) tests/test_t7o_core tests/test_t7o_codegen tests/test_t7o_mac_fx_adapter tests/test_t7o_mac_script_adapter tests/test_t7o_mac_pause_adapter tests/test_t7o_mac_movement_adapter tests/test_t7o_mac_lifecycle_adapter tests/test_t7o_mac_presentation_adapter tests/test_converter_process $(NATIVE_OBJECTS) source/t7overcharged_lua.h
 
 .PHONY: all clean test test-core test-codegen test-codegen-machine test-fx-adapter test-script-adapter test-pause-adapter test-movement-adapter test-lifecycle-adapter test-presentation-adapter test-converter-process test-lua test-macos check-sdk
-.PHONY: test-steam-auth test-memory-adapter test-traversal-adapter test-lean-adapter test-migration-adapter test-ui-adapter test-checkpoint-adapter test-arc-adapter test-cooppause test-cooppause-adapter
+.PHONY: test-steam-auth test-memory-adapter test-traversal-adapter test-lean-adapter test-migration-adapter test-ui-adapter test-checkpoint-adapter test-arc-adapter test-cooppause test-cooppause-adapter test-camera-adapter

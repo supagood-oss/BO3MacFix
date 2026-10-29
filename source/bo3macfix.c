@@ -49,6 +49,7 @@
 #include "t7o_mac_checkpoint.h"
 #include "t7o_mac_arc.h"
 #include "t7o_mac_cooppause.h"
+#include "t7o_mac_camera.h"
 #include "controllers.h"
 #include "gc_bridge.h"
 
@@ -993,6 +994,7 @@ __attribute__((constructor)) static void dylib_main() {
     t7o_mac_script_install(game_base_address,t7o_exact_build);
     t7o_mac_pause_install(game_base_address,t7o_exact_build);
     t7o_mac_cooppause_install(game_base_address,t7o_exact_build);
+    t7o_mac_camera_install(game_base_address,t7o_exact_build);
     t7o_mac_movement_install(game_base_address,t7o_exact_build);
     t7o_mac_presentation_install(game_base_address,t7o_exact_build);
     t7o_mac_lifecycle_install(game_base_address,t7o_exact_build);

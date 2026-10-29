@@ -47,3 +47,4 @@ tests/test_t7o_mac_checkpoint_adapter
 tests/test_t7o_mac_arc_adapter
 tests/test_t7o_cooppause
 tests/test_t7o_mac_cooppause_adapter
+tests/test_t7o_mac_camera_adapter

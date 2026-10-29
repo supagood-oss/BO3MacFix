@@ -11,6 +11,7 @@
 #include "t7o_mac_checkpoint.h"
 #include "t7o_mac_arc.h"
 #include "t7o_mac_cooppause.h"
+#include "t7o_mac_camera.h"
 #include "t7o_platform.h"
 #include "steam_auth.h"
 #include "prepatch.h"
@@ -35,7 +36,7 @@ static void load_core(int controller,const void *record,bool reload) {
     t7o_mac_movement_deactivate();t7o_mac_pause_deactivate();
     t7o_mac_script_deactivate();t7o_mac_presentation_deactivate();t7o_mac_traversal_deactivate();
     t7o_mac_lean_deactivate();t7o_mac_migration_deactivate();t7o_mac_ui_deactivate();
-    t7o_mac_checkpoint_deactivate();t7o_mac_arc_deactivate();t7o_mac_cooppause_deactivate();t7o_platform_begin_mod(NULL);
+    t7o_mac_checkpoint_deactivate();t7o_mac_arc_deactivate();t7o_mac_cooppause_deactivate();t7o_mac_camera_deactivate();t7o_platform_begin_mod(NULL);
     steam_http_auth_begin(false);
 }
 int t7o_mac_lifecycle_unload(void) {

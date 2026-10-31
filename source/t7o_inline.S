@@ -89,3 +89,19 @@ BRIDGE SYM(t7o_inline_traversal_input),3,SYM(t7o_mac_traversal_inline_dispatch)
 BRIDGE SYM(t7o_inline_traversal_eligible),4,SYM(t7o_mac_traversal_inline_dispatch)
 BRIDGE SYM(t7o_inline_traversal_surface),5,SYM(t7o_mac_traversal_inline_dispatch)
 BRIDGE SYM(t7o_inline_viewmodel_object),6,SYM(t7o_mac_ui_inline_dispatch)
+BRIDGE SYM(t7o_inline_freeaim_reticle),7,SYM(t7o_mac_freeaim_inline_dispatch)
+BRIDGE SYM(t7o_inline_freeaim_ads),8,SYM(t7o_mac_freeaim_inline_dispatch)
+BRIDGE SYM(t7o_inline_freeaim_fade),9,SYM(t7o_mac_freeaim_inline_dispatch)
+BRIDGE SYM(t7o_inline_freeaim_spread),10,SYM(t7o_mac_freeaim_inline_dispatch)
+BRIDGE SYM(t7o_inline_prompt_position),11,SYM(t7o_mac_prompt_inline_dispatch)
+BRIDGE SYM(t7o_inline_prompt_reset),12,SYM(t7o_mac_prompt_inline_dispatch)
+BRIDGE SYM(t7o_inline_prompt_clear_model),13,SYM(t7o_mac_prompt_inline_dispatch)
+BRIDGE SYM(t7o_inline_freeaim_trace_begin),14,SYM(t7o_mac_freeaim_inline_dispatch)
+BRIDGE SYM(t7o_inline_freeaim_trace_end),15,SYM(t7o_mac_freeaim_inline_dispatch)
+BRIDGE SYM(t7o_inline_mantle_height),16,SYM(t7o_mac_mantle_inline_dispatch)
+/* The regular bridge has restored every register/flag and popped its CALL
+ * slot. Release the prepatch stub's red zone before the scoped engine exit. */
+.globl SYM(t7o_inline_freeaim_reticle_skip)
+SYM(t7o_inline_freeaim_reticle_skip):
+    leaq 128(%rsp),%rsp
+    jmp *SYM(t7o_freeaim_reticle_resume)(%rip)

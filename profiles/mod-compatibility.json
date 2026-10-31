@@ -61,13 +61,7 @@
       "plugin_sha256": "577b4d054128b39bd4999197fc9ce51dc04c3710e49ca547c8f037fec7aa9eac",
       "plugin_parity_complete": false,
       "plugin_components_not_ported": [
-        "free_aim",
-        "host_migration transport parity (eligibility/rating source adapters added)",
-        "interactive_prompt",
-        "lan_browser",
-        "mantle_hint",
-        "checkpoint_fix disk slot/container and cross-session restore workflow",
-        "mantle_hint probe/latch (separate from new traversal classifier)"
+        "lan_browser (optional)"
       ],
       "plugin_lua_start_methods_are_noops": true,
       "notes": "Embedded-service credential recovery is removed; guarded online integrations are absent. Ordinary HTTP and shared gameplay adapters remain available. AAEUnified feature parity is still in progress.",
@@ -77,13 +71,16 @@
       ],
       "plugin_source_adapters_after_1_4": [
         "pool_fix: boot-time main reserve 2 GiB to 4 GiB",
-        "t7_traversal: classifier, height, input comparisons and vehicle permission; mantle hint remains separate",
-        "host_migration: eligibility and temporary host ratings; transport parity unqualified",
+        "t7_traversal: classifier, height, input comparisons and vehicle permission; separate mantle hint adapter also added",
+        "host_migration: eligibility, temporary host ratings and scoped private-lobby notification retry; actual transport/host-change qualification pending",
         "viewmodel_ui_anchor: two widget methods, rooted callbacks/tables and bone snapshots; render timing unqualified",
-        "checkpoint_fix: FX free-list repair, Zombies save buffers/script dispatch, two-part restore and reliable queue cleanup; disk slot/container workflow remains separate",
+        "checkpoint_fix: FX free-list repair, Zombies save buffers/script dispatch, two-part restore and reliable queue cleanup; Mac disk slots/date commands, camera sidecar and cross-session restart workflow added",
         "arc display anchors: selected/default viewmodel tags and smoothed first sections; scoped worker weapon override and five-segment guard also added",
         "coop_pause: reliable acknowledgement barrier, nonce heartbeats, frame/menu hooks, guest timeout and resets",
-        "link_to_camera: deferred scene submission, pose refresh, delete/forcedelete cleanup and client checkpoint link restoration"
+        "link_to_camera: deferred scene submission, pose refresh, delete/forcedelete cleanup and client checkpoint link restoration",
+        "free_aim: shooting/projectiles, reliable targets, reticle, client spread, muzzle snapshots and inlined queue trace consumer; local source checks only",
+        "interactive_prompt: scoped CP UI mode paths, per-element smoothing/reset and generic-widget model clear; local source checks only",
+        "mantle_hint: scoped probes, 2 s warmup, 20 ms latch, height, traversal resets and HUD; Mac engine enable policy; local source checks only"
       ]
     },
     "2942053577": {
@@ -327,5 +324,27 @@
     "native_camera_pose_differential_cases": 630,
     "native_checkpoint_buffer_differential_cases": 192,
     "native_checkpoint_restore_mask_cases": 128
+  },
+  "local_1_5_validation": {
+    "c_test_programs": 25,
+    "python_lua_tests": 29,
+    "machine_code_cases": 1102,
+    "assembly_bridges": 17,
+    "actual_mac_hook_dispatch_cases": 170,
+    "actual_mac_setting_cases": 54,
+    "original_code_overlay_windows": 2788,
+    "mantle_native_comparisons": 3475,
+    "checkpoint_restart_comparisons": 144,
+    "prepatch_padding_bytes": 6056,
+    "prepatch_padding_capacity": 6272,
+    "mac_sdk_build": true,
+    "mac_gameplay_tested": false,
+    "windows_coop_tested": false,
+    "runtime_revision": "f12af1dbcc90f953798a750133dde10a5d94fe01",
+    "ci_run": 40822820940,
+    "intel_and_apple_silicon_jobs_passed": true,
+    "archive_inspection_passed": true,
+    "release_tag": "aae-uem-mac-test-1.5",
+    "installer_zip_sha256": "fa5d50afa5b74e0d07b4af9aac4c87388808c5482ae3cc8230237d923ca5eb0d"
   }
 }

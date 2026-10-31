@@ -14,7 +14,8 @@
 #include <stddef.h>
 #include <errno.h>
 _Static_assert(offsetof(T7oInlineContext,r15)==264,"inline GPR offset");
-_Static_assert(offsetof(T7oInlineContext,flags)==384 && sizeof(T7oInlineContext)==392,"inline flags/frame size");
+_Static_assert(offsetof(T7oInlineContext,flags)==384 && offsetof(T7oInlineContext,return_address)==392 &&
+    sizeof(T7oInlineContext)==400,"inline flags/return/frame size");
 #ifndef T7O_DEV_NATIVE
 #define T7O_DEV_NATIVE 0
 #endif

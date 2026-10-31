@@ -155,7 +155,7 @@ def check(compiler):
         machine = text_section(obj)
         prefix = bytes.fromhex('9c50515253555657')
         starts = [i for i in range(len(machine)) if machine.startswith(prefix, i)]
-        assert len(starts) == 7
+        assert len(starts) == 17
         decoder = Cs(CS_ARCH_X86, CS_MODE_64)
         calls = {instruction.address for instruction in decoder.disasm(machine, BRIDGE) if instruction.mnemonic == 'call'}
         for operation, start in enumerate(starts):
@@ -193,11 +193,45 @@ def check(compiler):
                 assert len(observed) == int(enabled)
                 assert bytes(actual.mem_read(SP-128, 128)) == bytes(range(128))
                 cases += 1
+        # The reticle guard can resume after an inlined engine predicate.
+        # Both paths must release the stub red zone; the normal path must
+        # retain the relocated CALL's original callee and continuation.
+        skip = machine.index(bytes.fromhex('488da42480000000ff25'))
+        guarded_machine = bytearray(machine)
+        struct.pack_into('<i', guarded_machine, skip+10, SLOT+8-(BRIDGE+skip+14))
+        callee, alternate = CONSTANT+128, SITE+128
+        original = b'\xe8' + struct.pack('<i', callee-SITE-5)
+        for enabled, flags, bypass in itertools.product((False, True), (0x202,0x6d7,0xed7), (False, True)):
+            actual = vm(generate('inline', original, 5, 0), BRIDGE+starts[7] if enabled else 0, flags)
+            actual.mem_map(BRIDGE, (len(machine)+4095)&~4095);actual.mem_write(BRIDGE, bytes(guarded_machine))
+            actual.mem_write(SLOT+8, struct.pack('<Q', alternate));actual.mem_write(callee, b'\xc3')
+            observed = []
+            def guard(uc, ip, size, context):
+                if ip == callee: observed.append('callee')
+                if ip not in calls: return
+                pointer = uc.reg_read(x.UC_X86_REG_RDI)
+                assert uc.reg_read(x.UC_X86_REG_RSI) == 7
+                if bypass: uc.mem_write(pointer+392, struct.pack('<Q', BRIDGE+skip))
+                uc.reg_write(x.UC_X86_REG_RIP, ip+size)
+            actual.hook_add(UC_HOOK_CODE, guard)
+            result = run(actual, CODE, [SITE+5, alternate])
+            expected = vm(b'', flags=flags)
+            if enabled and bypass:
+                reference = run(expected, alternate, [alternate]);assert not observed
+            else:
+                expected.mem_write(SITE, original);expected.mem_write(callee, b'\xc3')
+                reference = run(expected, SITE, [SITE+5]);assert observed == ['callee']
+            assert result == reference
+            # A replayed engine CALL may use the caller's red zone for its
+            # own return slot. The guard itself must leave all 128 bytes.
+            preserved = 128 if enabled and bypass else 120
+            assert bytes(actual.mem_read(SP-128,preserved)) == bytes(range(preserved))
+            cases += 1
         if os.name == 'nt':
             import _ctypes
             _ctypes.FreeLibrary(native._handle)
     return {'schema':1, 'cases_passed':cases, 'synthetic_memory_only':True,
-            'assembly_bridges_checked':7, 'live_mac_qualified':False}
+            'assembly_bridges_checked':17, 'live_mac_qualified':False}
 
 
 if __name__ == '__main__':

@@ -6,6 +6,11 @@
 static void *test_address(uint32_t);
 #define T7O_MAC_ADDRESS(offset) test_address(offset)
 #include "../source/t7o_mac_checkpoint.c"
+bool t7o_mac_checkpoint_disk_install(uint64_t b) { (void)b;return true; }
+bool t7o_mac_checkpoint_disk_activate(void) { return true; }
+void t7o_mac_checkpoint_disk_deactivate(void) { }
+void t7o_mac_checkpoint_disk_tick(void) { }
+void t7o_mac_checkpoint_disk_frame_begin(int c) { (void)c; }
 static uint8_t fx[0x2d90],state[POOL_OFFSET+POOL_SIZE],saved_fx[sizeof(fx)],saved_pool[POOL_SIZE];
 static uint32_t session;
 static unsigned originals;

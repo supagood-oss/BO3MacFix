@@ -8,7 +8,10 @@ size_t t7o_codegen_ads_scale(uint8_t *output,size_t capacity,uint64_t code,
 /* The callback must preserve all registers/flags through the assembly bridge.
  * Protect the game's 128-byte red zone before any stack write. short_jcc
  * permits precisely one leading short Jcc; all other stolen bytes must be
- * verified non-relative instructions. RSP must be 16-byte aligned at site. */
+ * verified non-relative instructions, except a single complete five-byte CALL,
+ * whose displacement is relocated. That callee returns into the generated
+ * stub, so it must not depend on the original CALL's return address. RSP must
+ * be 16-byte aligned at site. */
 size_t t7o_codegen_inline(uint8_t *output,size_t capacity,uint64_t code,
     uint64_t site,uint64_t slot,const uint8_t *original,size_t length,int short_jcc);
 /* Legacy MOVSS/MULSS/DIVSS xmm0..7,[rip+disp32], exactly eight bytes. */

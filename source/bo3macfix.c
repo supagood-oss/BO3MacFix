@@ -50,6 +50,9 @@
 #include "t7o_mac_arc.h"
 #include "t7o_mac_cooppause.h"
 #include "t7o_mac_camera.h"
+#include "t7o_mac_freeaim.h"
+#include "t7o_mac_prompt.h"
+#include "t7o_mac_mantle.h"
 #include "controllers.h"
 #include "gc_bridge.h"
 
@@ -995,6 +998,9 @@ __attribute__((constructor)) static void dylib_main() {
     t7o_mac_pause_install(game_base_address,t7o_exact_build);
     t7o_mac_cooppause_install(game_base_address,t7o_exact_build);
     t7o_mac_camera_install(game_base_address,t7o_exact_build);
+    t7o_mac_freeaim_install(game_base_address,t7o_exact_build);
+    t7o_mac_prompt_install(game_base_address,t7o_exact_build);
+    t7o_mac_mantle_install(game_base_address,t7o_exact_build);
     t7o_mac_movement_install(game_base_address,t7o_exact_build);
     t7o_mac_presentation_install(game_base_address,t7o_exact_build);
     t7o_mac_lifecycle_install(game_base_address,t7o_exact_build);

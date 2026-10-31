@@ -51,7 +51,24 @@ size_t t7o_codegen_inline(uint8_t *output,size_t capacity,uint64_t code,
         bytes[n++]=0x0f;bytes[n++]=0x80 | (original[0]&15);
         if (!relative(bytes+n,target,code+n+4)) return 0;
         n+=4;memcpy(bytes+n,original+2,length-2);n+=length-2;
-    } else { memcpy(bytes+n,original,length);n+=length; }
+    } else {
+        memcpy(bytes+n,original,length);
+        /* This form is used only for an audited, complete five-byte CALL.
+         * Its original target is retained when the callback is absent. */
+        if (length==5 && original[0]==0xe8) {
+            int32_t displacement;memcpy(&displacement,original+1,4);
+            uint64_t next=site+5,target;
+            if (displacement<0) {
+                if (next<(uint64_t)(-(int64_t)displacement)) return 0;
+                target=next-(uint64_t)(-(int64_t)displacement);
+            } else {
+                if (next>UINT64_MAX-(uint32_t)displacement) return 0;
+                target=next+(uint32_t)displacement;
+            }
+            if (!relative(bytes+n+1,target,code+n+5)) return 0;
+        }
+        n+=length;
+    }
     bytes[n++]=0xe9;
     if (!relative(bytes+n,site+length,code+n+4)) return 0;
     n+=4;memcpy(output,bytes,n);return n;

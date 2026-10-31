@@ -25,6 +25,9 @@ void t7o_mac_checkpoint_deactivate(void) { assert(stage==9);stage=10; }
 void t7o_mac_arc_deactivate(void) { assert(stage==10);stage=11; }
 void t7o_mac_cooppause_deactivate(void) { assert(stage==11);stage=12; }
 void t7o_mac_camera_deactivate(void) { assert(stage==12);stage=13; }
+void t7o_mac_freeaim_deactivate(void) { assert(stage==13); }
+void t7o_mac_prompt_deactivate(void) { assert(stage==13); }
+void t7o_mac_mantle_deactivate(void) { assert(stage==13); }
 void t7o_platform_begin_mod(const char *path) { assert(stage==13 && !path);stage=14;++resets; }
 void steam_http_auth_begin(bool enabled) { assert(stage==14 && !enabled);stage=15; }
 const void *prepatch_original_code(const void *p,size_t n) { (void)p;(void)n;abort(); }

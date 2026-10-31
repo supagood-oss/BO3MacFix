@@ -1,4 +1,5 @@
 #include "t7o_mac_checkpoint.h"
+#include "t7o_mac_checkpoint_disk.h"
 #include "t7o_mac_offsets.h"
 #include "prepatch.h"
 #include "dobby.h"
@@ -66,7 +67,9 @@ static bool prepare_buffers(void) {
 }
 static void checkpoint_frame(int channel) {
     if (channel==0 && zombies_map()) { pthread_mutex_lock(&lock);prepare_buffers();pthread_mutex_unlock(&lock); }
+    if (atomic_load(&active)) t7o_mac_checkpoint_disk_frame_begin(channel);
     original_frame(channel);
+    if (channel==0 && atomic_load(&active)) t7o_mac_checkpoint_disk_tick();
 }
 static bool pending_checkpoint(void) {
     const uint8_t *flags=address(T7O_MAC_CHECKPOINT_FLAGS);
@@ -92,6 +95,9 @@ static void end_load(unsigned channel) {
     unsigned before=atomic_fetch_or(&restored_parts,1u<<channel);
     if (before==(3u^(1u<<channel))) atomic_store(&restoring,false);
 }
+void t7o_mac_checkpoint_restore_prepare(void) { atomic_store(&restored_parts,0);atomic_store(&restoring,true); }
+void t7o_mac_checkpoint_restore_cancel(void) { atomic_store(&restoring,false);atomic_store(&restored_parts,0); }
+unsigned t7o_mac_checkpoint_restore_parts(void) { return atomic_load(&restored_parts); }
 static void clear_client_commands(void) {
     uint8_t *connections=(void *)read_pointer(address(T7O_MAC_CLIENT_CONNECTIONS));
     if (!connections) return;
@@ -196,6 +202,7 @@ static void restore_for(void *fx,uintptr_t delta,uintptr_t caller) {
 }
 static void restore(void *fx,uintptr_t delta) { restore_for(fx,delta,(uintptr_t)__builtin_return_address(0)); }
 void t7o_mac_checkpoint_deactivate(void) {
+    t7o_mac_checkpoint_disk_deactivate();
     atomic_store(&active,false);atomic_store(&restoring,false);atomic_store(&restored_parts,0);
     if (savegame_registered) {
         CheckpointBuiltin *row=address(T7O_MAC_SAVEGAME_CREATE_ROW);
@@ -209,6 +216,7 @@ bool t7o_mac_checkpoint_activate(void) {
     CheckpointBuiltin *row=address(T7O_MAC_SAVEGAME_CREATE_ROW);
     if (row->hash!=t7o_script_hash("savegame_create") || row->min_args!=0 || row->max_args!=1 ||
         row->function!=(void (*)(unsigned))address(T7O_MAC_SAVEGAME_CREATE)) return false;
+    if (!t7o_mac_checkpoint_disk_activate()) return false;
     original_savegame=row->function;row->function=savegame_create;savegame_registered=true;
     atomic_store(&active,true);return true;
 }
@@ -228,5 +236,6 @@ bool t7o_mac_checkpoint_install(uint64_t game_base,bool exact_build_verified) {
     if (DobbyHook(address(T7O_MAC_CHECKPOINT_FRAME),(void *)checkpoint_frame,(void **)&original_frame) ||
         DobbyHook(address(T7O_MAC_CHECKPOINT_SERVER_LOAD),(void *)load_server,(void **)&original_server_load) ||
         DobbyHook(address(T7O_MAC_MESSAGE_STRING),(void *)message_string,(void **)&original_message_string)) return false;
+    if (!t7o_mac_checkpoint_disk_install(game_base)) return false;
     installed=true;return true;
 }

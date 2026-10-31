@@ -9,7 +9,7 @@
 // - each "mov r32, imm32" a setting changes jumps to a stub that loads the value from a slot when it's set
 // - each call through objc_msgSend's pointer a setting redirects calls a stub that jumps through a slot when it's set
 // - a header lists the sites; hook originals come from the matching compiled
-//   table, while setting/call/byte-patch records retain their original bytes
+//   table, as do setting/call originals; byte-patch records retain their bytes
 // With every slot left at 0 the copy runs exactly like the original.
 #include <CommonCrypto/CommonDigest.h>
 #include <fcntl.h>
@@ -34,13 +34,15 @@
 #define EXPORT __attribute__((visibility("default")))
 
 #define Prepatch_Magic "BO3MFPP1"
-#define Prepatch_Version 3
+#define Prepatch_Version 4
 #define Game_Base 0x100000000ULL
 /* Verified zero padding between load commands (ending 0x17f8) and the first
  * __TEXT section (0x2100). No load command or game section is overwritten. */
 #define Native_Code_Start 0x1800u
 #define Native_Code_End 0x2100u
-#define Hook_Code_Alignment 4u
+/* These x86 stubs contain no aligned instruction-address contract. Byte
+ * packing retains the verified section bounds without adding a segment. */
+#define Hook_Code_Alignment 1u
 
 #pragma mark - what goes into the copy
 
@@ -60,6 +62,18 @@ typedef struct {
 // every function BO3MacFix hooks
 static const hook_def_t hook_defs[] = {
 #if T7O_DEV_NATIVE
+    { T7O_MAC_MANTLE_MOVE,Push_R15 },
+    { T7O_MAC_MANTLE_GATE,Push_R15 },
+    { T7O_MAC_MANTLE_TRACE,Push_R15 },
+    { T7O_MAC_MANTLE_HUD,Push_R15 },
+    { T7O_MAC_SESSION_IS_MODE,10,0,{0x55,0x48,0x89,0xe5,0x8b,0x05,0xaa,0xea,0x6b,0x05} },
+    { T7O_MAC_FREEAIM_PROJECTILE,Push_R15 },
+    { T7O_MAC_FREEAIM_SPREAD,Push_R15 },
+    { T7O_MAC_FREEAIM_GRENADE,Push_R15 },
+    { T7O_MAC_FREEAIM_ROCKET,Push_R15 },
+    { T7O_MAC_FREEAIM_BULLET,Push_R15 },
+    { T7O_MAC_CREATE_USERCMD,Push_R14 },
+    { T7O_MAC_EXECUTE_CLIENT_COMMAND,Push_R15 },
     { T7O_MAC_CHECKPOINT_FRAME,Push_R15 },
     { T7O_MAC_CHECKPOINT_SERVER_LOAD,5,0,{0x55,0x48,0x89,0xe5,0x53} },
     { T7O_MAC_MESSAGE_STRING,Push_R14 },
@@ -79,6 +93,7 @@ static const hook_def_t hook_defs[] = {
     { T7O_MAC_BONE_MATRICES,8,0,{0x55,0x48,0x89,0xe5,0x48,0x8b,0x47,0x58} },
     { T7O_MAC_MIGRATION_CHECK,9,0,{0x55,0x48,0x89,0xe5,0xe8,0xd1,0xd5,0xe6,0xff} },
     { T7O_MAC_SELECT_HOST,Push_R15 },
+    { T7O_MAC_MIGRATE_CLIENTS,Push_R15 },
     { T7O_MAC_VIEWMODEL_BONES,Push_R15 },
     { T7O_MAC_KEY_EVENT,Push_R15 },
     { T7O_MAC_TRAVERSAL_TYPE,9,0,{0x55,0x48,0x89,0xe5,0xf3,0x0f,0x5c,0x4f,0x38} },
@@ -145,6 +160,17 @@ typedef struct {
 
 static const value_def_t value_defs[] = {
 #if T7O_DEV_NATIVE
+    { T7O_MAC_MANTLE_HEIGHT,{0x41,0x0f,0x28,0xda,0xf3,0x0f,0x59,0xda},5,8 },
+    { T7O_MAC_FREEAIM_TRACE_BEGIN,{0x48,0x69,0xce,0xb0,0x08,0,0},5,7 },
+    { T7O_MAC_FREEAIM_TRACE_END,{0x48,0x8b,0x9d,0xe0,0xfe,0xff,0xff},5,7 },
+    { T7O_MAC_PROMPT_POSITION,{0x41,0x0f,0x10,0x46,0x34},5,5 },
+    { T7O_MAC_PROMPT_RESET,{0xf3,0x0f,0x10,0x6d,0xac},5,5 },
+    { T7O_MAC_PROMPT_CLEAR_MODEL,{0x83,0xbb,0x54,0x01,0,0,0xfe},5,7 },
+    { T7O_MAC_FREEAIM_RETICLE,{0xe8,0xca,0xd0,0x77,0},5,5 },
+    { T7O_MAC_FREEAIM_ADS,{0x41,0x0f,0x2e,0x46,0x0c},5,5 },
+    { T7O_MAC_FREEAIM_FADE,{0xf3,0x0f,0x59,0x45,0xa0},5,5 },
+    { T7O_MAC_FREEAIM_SPREAD_CALL_A,{0xe8,0xe1,0xdc,0xff,0xff},5,5 },
+    { T7O_MAC_FREEAIM_SPREAD_CALL_B,{0xe8,0xae,0xd9,0xff,0xff},5,5 },
     { T7O_MAC_VIEWMODEL_OBJECT,{0x49,0x8b,0x3f,0x0f,0x57,0xc0},5,6 },
     { T7O_MAC_TRAVERSAL_INPUT,{0x31,0xc0,0x66,0x41,0xf7,0xc7,0x20,0x08},5,8 },
     { T7O_MAC_TRAVERSAL_ELIGIBLE,{0x01,0xc1,0x83,0xf9,0x33},5,5 },
@@ -245,8 +271,8 @@ typedef struct {
     uint32_t slot;
     uint8_t length;
     uint8_t pad[3];
-    uint8_t original[8];
 } prepatch_site_t;
+_Static_assert(sizeof(prepatch_site_t)==12,"compact setting/call record");
 
 // byte patch records follow as { uint32_t offset; uint8_t length; uint8_t original[length]; }
 
@@ -315,15 +341,22 @@ bool prepatch_init(uint64_t base_address) {
         printf("BO3MacFix: the pre-patched executable has format %u, this BO3MacFix needs %u\n", h->version, Prepatch_Version);
         return false;
     }
-    /* Format 3 reconstructs stolen bytes from this library's verified table.
+    /* Format 4 reconstructs originals from this library's verified tables.
      * The launcher already rebuilds its cache whenever that table changes. */
-    if (h->table_id!=table_id() || h->hook_count!=sizeof(hook_defs)/sizeof(hook_defs[0])) {
+    if (h->table_id!=table_id() || h->hook_count!=sizeof(hook_defs)/sizeof(hook_defs[0]) ||
+        h->value_count!=sizeof(value_defs)/sizeof(value_defs[0]) || h->call_count!=sizeof(call_defs)/sizeof(call_defs[0])) {
         printf("BO3MacFix: start the game through Steam to rebuild its pre-patched executable\n");
         return false;
     }
     const prepatch_hook_t *records=(const void *)(base+h->hooks_offset);
     for (uint32_t i=0;i<h->hook_count;++i)
         if (records[i].function!=hook_defs[i].function || records[i].length!=hook_defs[i].length) return false;
+    const prepatch_site_t *vr=(const void *)(base+h->values_offset),*cr=(const void *)(base+h->calls_offset);
+    for (uint32_t i=0;i<h->value_count;++i)
+        if (vr[i].site!=value_defs[i].site || vr[i].length!=(value_defs[i].length ? value_defs[i].length:5) ||
+            vr[i].pad[0]!=value_defs[i].kind) return false;
+    for (uint32_t i=0;i<h->call_count;++i)
+        if (cr[i].site!=call_defs[i].site || cr[i].length!=6) return false;
     header = h;
     hooks = (const prepatch_hook_t *)(base + h->hooks_offset);
     values = (const prepatch_site_t *)(base + h->values_offset);
@@ -358,9 +391,9 @@ const void *prepatch_original_code(const void *address, size_t size) {
     for (uint32_t i = 0; i < header->hook_count; i++)
         overlay(base + hooks[i].function, hook_defs[i].stolen, hook_defs[i].length, &o);
     for (uint32_t i = 0; i < header->value_count; i++)
-        overlay(base + values[i].site, values[i].original, values[i].length, &o);
+        overlay(base + values[i].site, value_defs[i].original, values[i].length, &o);
     for (uint32_t i = 0; i < header->call_count; i++)
-        overlay(base + calls[i].site, calls[i].original, calls[i].length, &o);
+        overlay(base + calls[i].site, call_defs[i].original, calls[i].length, &o);
     const uint8_t *p = (const uint8_t *)(base + header->patches_offset);
     for (uint32_t i = 0; i < header->patch_count; i++) {
         uint32_t offset;
@@ -419,7 +452,7 @@ int BO3MacFix_CodePatch(void *address, uint8_t *buffer, uint32_t buffer_size) {
     }
     for (uint32_t i = 0; i < header->value_count; i++) {
         const prepatch_site_t *v = &values[i];
-        if (v->pad[0]==0 && v->site == offset && buffer_size == v->length && buffer[0] == v->original[0]) {
+        if (v->pad[0]==0 && v->site == offset && buffer_size == v->length && buffer[0] == value_defs[i].original[0]) {
             uint32_t value;
             memcpy(&value, buffer + 1, sizeof(value));
             *(uint32_t *)(base + v->slot) = value;
@@ -508,7 +541,7 @@ void prepatch_report(void) {
 typedef struct {
     uint8_t *data;              // the copy
     size_t size;
-    uint32_t claimed[256][2];   // ranges already changed, to catch overlaps
+    uint32_t claimed[512][2];   // ranges already changed, to catch overlaps
     int claimed_count;
     uint8_t records[4096];      // the byte patch records
     size_t records_size;
@@ -786,6 +819,10 @@ EXPORT int BO3MacFix_BuildPrepatched(const char *original, const char *output, c
                 !t7o_relocate_rip32(stub+n,def->length,5,f+9,code+n+9)) {
                 fail(message,message_size,"migration call trampoline does not fit");goto done;
             }
+            if (f==T7O_MAC_SESSION_IS_MODE &&
+                !t7o_relocate_rip32(stub+n,def->length,6,f+10,code+n+10)) {
+                fail(message,message_size,"session mode trampoline does not fit");goto done;
+            }
             n += def->length;
         }
         stub[n++] = 0xE9;                                                    // jmp back
@@ -798,8 +835,7 @@ EXPORT int BO3MacFix_BuildPrepatched(const char *original, const char *output, c
         memset(b->data + f + 5, 0x90, def->length - 5);
         hook_records[i] = (prepatch_hook_t){ .function = f, .slot = slot, .trampoline = tramp, .length = def->length };
         slot += 8;
-        /* These x86 branch stubs use no instruction-address alignment contract.
-         * Four-byte packing preserves the verified padding for more adapters. */
+        /* Slot pointers retain their eight-byte alignment in __DATA. */
         code = (code + (uint32_t)n + Hook_Code_Alignment-1) & ~(Hook_Code_Alignment-1);
     }
 
@@ -825,8 +861,8 @@ EXPORT int BO3MacFix_BuildPrepatched(const char *original, const char *output, c
             memcpy(b->data+code,stub,n);b->data[site]=0xe9;
             put_rel32(b->data+site+1,code,site+5);memset(b->data+site+5,0x90,length-5);
             value_records[i]=(prepatch_site_t){.site=site,.slot=slot,.length=(uint8_t)length};
-            value_records[i].pad[0]=def->kind;memcpy(value_records[i].original,def->original,length);
-            slot+=8;code=(code+(uint32_t)n+15)&~15u;continue;
+            value_records[i].pad[0]=def->kind;
+            slot+=8;code=(code+(uint32_t)n+Hook_Code_Alignment-1)&~(Hook_Code_Alignment-1);continue;
         }
         uint8_t reg = def->original[0] - 0xB8;
         if (memcmp(b->data + site, def->original, 5) != 0 || def->original[0] < 0xB8 || def->original[0] > 0xBF) {
@@ -848,9 +884,8 @@ EXPORT int BO3MacFix_BuildPrepatched(const char *original, const char *output, c
         b->data[site] = 0xE9;
         put_rel32(b->data + site + 1, code, site + 5);
         value_records[i] = (prepatch_site_t){ .site = site, .slot = slot, .length = 5 };
-        memcpy(value_records[i].original, def->original, 5);
         slot += 8;
-        code = (code + (uint32_t)n + 15) & ~15u;
+        code = (code + (uint32_t)n + Hook_Code_Alignment-1) & ~(Hook_Code_Alignment-1);
     }
 
     for (size_t i = 0; i < call_count; i++) {
@@ -881,9 +916,8 @@ EXPORT int BO3MacFix_BuildPrepatched(const char *original, const char *output, c
         put_rel32(b->data + site + 1, code, site + 5);
         b->data[site + 5] = 0x90;
         call_records[i] = (prepatch_site_t){ .site = site, .slot = slot, .length = 6 };
-        memcpy(call_records[i].original, def->original, 6);
         slot += 8;
-        code = (code + (uint32_t)n + 15) & ~15u;
+        code = (code + (uint32_t)n + Hook_Code_Alignment-1) & ~(Hook_Code_Alignment-1);
     }
 
     if (slot > ADDR_Prepatch_SlotsEnd) {

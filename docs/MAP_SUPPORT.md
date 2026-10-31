@@ -66,8 +66,8 @@ patch, traversal and viewmodel UI anchoring. The pool feature reserves or
 extends a 2 GiB arena to 4 GiB; it is distinct from our asset free-list limits.
 Mac equivalence is not established. Correction from the deeper native review:
 checkpoint and link-to-camera startup schedule real deferred callbacks. Empty
-`lua_start` methods do not make those components stubs. Their engine/save hooks
-remain separate work; the exported names alone do not establish Mac support.
+`lua_start` methods do not make those components stubs. Their local adapters now
+cover engine, disk and camera workflows; physical Mac support is unqualified.
 
 Our original shared pause/movement/FX adapters do not constitute a port of those
 new components. Ordinary AAE startup/core play is a test target; full current
@@ -87,20 +87,31 @@ in the published 1.4 download** and have no physical Mac qualification:
 - AAE traversal animation selection, high-height offset, mantle-height setting,
   input thresholds and server vehicle-vault permission checks have Mac bindings.
   Input changes affect cached comparisons, preserving actual command axes.
-  The separate mantle-hint probe/latch and UI are still pending.
+  The separate mantle-hint probe/latch and HUD now have a local adapter;
+  physical Mac behavior remains unqualified.
 - Expanded's forced third-person crosshair uses the Mac predicate with its
   different CG offset. Viewmodel leaning has a Mac key-up/bone adapter, native
   easing, per-local-client state and mod-unload reset. The original event-queue
   hook is replaced at Mac key-event processing; live input timing needs testing.
-- AAE migration eligibility and host-rating adapters retain the Mac transport;
-  additional Windows private-lobby notification behavior remains separate work.
+- AAE migration eligibility, host ratings and the scoped private-lobby
+  notification retry retain the Mac transport. Live migration needs testing.
 - AAE's two viewmodel widget methods now have Mac layout/projection, bone
   snapshots and rooted Lua callbacks. Displayed grenade arcs now use selected
   or default viewmodel tag positions with native smoothing. The scoped arc
   weapon-definition override and five-segment guard also have Mac adapters.
   Predictor behavior, VM reload retention and render timing need a real Mac test.
+- AAE co-op pause has the native reliable-command acknowledgement barrier,
+  guest frame hooks, heartbeat and reset behavior. Camera links have deferred
+  drawing, pose refresh, deletion cleanup and in-memory checkpoint restoration.
 - AAE checkpoint effects-list pointers have a validated post-restore repair.
-  Its other checkpoint serialization/callbacks and link-to-camera remain pending.
+  Shared server/client buffers, Zombies checkpoint script dispatch and reliable
+  queue restoration are implemented. Disk slots and cross-session restore
+  remain separate work.
+- Local source changes add free-aim shooting, projectiles, reticle, spread and
+  reliable commands, plus muzzle snapshots and the inlined trace consumer.
+  Interactive prompts have scoped mode paths, smoothing/reset and model clear.
+  These latest changes have local fixtures and bounded native comparisons;
+  their Mac SDK build and gameplay tests remain pending.
 
 See [the native development record](NATIVE_DEVELOPMENT.md) for evidence and
 remaining components. These additions do not establish full AAEUnified parity.
@@ -247,3 +258,16 @@ archive's SHA256 is `d2b0586d2b7c7cce942d7e9e37bb2f699c59e5b329447240db6dd4ba90a
 The actual eleven repaired XPak pairs cover 267 missing mesh references;
 Herrenhaus preserves its 627 original English payloads and metadata.
 None of these checks is a physical M-series game or Windows co-op test.
+
+
+### Local 1.5 checkpoint and mantle additions
+
+The source adds six local checkpoint disk slots, menu dates, pointer-free camera
+state and cross-session resume through the Mac engine's existing restart path.
+It also adds mantle hint probes, warmup/latch timing and scoped HUD handling.
+They are included in [Mac Test 1.5](TEST_1_5.md), and are absent from 1.4.
+See [native evidence and limits](NATIVE_DEVELOPMENT.md#checkpoint-disk-persistence-and-mantle-hints-15-source).
+Saves are Mac-specific; importing Windows AAE saves is unsupported. Test saving,
+quitting BO3 completely, reopening and resuming with the same mod/map and player
+capacity, with a Mac host and Windows guests. Then test the reverse hosting
+arrangement using the Windows host's existing save implementation.

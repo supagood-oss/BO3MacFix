@@ -11,6 +11,7 @@ static uint64_t base;
 static bool installed;
 static atomic_bool active;
 static void (*original_check)(void),(*original_rating)(void);
+static bool (*original_notify)(int,uint64_t,int,const void *,int);
 static bool (*server_running)(void),(*migration_running)(void);
 static void (*start_migration)(bool);
 #ifndef T7O_MAC_ADDRESS
@@ -18,6 +19,7 @@ static void (*start_migration)(bool);
 #endif
 static void *address(uint32_t offset) { return T7O_MAC_ADDRESS(offset); }
 static uint32_t read32(const void *p) { uint32_t value;memcpy(&value,p,4);return value; }
+static uint64_t read64(const void *p) { uint64_t value;memcpy(&value,p,8);return value; }
 static void write32(void *p,uint32_t value) { memcpy(p,&value,4); }
 static bool default_game(void) { return (read32(address(T7O_MAC_SESSION_FLAGS))&0x3c0)==0x80; }
 static void migration_check(void) {
@@ -56,6 +58,23 @@ static void select_host_for(uintptr_t caller) {
         if ((changed&(UINT32_C(1)<<i)) && read32(table+i*32+0x18)==2) write32(table+i*32+0x18,0);
 }
 static void select_host(void) { select_host_for((uintptr_t)__builtin_return_address(0)); }
+static bool notify_for(uintptr_t caller,int controller,uint64_t new_host,int lobby,const void *clients,int count) {
+    bool result=original_notify(controller,new_host,lobby,clients,count);
+    if (result || !atomic_load(&active) || caller!=base+T7O_MAC_MIGRATE_CLIENTS_RETURN ||
+        !new_host || !clients || !count || lobby!=1) return result;
+    uint32_t flags=read32(address(T7O_MAC_SESSION_FLAGS));
+    if ((flags&0x3c0)!=0x80 || (flags&0x3c000)!=0x4000 || read32(address(T7O_MAC_MIGRATION_STATE))!=4) return false;
+    /* Steam uses the host's private lobby only when it is active and contains
+     * the selected XUID. The existing sender packages and signs the message. */
+    const uint8_t *session=address(T7O_MAC_PRIVATE_HOST_SESSION);
+    if (read32(session+0x40)!=2) return false;
+    for (unsigned i=0;i<18;++i) if (read64(session+0xf8+i*0x30)==new_host)
+        return original_notify(controller,new_host,0,clients,count);
+    return false;
+}
+static bool notify(int controller,uint64_t new_host,int lobby,const void *clients,int count) {
+    return notify_for((uintptr_t)__builtin_return_address(0),controller,new_host,lobby,clients,count);
+}
 void t7o_mac_migration_deactivate(void) { atomic_store(&active,false); }
 bool t7o_mac_migration_activate(void) {
     if (!installed) return false;
@@ -68,10 +87,12 @@ bool t7o_mac_migration_install(uint64_t game_base,bool exact_build_verified) {
     const uint8_t check[]={0x55,0x48,0x89,0xe5,0xe8,0xd1,0xd5,0xe6,0xff};
     const uint8_t rating[]={0x55,0x48,0x89,0xe5,0x41,0x57};
     if (memcmp(prepatch_original_code(address(T7O_MAC_MIGRATION_CHECK),sizeof(check)),check,sizeof(check)) ||
-        memcmp(prepatch_original_code(address(T7O_MAC_SELECT_HOST),sizeof(rating)),rating,sizeof(rating))) return false;
+        memcmp(prepatch_original_code(address(T7O_MAC_SELECT_HOST),sizeof(rating)),rating,sizeof(rating)) ||
+        memcmp(prepatch_original_code(address(T7O_MAC_MIGRATE_CLIENTS),sizeof(rating)),rating,sizeof(rating))) return false;
     server_running=address(T7O_MAC_SERVER_RUNNING);migration_running=address(T7O_MAC_IS_MIGRATING);
     start_migration=address(T7O_MAC_START_MIGRATION);
     if (DobbyHook(address(T7O_MAC_MIGRATION_CHECK),(void *)migration_check,(void **)&original_check)!=0 ||
-        DobbyHook(address(T7O_MAC_SELECT_HOST),(void *)select_host,(void **)&original_rating)!=0) return false;
+        DobbyHook(address(T7O_MAC_SELECT_HOST),(void *)select_host,(void **)&original_rating)!=0 ||
+        DobbyHook(address(T7O_MAC_MIGRATE_CLIENTS),(void *)notify,(void **)&original_notify)!=0) return false;
     installed=true;return true;
 }

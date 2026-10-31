@@ -6,8 +6,8 @@
 <key>CFBundleName</key><string>BO3MacFix</string>
 <key>CFBundleDisplayName</key><string>BO3MacFix</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.1.4</string>
-<key>CFBundleVersion</key><string>5</string>
+<key>CFBundleShortVersionString</key><string>0.1.5</string>
+<key>CFBundleVersion</key><string>6</string>
 <key>LSMinimumSystemVersion</key><string>10.15</string>
 <key>NSHighResolutionCapable</key><true/>
 <key>NSRemovableVolumesUsageDescription</key><string>Find and update Black Ops III when it is installed on an external drive.</string>

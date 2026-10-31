@@ -7,6 +7,8 @@ static void *fixture_address(uint32_t);
 #define T7O_MAC_ADDRESS(offset) fixture_address(offset)
 #define T7O_DEV_NATIVE 1
 #include "../source/t7o_mac_presentation.c"
+void t7o_mac_freeaim_seen(const void *cg,uintptr_t caller) { (void)cg;(void)caller; }
+bool t7o_mac_freeaim_crosshair(const void *cg,uintptr_t caller,bool original) { (void)cg;(void)caller;return original; }
 static uint8_t *clients;static int count=2;
 static uint8_t definition[0xe68];
 static int observed=-1,publications,original_calls,zoom,level;

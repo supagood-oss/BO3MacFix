@@ -1,33 +1,109 @@
-> Earlier public test downloads were withdrawn. Use the clean 1.4 test installer;
-> do not reuse archives 1 through 1.3. Credential-dependent online features
-> are disabled, while gameplay and ordinary HTTP support are retained.
+# BO3MacFix — Mac Test 1.5
 
-# BO3MacFix
+A community test build for Steam Black Ops III on Mac, including AAE/UEM and
+custom-map compatibility work. Original BO3MacFix by Emma / InvoxiPlayGames and
+Anthony / serious.
 
-Fixes Black Ops 3 on Mac so custom maps from the Steam Workshop can be played and online matches can be played
-with people running the Windows version of the game.
+**[Download the Mac Test 1.5 installer](https://github.com/supagood-oss/BO3MacFix/releases/download/aae-uem-mac-test-1.5/BO3MacFix-Mac-Test-1.5.zip)**
 
-by Emma / InvoxiPlayGames and Anthony / serious.
+The same installer is for **Intel and M-series Macs**. It downloads the required
+helpers automatically; no Homebrew, Terminal or manual game-file copying is
+intended. Earlier downloads 1 through 1.3 were withdrawn; do not reuse them.
 
-## AAE/UEM development branch
+**This is an experimental first-Mac test candidate.** Intel and Apple Silicon
+builds, installer/dependency checks and archive verification passed. Physical
+Mac gameplay, checkpoint resume after quitting BO3, and Windows–Mac co-op have
+not yet been verified. [Release and build evidence](https://github.com/supagood-oss/BO3MacFix/releases/tag/aae-uem-mac-test-1.5).
 
-This branch implements shared AAE/UEM native APIs and all eleven movement
-options, with an experimental graphical installer for the first Mac test.
-**Windows-Mac co-op is unverified.** The ordinary production release remains
-blocked until that test passes. See [implementation status](docs/MOD_COMPATIBILITY.md)
-and the [Mac test procedure](docs/MAC_TEST.md).
+## Fresh installation
 
-[Download the experimental Mac Test 1.4 installer](https://github.com/supagood-oss/BO3MacFix/releases/tag/aae-uem-mac-test-1.4).
-It retains Expanded JSON settings, dvar flags and controller glyphs, with credential recovery removed. The shared missing-mesh repair covers eleven inspected
-packages, including an English-preserving Herrenhaus cache; Dead High API/save support is retained. See [map support and remaining gaps](docs/MAP_SUPPORT.md).
-Gameplay and Windows-Mac co-op remain unverified. AAE 4.0 ships a new native
-plugin whose additional features are not yet ported; see the support record.
+1. Install BO3 in Steam. Open it once, then quit.
+2. Subscribe to [AAE](https://steamcommunity.com/sharedfiles/filedetails/?id=2631943123)
+   or [UEM](https://steamcommunity.com/sharedfiles/filedetails/?id=2942053577).
+   Accept the required Workshop items Steam lists and wait for all downloads.
+3. Download the ZIP above, double-click it to unzip, and open **BO3MacFix Setup**.
+4. Click **Install**. Leave Steam open and let Setup finish. On an M-series Mac,
+   accept Apple's Rosetta prompt if shown.
+5. Click **Play** in Setup.
 
-### Any issues you run into with custom maps or workshop mods should be reported here, and *not* to the mod's author!
+## Already have BO3MacFix
 
-## Install Guide: [Installing BO3MacFix](https://github.com/InvoxiPlayGames/BO3MacFix/wiki/Installing-BO3MacFix)
+1. Quit BO3. Download and unzip 1.5, then open the **new BO3MacFix Setup** app.
+2. Click **Update**, or **Install** if that is the button shown. Keep the existing
+   installation, saves and Workshop files in place.
+3. Let Steam finish any mod/dependency updates, then click **Play** in Setup.
 
-## FAQ: [Frequently Asked Questions](https://github.com/InvoxiPlayGames/BO3MacFix/wiki/Frequently-Asked-Questions-(FAQ))
+If macOS cannot verify the developer, after trying to open Setup use
+**System Settings → Privacy & Security → Open Anyway**, then confirm **Open**.
+The test app is ad-hoc signed and not notarized.
+[Apple's instructions](https://support.apple.com/en-us/102445).
+
+## Test with Windows friends
+
+Windows players keep their usual working Steam installation; this installer is
+only for the Mac players.
+
+1. Everyone updates through Steam and loads the **same mod and map**. Test
+   **AAE and UEM separately**, with one gameplay mod loaded at a time.
+2. Try a short solo game on the Mac using a built-in Zombies map first.
+3. Have a Windows friend host a private lobby and invite the Mac player. Play a
+   few rounds and check movement, shooting, doors, effects and prompts.
+4. Repeat with the **Mac hosting**, then repeat with the other mod. Try custom
+   maps after the basic sessions work.
+5. For AAE, check pause/unpause, camera transitions and mantle hints. A hint by
+   itself must not move the player.
+6. Use AAE's save-slot menu, note the round, quit BO3 completely, reopen it and
+   resume the same slot with the same mod, map and lobby settings. Check the
+   round, inventory, positions and cameras with Windows guests, then keep playing.
+   Repeat with a Windows host using its normal AAE save support. Windows save
+   files cannot be imported into the Mac checkpoint container.
+
+If something fails, record **mod/map, who hosted, round, action and error**.
+Use Setup's **Save Report** button. Restart the map after a failed restore.
+Please report issues with this test build in this fork, not to the mod authors.
+[Full test guide](https://github.com/supagood-oss/BO3MacFix/blob/codex/native-test-1.5/docs/TEST_1_5.md)
+· [Shareable offline guide](https://github.com/supagood-oss/BO3MacFix/releases/download/aae-uem-mac-test-1.5/BO3MacFix-1.5-START-HERE.html).
+
+## Does disabling credential-dependent online features affect co-op?
+
+**It does not disable Steam login, Steam friends, lobby networking or the game's
+multiplayer transport.** The removed helpers recovered third-party service
+credentials for mod integrations. In the inspected AAE package, their guarded
+call sites handle Discord report/chat forwarding and related Steam Web API
+profile/Workshop lookups. Those integrations are unavailable; the mod checks
+whether the helpers exist before calling them.
+
+Ordinary mod HTTP requests, Steam client identity and the gameplay adapters are
+retained. UEM's ordinary HTTP/cloud API has not been disabled by this removal,
+but actual backend acceptance and cloud progress still need testing. Private
+Steam co-op is therefore expected to remain possible; this is a code-path
+assessment, not a successful Windows–Mac gameplay test. Use Steam friends/private
+lobby invitations for the first test. AAE's new LAN/System Link browser is a
+separate unported feature.
+
+## Current mod versions and 1.5 changes
+
+On **October 31, 2026**, Steam's current Workshop content IDs matched the exact
+packages already inspected for 1.5: **AAE 4.0.0**, **AAE Lite 4.0.0**,
+**UEM 1.3.4 Build-001** and **Expanded v4.62**. The published
+[AAE change notes](https://steamcommunity.com/sharedfiles/filedetails/changelog/2631943123)
+and [UEM change notes](https://steamcommunity.com/sharedfiles/filedetails/changelog/2942053577)
+show no newer update than those packages. This is a package match, not a claim
+that every option or future update works.
+
+1.5 includes the newer checkpoint disk slots/date menus/camera persistence,
+mantle hints, co-op pause, free aim, interactive prompts, traversal and migration
+adapters. Shared asset fixes, Expanded settings and Dead High save/API support
+are retained. Some optional native features remain outside this candidate,
+including LAN browsing and Windows-specific authoring/cursor/debug options.
+
+Developers: the 1.5 runtime source is revision
+`f12af1dbcc90f953798a750133dde10a5d94fe01` on the
+[test branch](https://github.com/supagood-oss/BO3MacFix/tree/codex/native-test-1.5).
+See its [native implementation evidence and limits](https://github.com/supagood-oss/BO3MacFix/blob/codex/native-test-1.5/docs/NATIVE_DEVELOPMENT.md).
+The upstream [installation wiki](https://github.com/InvoxiPlayGames/BO3MacFix/wiki/Installing-BO3MacFix)
+and [FAQ](https://github.com/InvoxiPlayGames/BO3MacFix/wiki/Frequently-Asked-Questions-(FAQ))
+remain available for background on the original project.
 
 ## Settings
 

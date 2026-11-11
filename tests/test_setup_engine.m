@@ -120,6 +120,8 @@ int main(void) {
         assert([BO3SetupEngine verifyInstalled:game payload:payload error:&error]);
         writeFile(child(fix,@"BO3MacFix.dylib"),@"owner edit");
         assert(![BO3SetupEngine install:game payload:payload error:&error]);
+        assert([error.userInfo[@"BO3SetupFile"] isEqual:@"BO3MacFix.dylib"]);
+        assert([[BO3SetupEngine failureDetails:error operation:@"install"][@"BO3SetupFile"] isEqual:@"BO3MacFix.dylib"]);
         assert(![BO3SetupEngine remove:game error:&error]);
         assert([readFile(child(fix,@"BO3MacFix.dylib")) isEqual:@"owner edit"]);
         writeFile(child(fix,@"BO3MacFix.dylib"),@"updated patch");

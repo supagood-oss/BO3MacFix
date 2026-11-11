@@ -24,6 +24,11 @@ static BOOL operationFailure(NSError **error, NSString *message, NSError *cause)
     if (error) *error=[NSError errorWithDomain:@"BO3MacFix Setup" code:1 userInfo:info];
     return NO;
 }
+static BOOL fileFailure(NSError **error, NSString *message, NSString *relative) {
+    if (error) *error=[NSError errorWithDomain:@"BO3MacFix Setup" code:4 userInfo:
+        @{NSLocalizedDescriptionKey:[message stringByAppendingFormat:@"\n\nFile: %@",relative],@"BO3SetupFile":relative}];
+    return NO;
+}
 static NSDictionary *json(NSURL *file) {
     NSData *data=[NSData dataWithContentsOfURL:file];
     id value=data ? [NSJSONSerialization JSONObjectWithData:data options:0 error:nil] : nil;
@@ -284,11 +289,11 @@ static BOOL atomicCopy(NSURL *source, NSURL *destination, NSError **error) {
         return failure(error,@"This installation needs its helpers. Click Update before playing.");
     for (NSString *path in receipt[@"installed"])
         if (!noLinks(root,path,error) || ![[self sha256:child(root,path)] isEqual:receipt[@"installed"][path]])
-            return failure(error,@"A helper is missing or changed. Click Update to repair it before playing.");
+            return fileFailure(error,@"A helper is missing or changed. Click Update to repair it before playing.",path);
     for (NSDictionary *entry in manifest[@"files"]) {
         NSString *path=entry[@"path"];
         if (!noLinks(fixRoot(game),path,error) || ![[self sha256:child(fixRoot(game),path)] isEqual:entry[@"sha256"]])
-            return failure(error,@"This installation needs an update or repair. Click Update before playing.");
+            return fileFailure(error,@"This installation needs an update or repair. Click Update before playing.",path);
     }
     return YES;
 }
@@ -314,11 +319,11 @@ static BOOL atomicCopy(NSURL *source, NSURL *destination, NSError **error) {
         // Update can restore a deleted helper. Existing edits and recovery
         // backups are still preserved; a missing file must have a replacement.
         if (missing ? ![replacements containsObject:path] : ![[self sha256:child(root,path)] isEqual:installed[path]])
-            return failure(error,@"A file from the previous installation has changed. Nothing was replaced; use Save Report for help.");
+            return fileFailure(error,@"A file from the previous installation has changed. Nothing was replaced; use Save Report for help.",path);
         NSString *before=baseline[path];
         if (![before isEqual:@"absent"] && (!noLinks(root,[@".setup-backup/" stringByAppendingString:path],error) ||
             ![[self sha256:child(child(root,@".setup-backup"),path)] isEqual:before]))
-            return failure(error,@"An original backup is missing or changed. Nothing was replaced.");
+            return fileFailure(error,@"An original backup is missing or changed. Nothing was replaced.",path);
     }
     NSURL *stage=child(root,[@".setup-staging-" stringByAppendingString:NSUUID.UUID.UUIDString]);
     if (![fm() createDirectoryAtURL:stage withIntermediateDirectories:NO attributes:nil error:error]) return NO;
@@ -446,7 +451,7 @@ static BOOL atomicCopy(NSURL *source, NSURL *destination, NSError **error) {
         [chain addObject:@{@"domain":cause.domain,@"code":@(cause.code)}];
     }
     NSMutableDictionary *details=[@{@"operation":operation,@"errors":chain} mutableCopy];
-    for (NSString *key in @[@"BO3SetupHelper",@"BO3SetupStage"])
+    for (NSString *key in @[@"BO3SetupHelper",@"BO3SetupStage",@"BO3SetupFile"])
         if ([error.userInfo[key] isKindOfClass:NSString.class]) details[key]=error.userInfo[key];
     return details;
 }

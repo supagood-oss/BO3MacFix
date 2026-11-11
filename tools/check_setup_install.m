@@ -31,6 +31,7 @@ int main(int argc,char **argv) {
             if (![[BO3SetupEngine sha256:at(payload,relative)] isEqual:entry[@"sha256"]]) {
                 fprintf(stderr,"Prepared payload mismatch: %s (source matches: %s)\n",relative.UTF8String,
                     [[BO3SetupEngine sha256:at(source,relative)] isEqual:entry[@"sha256"]] ? "yes" : "no");
+                require(NO,nil);
             }
         }
         for (NSString *kind in @[@"fresh",@"legacy"]) {

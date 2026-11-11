@@ -128,6 +128,30 @@ NSError *BO3SetupTestDownloadResponse(NSURL *file, NSURL *destination, NSInteger
 + (BOOL)copyTree:(NSURL *)source to:(NSURL *)destination boundary:(NSURL *)boundary error:(NSError **)error {
     return copyTree(source,destination,boundary,0,error);
 }
++ (NSArray<NSDictionary *> *)fileRecords:(NSURL *)payload error:(NSError **)error {
+    // NSURL enumeration can expand /var to /private/var on macOS. Subtracting
+    // the unresolved root length produced bogus "payload/..." manifest paths.
+    NSURL *root=payload.URLByResolvingSymlinksInPath;
+    NSString *prefix=[root.path stringByAppendingString:@"/"];
+    NSMutableArray *files=[NSMutableArray array];
+    __block NSError *walkError=nil;
+    NSDirectoryEnumerator *enumerator=[NSFileManager.defaultManager enumeratorAtURL:root
+        includingPropertiesForKeys:@[NSURLIsDirectoryKey] options:0 errorHandler:^BOOL(NSURL *url,NSError *cause) {
+            walkError=cause;return NO;
+        }];
+    if (!enumerator) { fail(error,@"The prepared helper folder could not be read. Please try Install again.");return nil; }
+    for (NSURL *file in enumerator) {
+        NSNumber *directory=nil;
+        if (![file getResourceValue:&directory forKey:NSURLIsDirectoryKey error:error]) return nil;
+        if (directory.boolValue || [file.lastPathComponent isEqual:@"manifest.json"]) continue;
+        if (![file.path hasPrefix:prefix]) { fail(error,@"A prepared helper path could not be resolved. Nothing was installed.");return nil; }
+        NSString *hash=[BO3SetupEngine sha256:file];
+        if (!hash) { fail(error,@"A prepared helper is incomplete. Please try Install again.");return nil; }
+        [files addObject:@{@"path":[file.path substringFromIndex:prefix.length],@"sha256":hash}];
+    }
+    if (walkError) { if (error) *error=walkError;return nil; }
+    return files;
+}
 + (NSURL *)prepare:(NSURL *)payload progress:(void (^)(NSString *))progress error:(NSError **)error {
     NSDictionary *manifest=readJSON(at(payload,@"manifest.json"));
     NSDictionary *catalog=readJSON(at(payload,@"dependencies.json"));
@@ -216,15 +240,8 @@ NSError *BO3SetupTestDownloadResponse(NSURL *file, NSURL *destination, NSInteger
     if (ok && ![seen isEqual:[NSSet setWithArray:@[@"upstream",@"wine",@"frameworks"]]])
         ok=fail(error,@"The helper download list is incomplete. Download the installer again.");
     if (ok) {
-        NSMutableArray *files=[NSMutableArray array];
-        NSDirectoryEnumerator *enumerator=[fm enumeratorAtURL:result includingPropertiesForKeys:@[NSURLIsDirectoryKey] options:0 errorHandler:nil];
-        for (NSURL *file in enumerator) {
-            NSNumber *directory=nil; [file getResourceValue:&directory forKey:NSURLIsDirectoryKey error:nil];
-            if (directory.boolValue || [file.lastPathComponent isEqual:@"manifest.json"]) continue;
-            NSString *hash=[BO3SetupEngine sha256:file];
-            if (!hash) { ok=fail(error,@"A prepared helper is incomplete. Please try Install again."); break; }
-            [files addObject:@{@"path":[file.path substringFromIndex:result.path.length+1],@"sha256":hash}];
-        }
+        NSArray *files=[self fileRecords:result error:error];
+        ok=files!=nil;
         if (ok) {
             NSMutableDictionary *prepared=[manifest mutableCopy]; prepared[@"files"]=files;
             prepared[@"requires_bundled_wine"]=@YES; prepared[@"dependencies_prepared"]=@YES;

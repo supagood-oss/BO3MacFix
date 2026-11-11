@@ -7,4 +7,5 @@
 + (NSURL *)prepare:(NSURL *)payload progress:(void (^)(NSString *))progress error:(NSError **)error;
 // Shared by the downloader and the synthetic filesystem fixtures.
 + (BOOL)copyTree:(NSURL *)source to:(NSURL *)destination boundary:(NSURL *)boundary error:(NSError **)error;
++ (NSArray<NSDictionary *> *)fileRecords:(NSURL *)payload error:(NSError **)error;
 @end

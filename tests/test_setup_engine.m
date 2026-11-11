@@ -137,6 +137,15 @@ int main(void) {
         assert([BO3SetupDependencies copyTree:tree to:copied boundary:tree error:&error]);
         struct stat info; assert(lstat(child(copied,@"lib/alias").fileSystemRepresentation,&info)==0 && S_ISREG(info.st_mode));
         assert([readFile(child(copied,@"lib/alias")) isEqual:@"helper"]);
+        // A root reached through a symlink (including macOS /var -> /private/var)
+        // must produce paths relative to the payload, never "payload/...".
+        NSURL *recordRoot=child(root,@"record-payload"), *recordAlias=child(root,@"short");
+        writeFile(child(recordRoot,@"nested/helper"),@"fixture helper");
+        writeFile(child(recordRoot,@"manifest.json"),@"excluded manifest");
+        assert([NSFileManager.defaultManager createSymbolicLinkAtPath:recordAlias.path withDestinationPath:recordRoot.path error:nil]);
+        NSArray *records=[BO3SetupDependencies fileRecords:recordAlias error:&error];
+        assert(records.count==1 && [records[0][@"path"] isEqual:@"nested/helper"]);
+        assert([records[0][@"sha256"] isEqual:[BO3SetupEngine sha256:child(recordRoot,@"nested/helper")]]);
         assert([NSFileManager.defaultManager createSymbolicLinkAtPath:child(tree,@"escape").path withDestinationPath:@"../payload/AppBundleExe" error:nil]);
         assert(![BO3SetupDependencies copyTree:tree to:child(root,@"refused") boundary:tree error:&error]);
         // The explicit first-test manifest is installable without pretending

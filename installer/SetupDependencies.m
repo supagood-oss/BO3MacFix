@@ -129,27 +129,21 @@ NSError *BO3SetupTestDownloadResponse(NSURL *file, NSURL *destination, NSInteger
     return copyTree(source,destination,boundary,0,error);
 }
 + (NSArray<NSDictionary *> *)fileRecords:(NSURL *)payload error:(NSError **)error {
-    // NSURL enumeration can expand /var to /private/var on macOS. Subtracting
-    // the unresolved root length produced bogus "payload/..." manifest paths.
-    NSURL *root=payload.URLByResolvingSymlinksInPath;
-    NSString *prefix=[root.path stringByAppendingString:@"/"];
+    // NSURL enumeration can expand /var to /private/var on macOS. Never derive
+    // a relative name by subtracting lengths of differently normalized URLs.
+    // The path enumerator supplies names relative to its root directly.
     NSMutableArray *files=[NSMutableArray array];
-    __block NSError *walkError=nil;
-    NSDirectoryEnumerator *enumerator=[NSFileManager.defaultManager enumeratorAtURL:root
-        includingPropertiesForKeys:@[NSURLIsDirectoryKey] options:0 errorHandler:^BOOL(NSURL *url,NSError *cause) {
-            walkError=cause;return NO;
-        }];
+    NSDirectoryEnumerator *enumerator=[NSFileManager.defaultManager enumeratorAtPath:payload.path];
     if (!enumerator) { fail(error,@"The prepared helper folder could not be read. Please try Install again.");return nil; }
-    for (NSURL *file in enumerator) {
+    for (NSString *relative in enumerator) {
+        NSURL *file=at(payload,relative);
         NSNumber *directory=nil;
         if (![file getResourceValue:&directory forKey:NSURLIsDirectoryKey error:error]) return nil;
         if (directory.boolValue || [file.lastPathComponent isEqual:@"manifest.json"]) continue;
-        if (![file.path hasPrefix:prefix]) { fail(error,@"A prepared helper path could not be resolved. Nothing was installed.");return nil; }
         NSString *hash=[BO3SetupEngine sha256:file];
         if (!hash) { fail(error,@"A prepared helper is incomplete. Please try Install again.");return nil; }
-        [files addObject:@{@"path":[file.path substringFromIndex:prefix.length],@"sha256":hash}];
+        [files addObject:@{@"path":relative,@"sha256":hash}];
     }
-    if (walkError) { if (error) *error=walkError;return nil; }
     return files;
 }
 + (NSURL *)prepare:(NSURL *)payload progress:(void (^)(NSString *))progress error:(NSError **)error {

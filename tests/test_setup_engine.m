@@ -144,6 +144,8 @@ int main(void) {
         writeFile(child(recordRoot,@"manifest.json"),@"excluded manifest");
         assert([NSFileManager.defaultManager createSymbolicLinkAtPath:recordAlias.path withDestinationPath:recordRoot.path error:nil]);
         NSArray *records=[BO3SetupDependencies fileRecords:recordAlias error:&error];
+        if (records.count!=1 || ![records[0][@"path"] isEqual:@"nested/helper"])
+            fprintf(stderr,"Alias manifest fixture: %s; error: %s\n",records.description.UTF8String,error.localizedDescription.UTF8String);
         assert(records.count==1 && [records[0][@"path"] isEqual:@"nested/helper"]);
         assert([records[0][@"sha256"] isEqual:[BO3SetupEngine sha256:child(recordRoot,@"nested/helper")]]);
         assert([NSFileManager.defaultManager createSymbolicLinkAtPath:child(tree,@"escape").path withDestinationPath:@"../payload/AppBundleExe" error:nil]);

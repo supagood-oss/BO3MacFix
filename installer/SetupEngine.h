@@ -13,4 +13,5 @@
 + (BOOL)recover:(NSURL *)game error:(NSError **)error;
 + (BOOL)verifyInstalled:(NSURL *)game payload:(NSURL *)payload error:(NSError **)error;
 + (NSDictionary *)diagnostics:(NSURL *)game payload:(NSURL *)payload;
++ (NSDictionary *)failureDetails:(NSError *)error operation:(NSString *)operation;
 @end

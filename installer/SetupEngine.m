@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <errno.h>
 
 static NSFileManager *fm(void) { return NSFileManager.defaultManager; }
 static NSURL *child(NSURL *root, NSString *path) { return [root URLByAppendingPathComponent:path]; }
@@ -12,6 +13,15 @@ static NSURL *pending(NSURL *root) { return child(root,@".setup-pending"); }
 static BOOL failure(NSError **error, NSString *message) {
     if (error) *error=[NSError errorWithDomain:@"BO3MacFix Setup" code:1
         userInfo:@{NSLocalizedDescriptionKey:message}];
+    return NO;
+}
+static BOOL operationFailure(NSError **error, NSString *message, NSError *cause) {
+    NSMutableDictionary *info=[@{NSLocalizedDescriptionKey:message} mutableCopy];
+    if (cause) {
+        info[NSUnderlyingErrorKey]=cause;
+        info[NSLocalizedDescriptionKey]=[message stringByAppendingFormat:@"\n\n%@",cause.localizedDescription];
+    }
+    if (error) *error=[NSError errorWithDomain:@"BO3MacFix Setup" code:1 userInfo:info];
     return NO;
 }
 static NSDictionary *json(NSURL *file) {
@@ -23,8 +33,9 @@ static BOOL writeJSON(NSDictionary *value, NSURL *file, NSError **error) {
     NSData *data=[NSJSONSerialization dataWithJSONObject:value options:NSJSONWritingPrettyPrinted error:error];
     if (!data || ![data writeToURL:file options:NSDataWritingAtomic error:error]) return NO;
     int fd=open(file.fileSystemRepresentation,O_RDONLY);
-    BOOL ok=fd>=0 && fsync(fd)==0; if (fd>=0) close(fd);
-    return ok;
+    BOOL ok=fd>=0 && fsync(fd)==0; int savedErrno=errno; if (fd>=0) close(fd);
+    return ok || operationFailure(error,@"Setup could not save its installation record.",
+        [NSError errorWithDomain:NSPOSIXErrorDomain code:savedErrno userInfo:nil]);
 }
 static NSString *vdfValue(NSString *text, NSString *key) {
     NSString *pattern=[NSString stringWithFormat:@"\"%@\"\\s+\"((?:\\\\.|[^\"])*)\"", key];
@@ -91,14 +102,17 @@ static BOOL atomicCopy(NSURL *source, NSURL *destination, NSError **error) {
         [@".bo3macfix-copy-" stringByAppendingString:NSUUID.UUID.UUIDString]);
     if (![fm() copyItemAtURL:source toURL:stage error:error]) return NO;
     int fd=open(stage.fileSystemRepresentation,O_RDONLY);
-    BOOL synced=fd>=0 && fsync(fd)==0; if (fd>=0) close(fd);
+    BOOL synced=fd>=0 && fsync(fd)==0; int savedErrno=errno; if (fd>=0) close(fd);
     if (!synced) {
         [fm() removeItemAtURL:stage error:nil];
-        return failure(error,@"Setup could not save a recovery copy. Check that the drive is writable.");
+        return operationFailure(error,@"Setup could not save a recovery copy.",
+            [NSError errorWithDomain:NSPOSIXErrorDomain code:savedErrno userInfo:nil]);
     }
     if (rename(stage.fileSystemRepresentation,destination.fileSystemRepresentation)!=0) {
+        savedErrno=errno;
         [fm() removeItemAtURL:stage error:nil];
-        return failure(error,@"Could not replace a setup file. Check that the game is closed and the drive is writable.");
+        return operationFailure(error,@"Could not replace a setup file.",
+            [NSError errorWithDomain:NSPOSIXErrorDomain code:savedErrno userInfo:nil]);
     }
     return YES;
 }
@@ -315,6 +329,9 @@ static BOOL atomicCopy(NSURL *source, NSURL *destination, NSError **error) {
         BOOL exists=[fm() fileExistsAtPath:destination.path];
         NSString *hash=exists ? [self sha256:destination] : @"absent";
         if (!hash || !noLinks(root,path,error)) { staged=NO; break; }
+        // Owned, unchanged helpers need no second copy or rollback staging.
+        // Legacy files still get their original backup when first adopted.
+        if (baseline[path] && [hash isEqual:entry[@"sha256"]]) continue;
         before[path]=hash; after[path]=entry[@"sha256"];
         if (exists && (!atomicCopy(destination,child(stage,path),error) ||
             ![[self sha256:child(stage,path)] isEqual:hash])) { staged=NO; break; }
@@ -336,10 +353,12 @@ static BOOL atomicCopy(NSURL *source, NSURL *destination, NSError **error) {
     NSDictionary *journal=@{@"schema":@1,@"kind":@"install",@"before":before,@"after":after,
         @"previous_receipt":previous ?: (id)NSNull.null,@"final_receipt":receipt,
         @"new_backups":newBackups,@"cleanup_backups":@[]};
-    if (!staged || !writeJSON(journal,child(stage,@"journal.json"),error) ||
-        rename(stage.fileSystemRepresentation,pending(root).fileSystemRepresentation)!=0) {
+    BOOL journalSaved=staged && writeJSON(journal,child(stage,@"journal.json"),error);
+    BOOL activated=journalSaved && rename(stage.fileSystemRepresentation,pending(root).fileSystemRepresentation)==0;
+    if (!activated) {
+        NSError *cause=journalSaved ? [NSError errorWithDomain:NSPOSIXErrorDomain code:errno userInfo:nil] : (error ? *error : nil);
         [fm() removeItemAtURL:stage error:nil];
-        return failure(error,@"Setup could not prepare its recovery files. Your previous installation was kept.");
+        return operationFailure(error,@"Setup could not prepare its recovery files. Your previous installation was kept.",cause);
     }
     NSURL *transaction=pending(root); BOOL ok=YES;
     for (NSString *path in newBackups) {
@@ -348,6 +367,7 @@ static BOOL atomicCopy(NSURL *source, NSURL *destination, NSError **error) {
     }
     if (ok) for (NSDictionary *entry in manifest[@"files"]) {
         NSString *path=entry[@"path"]; NSURL *destination=child(root,path);
+        if (!before[path]) continue;
         NSString *current=[self sha256:destination] ?: ([fm() fileExistsAtPath:destination.path] ? @"invalid" : @"absent");
         if (!noLinks(root,path,error) || ![current isEqual:before[path]] ||
             !atomicCopy(child(payload,path),destination,error) ||
@@ -356,8 +376,9 @@ static BOOL atomicCopy(NSURL *source, NSURL *destination, NSError **error) {
     }
     if (ok) ok=writeJSON(receipt,child(root,@"setup-receipt.json"),error);
     if (!ok) {
+        NSError *cause=error ? *error : nil;
         if (![self recover:game error:nil]) return failure(error,@"Setup was interrupted. Click Repair to restore your previous files.");
-        return failure(error,@"Setup could not confirm completion. Recovery finished; check the app's status before trying again.");
+        return operationFailure(error,@"Setup could not confirm completion. Recovery finished; check the app's status before trying again.",cause);
     }
     return [self recover:game error:error]; // Committed receipt: verify and finish cleanup.
 }
@@ -415,5 +436,18 @@ static BOOL atomicCopy(NSURL *source, NSURL *destination, NSError **error) {
         @"installed":@(game && [self isInstalled:game]),@"payload_version":manifest[@"version"] ?: @"development",
         @"recovery_pending":@(game && [self needsRecovery:game]),
         @"ready_for_coop":manifest[@"ready_for_coop"] ?: @NO};
+}
++ (NSDictionary *)failureDetails:(NSError *)error operation:(NSString *)operation {
+    // NSError.userInfo can contain home paths or signed download URLs. Keep
+    // only error codes and our own fixed helper/stage labels in shareable reports.
+    NSMutableArray *chain=[NSMutableArray array];
+    for (NSError *cause=error;cause && chain.count<8;cause=cause.userInfo[NSUnderlyingErrorKey]) {
+        if (![cause isKindOfClass:NSError.class]) break;
+        [chain addObject:@{@"domain":cause.domain,@"code":@(cause.code)}];
+    }
+    NSMutableDictionary *details=[@{@"operation":operation,@"errors":chain} mutableCopy];
+    for (NSString *key in @[@"BO3SetupHelper",@"BO3SetupStage"])
+        if ([error.userInfo[key] isKindOfClass:NSString.class]) details[key]=error.userInfo[key];
+    return details;
 }
 @end

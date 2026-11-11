@@ -59,6 +59,8 @@ jobs:
           build/prepare_dependencies 'build/BO3MacFix Setup.app/Contents/Resources/payload' build/prepared-payload
           cc -std=c11 -O1 -Wall -Wextra -Werror tools/converter_check.c source/converter_process.c -o build/converter-check
           python3 tools/check_converter.py build/prepared-payload build/converter-check
+          clang -fobjc-arc -fblocks -framework Foundation -framework AppKit tools/check_setup_install.m installer/SetupEngine.m -o build/check-setup-install
+          build/check-setup-install build/prepared-payload
       - name: An incomplete source tree must not produce a gameplay release
         run: |
           if python3 tools/package_setup.py --output build/not-ready.app; then

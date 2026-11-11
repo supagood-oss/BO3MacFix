@@ -4,6 +4,8 @@
 #include <assert.h>
 #include <sys/stat.h>
 void BO3SetupTestFailCopy(unsigned count);
+BOOL BO3SetupTestRetryableDownload(NSError *error);
+NSError *BO3SetupTestDownloadResponse(NSURL *file, NSURL *destination, NSInteger status, unsigned long long bytes);
 static NSURL *child(NSURL *root,NSString *name) { return [root URLByAppendingPathComponent:name]; }
 static void writeFile(NSURL *file,NSString *text) {
     assert([NSFileManager.defaultManager createDirectoryAtURL:file.URLByDeletingLastPathComponent
@@ -97,6 +99,12 @@ int main(void) {
         assert([BO3SetupEngine isInstalled:game]);
         assert([readFile(child(fix,@"BO3MacFix.dylib")) isEqual:@"new patch"]);
         assert([readFile(child(game,@"Contents/MacOS/AppBundleExe")) isEqual:@"original game launcher"]);
+        // A repeat install must not recopy already-owned identical helpers.
+        // Any attempted copy fails, so success proves the no-op update path.
+        BO3SetupTestFailCopy(1);
+        assert([BO3SetupEngine install:game payload:payload error:&error]);
+        BO3SetupTestFailCopy(0);
+        assert([BO3SetupEngine verifyInstalled:game payload:payload error:&error]);
         writeFile(child(payload,@"BO3MacFix.dylib"),@"updated patch");
         manifest(payload,game);
         assert([BO3SetupEngine install:game payload:payload error:&error]);
@@ -104,7 +112,7 @@ int main(void) {
         // fails. An edited owned file is still preserved rather than replaced.
         assert([NSFileManager.defaultManager removeItemAtURL:child(fix,@"AppBundleExe") error:nil]);
         assert(![BO3SetupEngine verifyInstalled:game payload:payload error:&error]);
-        BO3SetupTestFailCopy(2);
+        BO3SetupTestFailCopy(1);
         assert(![BO3SetupEngine install:game payload:payload error:&error]);
         assert(![NSFileManager.defaultManager fileExistsAtPath:child(fix,@"AppBundleExe").path]);
         assert([readFile(child(fix,@"BO3MacFix.dylib")) isEqual:@"updated patch"]);
@@ -163,6 +171,30 @@ int main(void) {
         assert(![BO3SetupEngine install:game payload:payload error:&error]);
         assert([readFile(child(fix,@"BO3MacFix.dylib")) isEqual:@"old patch"]);
         recoveryFixtures(game,payload,fix);
+        // Real downloader response handling, without a live network or secrets.
+        NSURL *download=child(root,@"download"), *destination=child(root,@"downloaded-helper");
+        writeFile(download,@"four");
+        NSError *response=BO3SetupTestDownloadResponse(download,destination,503,4);
+        assert([response.domain isEqual:@"BO3MacFix HTTP"] && response.code==503);
+        assert(BO3SetupTestRetryableDownload(response));
+        assert(![NSFileManager.defaultManager fileExistsAtPath:destination.path]);
+        response=BO3SetupTestDownloadResponse(download,destination,404,4);
+        assert(!BO3SetupTestRetryableDownload(response));
+        response=BO3SetupTestDownloadResponse(download,destination,200,5);
+        assert(response && ![NSFileManager.defaultManager fileExistsAtPath:destination.path]);
+        assert(!BO3SetupTestDownloadResponse(download,destination,200,4));
+        assert([readFile(destination) isEqual:@"four"]);
+        assert(BO3SetupTestRetryableDownload([NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorTimedOut userInfo:nil]));
+        assert(!BO3SetupTestRetryableDownload([NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorServerCertificateUntrusted userInfo:nil]));
+        // Reports retain failure codes, not NSError's private URL/path details.
+        NSError *privateCause=[NSError errorWithDomain:NSCocoaErrorDomain code:NSFileWriteOutOfSpaceError userInfo:
+            @{NSFilePathErrorKey:@"/Users/private/Game",NSLocalizedDescriptionKey:@"private-user-path"}];
+        NSError *wrapped=[NSError errorWithDomain:@"BO3MacFix Setup" code:2 userInfo:@{NSUnderlyingErrorKey:privateCause,
+            @"BO3SetupHelper":@"map conversion support",@"BO3SetupStage":@"download",@"URL":@"private-download-url"}];
+        NSDictionary *details=[BO3SetupEngine failureDetails:wrapped operation:@"install"];
+        assert([details[@"errors"] count]==2);
+        assert([details[@"errors"][1][@"code"] isEqual:@(NSFileWriteOutOfSpaceError)]);
+        assert(![details.description containsString:@"private"]);
         assert([NSFileManager.defaultManager removeItemAtURL:root error:nil]);
         puts("macOS installer rollback, update, interrupted-install/removal recovery and preservation tests passed");
     }

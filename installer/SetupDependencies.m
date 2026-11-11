@@ -16,6 +16,20 @@ static BOOL fail(NSError **error, NSString *message) {
     if (error) *error=[NSError errorWithDomain:@"BO3MacFix Setup" code:2 userInfo:@{NSLocalizedDescriptionKey:message}];
     return NO;
 }
+static BOOL helperFailure(NSError **error, NSString *label, NSString *stage, NSError *cause) {
+    NSMutableDictionary *info=[@{NSLocalizedDescriptionKey:[NSString stringWithFormat:@"Could not %@ %@. %@",stage,label,
+        cause.localizedDescription ?: @"Please try Install again."],
+        @"BO3SetupHelper":label,@"BO3SetupStage":stage} mutableCopy];
+    if (cause) info[NSUnderlyingErrorKey]=cause;
+    if (error) *error=[NSError errorWithDomain:@"BO3MacFix Setup" code:2 userInfo:info];
+    return NO;
+}
+static BOOL retryableDownload(NSError *error) {
+    if ([error.domain isEqual:NSURLErrorDomain])
+        return [@[@(NSURLErrorTimedOut),@(NSURLErrorNetworkConnectionLost),@(NSURLErrorCannotConnectToHost),
+            @(NSURLErrorCannotFindHost),@(NSURLErrorDNSLookupFailed),@(NSURLErrorNotConnectedToInternet)] containsObject:@(error.code)];
+    return [error.domain isEqual:@"BO3MacFix HTTP"] && [@[@408,@429,@500,@502,@503,@504] containsObject:@(error.code)];
+}
 static NSURL *at(NSURL *root, NSString *path) { return [root URLByAppendingPathComponent:path]; }
 static NSDictionary *readJSON(NSURL *file) {
     NSData *data=[NSData dataWithContentsOfURL:file];
@@ -65,8 +79,14 @@ static BOOL copyTree(NSURL *source, NSURL *destination, NSURL *boundary, unsigne
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)task didFinishDownloadingToURL:(NSURL *)location {
     NSHTTPURLResponse *response=(NSHTTPURLResponse *)task.response;
     NSNumber *size=nil; [location getResourceValue:&size forKey:NSURLFileSizeKey error:nil];
-    if (![response isKindOfClass:NSHTTPURLResponse.class] || response.statusCode!=200 || size.unsignedLongLongValue!=self.expected) {
-        NSError *error=nil; fail(&error,@"A helper download was incomplete. Check your internet connection and click Install again."); self.error=error; return;
+    if (![response isKindOfClass:NSHTTPURLResponse.class] || response.statusCode!=200) {
+        NSInteger status=[response isKindOfClass:NSHTTPURLResponse.class] ? response.statusCode : 0;
+        self.error=[NSError errorWithDomain:@"BO3MacFix HTTP" code:status userInfo:@{NSLocalizedDescriptionKey:
+            [NSString stringWithFormat:@"The download server returned HTTP %ld. Please try again later.",(long)status]}];
+        return;
+    }
+    if (size.unsignedLongLongValue!=self.expected) {
+        NSError *error=nil; fail(&error,@"The download was incomplete. Check your internet connection and click Install again."); self.error=error; return;
     }
     NSError *error=nil;
     [NSFileManager.defaultManager moveItemAtURL:location toURL:self.destination error:&error]; self.error=error;
@@ -76,6 +96,23 @@ static BOOL copyTree(NSURL *source, NSURL *destination, NSURL *boundary, unsigne
     dispatch_semaphore_signal(self.done);
 }
 @end
+
+#ifdef BO3SETUP_TESTING
+@interface BO3SetupFixtureDownloadTask : NSObject
+@property NSURLResponse *response;
+@end
+@implementation BO3SetupFixtureDownloadTask
+@end
+BOOL BO3SetupTestRetryableDownload(NSError *error) { return retryableDownload(error); }
+NSError *BO3SetupTestDownloadResponse(NSURL *file, NSURL *destination, NSInteger status, unsigned long long bytes) {
+    HelperDownload *download=[HelperDownload new];download.destination=destination;download.expected=bytes;
+    BO3SetupFixtureDownloadTask *task=[BO3SetupFixtureDownloadTask new];
+    task.response=[[NSHTTPURLResponse alloc] initWithURL:[NSURL URLWithString:@"https://example.invalid/helper"]
+        statusCode:status HTTPVersion:@"HTTP/1.1" headerFields:nil];
+    [download URLSession:nil downloadTask:(id)task didFinishDownloadingToURL:file];
+    return download.error;
+}
+#endif
 
 @implementation BO3SetupDependencies
 + (NSString *)runtimeArchitecture { return hostArchitecture(); }
@@ -120,25 +157,39 @@ static BOOL copyTree(NSURL *source, NSURL *destination, NSURL *boundary, unsigne
             ok=fail(error,@"The helper download list is invalid. Download the installer again."); break;
         }
         [seen addObject:kind];
-        HelperDownload *download=[HelperDownload new]; download.expected=bytes; download.label=archive[@"label"] ?: @"helpers";
-        download.destination=at(work,[kind stringByAppendingString:@".archive"]); download.done=dispatch_semaphore_create(0); download.progress=progress;
-        NSURLSessionConfiguration *config=NSURLSessionConfiguration.ephemeralSessionConfiguration;
-        config.timeoutIntervalForRequest=60; config.timeoutIntervalForResource=600;
-        NSURLSession *session=[NSURLSession sessionWithConfiguration:config delegate:download delegateQueue:nil];
-        [[session downloadTaskWithURL:url] resume];
-        long timedOut=dispatch_semaphore_wait(download.done,dispatch_time(DISPATCH_TIME_NOW,610*NSEC_PER_SEC));
-        [session invalidateAndCancel];
-        if (timedOut || download.error || ![[BO3SetupEngine sha256:download.destination] isEqual:hash]) {
-            ok=fail(error,@"A helper could not be downloaded and verified. Check your internet connection and click Install again."); break;
+        NSString *label=archive[@"label"] ?: @"helpers";
+        NSURL *archiveFile=at(work,[kind stringByAppendingString:@".archive"]);
+        NSError *downloadError=nil;
+        for (unsigned attempt=0;attempt<2;++attempt) {
+            if (progress) progress([NSString stringWithFormat:attempt ? @"Retrying %@…" : @"Downloading %@…",label]);
+            HelperDownload *download=[HelperDownload new]; download.expected=bytes; download.label=label;
+            download.destination=archiveFile; download.done=dispatch_semaphore_create(0); download.progress=progress;
+            NSURLSessionConfiguration *config=NSURLSessionConfiguration.ephemeralSessionConfiguration;
+            // A 166 MB helper takes over ten minutes on a 2 Mbps connection.
+            // Allow slow but advancing downloads; still bound idle/network time.
+            config.timeoutIntervalForRequest=120; config.timeoutIntervalForResource=3600;
+            NSURLSession *session=[NSURLSession sessionWithConfiguration:config delegate:download delegateQueue:nil];
+            [[session downloadTaskWithURL:url] resume];
+            dispatch_semaphore_wait(download.done,DISPATCH_TIME_FOREVER);
+            [session finishTasksAndInvalidate];
+            downloadError=download.error;
+            if (!downloadError || !retryableDownload(downloadError)) break;
         }
-        if (progress) progress([NSString stringWithFormat:@"Preparing %@…\nYour game files have not been changed yet.",download.label]);
+        if (downloadError) {
+            ok=helperFailure(error,label,@"download",downloadError); break;
+        }
+        if (![[BO3SetupEngine sha256:archiveFile] isEqual:hash]) {
+            ok=helperFailure(error,label,@"verify",[NSError errorWithDomain:@"BO3MacFix Download" code:1
+                userInfo:@{NSLocalizedDescriptionKey:@"The downloaded file did not match the expected checksum. Nothing was installed; please try again."}]); break;
+        }
+        if (progress) progress([NSString stringWithFormat:@"Preparing %@…\nYour game files have not been changed yet.",label]);
         NSURL *extract=at(work,kind);
         ok=[fm createDirectoryAtURL:extract withIntermediateDirectories:NO attributes:nil error:error];
         if (!ok) break;
         // All exact-hash archives are inspected by tools/verify_dependency_archives.py.
         // Extract into a fresh private directory, never into the game or home directory.
         NSTask *tar=[NSTask new]; tar.executableURL=[NSURL fileURLWithPath:@"/usr/bin/tar"];
-        tar.arguments=@[@"-xf",download.destination.path,@"-C",extract.path,@"--no-same-owner"];
+        tar.arguments=@[@"-xf",archiveFile.path,@"-C",extract.path,@"--no-same-owner"];
         tar.standardOutput=[NSFileHandle fileHandleForWritingAtPath:@"/dev/null"];
         tar.standardError=[NSFileHandle fileHandleForWritingAtPath:@"/dev/null"];
         ok=[tar launchAndReturnError:error]; if (ok) { [tar waitUntilExit]; ok=tar.terminationStatus==0; }
@@ -160,7 +211,7 @@ static BOOL copyTree(NSURL *source, NSURL *destination, NSURL *boundary, unsigne
                 if (!copyTree(entry,at(at(result,@"runtime/Frameworks"),entry.lastPathComponent),extract,0,error)) { ok=NO;break; }
             }
         }
-        [fm removeItemAtURL:extract error:nil]; [fm removeItemAtURL:download.destination error:nil];
+        [fm removeItemAtURL:extract error:nil]; [fm removeItemAtURL:archiveFile error:nil];
     }
     if (ok && ![seen isEqual:[NSSet setWithArray:@[@"upstream",@"wine",@"frameworks"]]])
         ok=fail(error,@"The helper download list is incomplete. Download the installer again.");

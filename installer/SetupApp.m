@@ -18,6 +18,9 @@
 @end
 
 @implementation SetupApp
+- (void)recordFailure:(NSError *)error operation:(NSString *)operation {
+    [NSUserDefaults.standardUserDefaults setObject:[BO3SetupEngine failureDetails:error operation:operation] forKey:@"lastSetupFailure"];
+}
 - (void)alert:(NSString *)title detail:(NSString *)detail {
     NSAlert *alert=[NSAlert new]; alert.messageText=title;
     alert.informativeText=detail ?: @"Please try again."; [alert addButtonWithTitle:@"OK"];
@@ -105,9 +108,14 @@
         NSError *error=nil; BOOL ok=NO;
         if (recovery) ok=[BO3SetupEngine recover:self.game error:&error];
         else {
-            NSURL *prepared=[BO3SetupDependencies prepare:self.payload progress:^(NSString *message) {
+            BOOL ready=[BO3SetupEngine readiness:self.game payload:self.payload error:&error]!=nil;
+            if (ready && [BO3SetupEngine gameIsRunning]) {
+                ready=NO;
+                error=[NSError errorWithDomain:@"BO3MacFix Setup" code:3 userInfo:@{NSLocalizedDescriptionKey:@"Close Black Ops III, then click Install again."}];
+            }
+            NSURL *prepared=ready ? [BO3SetupDependencies prepare:self.payload progress:^(NSString *message) {
                 dispatch_async(dispatch_get_main_queue(), ^{ self.message.stringValue=message; });
-            } error:&error];
+            } error:&error] : nil;
             if (prepared) {
                 dispatch_async(dispatch_get_main_queue(), ^{ self.message.stringValue=@"Installing… Please keep this window open."; });
                 ok=[BO3SetupEngine install:self.game payload:prepared error:&error];
@@ -116,7 +124,10 @@
         }
         dispatch_async(dispatch_get_main_queue(), ^{
             self.busy=NO; [self refresh];
-            if (!ok) [self alert:@"Setup could not finish" detail:error.localizedDescription];
+            if (!ok) {
+                [self recordFailure:error operation:recovery ? @"repair" : @"install"];
+                [self alert:@"Setup could not finish" detail:error.localizedDescription];
+            } else [NSUserDefaults.standardUserDefaults removeObjectForKey:@"lastSetupFailure"];
         });
     });
 }
@@ -131,7 +142,10 @@
             NSError *error=nil; BOOL ok=[BO3SetupEngine remove:self.game error:&error];
             dispatch_async(dispatch_get_main_queue(), ^{
                 self.busy=NO; [self refresh];
-                if (!ok) [self alert:@"Removal could not finish" detail:error.localizedDescription];
+                if (!ok) {
+                    [self recordFailure:error operation:@"remove"];
+                    [self alert:@"Removal could not finish" detail:error.localizedDescription];
+                }
             });
         });
     }];
@@ -145,7 +159,10 @@
         BOOL ok=[BO3SetupEngine verifyInstalled:self.game payload:self.payload error:&error];
         dispatch_async(dispatch_get_main_queue(), ^{
             self.busy=NO; [self refresh];
-            if (!ok) [self alert:@"The installation needs attention" detail:error.localizedDescription];
+            if (!ok) {
+                [self recordFailure:error operation:@"verify"];
+                [self alert:@"The installation needs attention" detail:error.localizedDescription];
+            }
             else [self launchGame];
         });
     });
@@ -181,7 +198,11 @@
     [panel beginSheetModalForWindow:self.window completionHandler:^(NSModalResponse response) {
         if (response!=NSModalResponseOK) return;
         NSError *error=nil;
-        NSData *data=[NSJSONSerialization dataWithJSONObject:[BO3SetupEngine diagnostics:self.game payload:self.payload]
+        NSMutableDictionary *report=[[BO3SetupEngine diagnostics:self.game payload:self.payload] mutableCopy];
+        report[@"helper_architecture"]=[BO3SetupDependencies runtimeArchitecture];
+        NSDictionary *lastFailure=[NSUserDefaults.standardUserDefaults dictionaryForKey:@"lastSetupFailure"];
+        if (lastFailure) report[@"last_failure"]=lastFailure;
+        NSData *data=[NSJSONSerialization dataWithJSONObject:report
             options:NSJSONWritingPrettyPrinted error:&error];
         if (!data || ![data writeToURL:panel.URL options:NSDataWritingAtomic error:&error])
             [self alert:@"The report couldn't be saved" detail:error.localizedDescription];

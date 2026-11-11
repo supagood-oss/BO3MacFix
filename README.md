@@ -1,10 +1,10 @@
-# BO3MacFix — Mac Test 1.5
+# BO3MacFix — Mac Test 1.5.1
 
 A community test build for Steam Black Ops III on Mac, including AAE/UEM and
 custom-map compatibility work. Original BO3MacFix by Emma / InvoxiPlayGames and
 Anthony / serious.
 
-**[Download the Mac Test 1.5 installer](https://github.com/supagood-oss/BO3MacFix/releases/download/aae-uem-mac-test-1.5/BO3MacFix-Mac-Test-1.5.zip)**
+**[Download the Mac Test 1.5.1 installer](https://github.com/supagood-oss/BO3MacFix/releases/download/aae-uem-mac-test-1.5.1/BO3MacFix-Mac-Test-1.5.1.zip)**
 
 The same installer is for **Intel and M-series Macs**. It downloads the required
 helpers automatically; no Homebrew, Terminal or manual game-file copying is
@@ -13,7 +13,13 @@ intended. Earlier downloads 1 through 1.3 were withdrawn; do not reuse them.
 **This is an experimental first-Mac test candidate.** Intel and Apple Silicon
 builds, installer/dependency checks and archive verification passed. Physical
 Mac gameplay, checkpoint resume after quitting BO3, and Windows–Mac co-op have
-not yet been verified. [Release and build evidence](https://github.com/supagood-oss/BO3MacFix/releases/tag/aae-uem-mac-test-1.5).
+not yet been verified. [Release and build evidence](https://github.com/supagood-oss/BO3MacFix/releases/tag/aae-uem-mac-test-1.5.1).
+
+**1.5.1 fixes an installation blocker reproduced on Intel and Apple Silicon:**
+macOS temporary-folder aliases caused incorrect paths in the downloaded helper
+file list. Setup now uses relative filenames directly. It also improves download
+retries, avoids replacing unchanged owned helpers, and includes installation
+errors in Save Report. The gameplay patch is unchanged from 1.5.
 
 ## Fresh installation
 
@@ -28,7 +34,7 @@ not yet been verified. [Release and build evidence](https://github.com/supagood-
 
 ## Already have BO3MacFix
 
-1. Quit BO3. Download and unzip 1.5, then open the **new BO3MacFix Setup** app.
+1. Quit BO3. Download and unzip 1.5.1, then open the **new BO3MacFix Setup** app.
 2. Click **Update**, or **Install** if that is the button shown. Keep the existing
    installation, saves and Workshop files in place.
 3. Let Steam finish any mod/dependency updates, then click **Play** in Setup.
@@ -61,8 +67,8 @@ only for the Mac players.
 If something fails, record **mod/map, who hosted, round, action and error**.
 Use Setup's **Save Report** button. Restart the map after a failed restore.
 Please report issues with this test build in this fork, not to the mod authors.
-[Full test guide](https://github.com/supagood-oss/BO3MacFix/blob/codex/native-test-1.5/docs/TEST_1_5.md)
-· [Shareable offline guide](https://github.com/supagood-oss/BO3MacFix/releases/download/aae-uem-mac-test-1.5/BO3MacFix-1.5-START-HERE.html).
+[Full test guide](https://github.com/supagood-oss/BO3MacFix/blob/codex/installer-1.5.1/docs/TEST_1_5_1.md)
+· [Installer changes](https://github.com/supagood-oss/BO3MacFix/releases/tag/aae-uem-mac-test-1.5.1).
 
 ## Does disabling credential-dependent online features affect co-op?
 

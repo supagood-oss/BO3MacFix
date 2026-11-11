@@ -197,10 +197,12 @@ static BOOL atomicCopy(NSURL *source, NSURL *destination, NSError **error) {
             failure(error,@"The installer file list is damaged. Download it again."); return nil;
         }
         NSString *path=entry[@"path"];
-        if (!payloadPath(path) || [seen containsObject:path] ||
-            !noLinks(payload,path,error) || !noLinks(fixRoot(valid),path,error) ||
-            ![[self sha256:child(payload,path)] isEqual:entry[@"sha256"]]) {
-            failure(error,@"An installation file is missing or changed. Download the installer again."); return nil;
+        if (!payloadPath(path) || [seen containsObject:path]) {
+            failure(error,@"The installer file list contains an invalid or repeated path. Download the installer again."); return nil;
+        }
+        if (!noLinks(payload,path,error) || !noLinks(fixRoot(valid),path,error)) return nil;
+        if (![[self sha256:child(payload,path)] isEqual:entry[@"sha256"]]) {
+            fileFailure(error,@"An installation file is missing or changed. Download the installer again.",path); return nil;
         }
         [seen addObject:path];
     }

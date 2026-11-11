@@ -25,6 +25,14 @@ int main(int argc,char **argv) {
         NSURL *payload=at(root,@"payload");
         require([fm createDirectoryAtURL:root withIntermediateDirectories:YES attributes:nil error:&error],error);
         require([fm copyItemAtURL:source toURL:payload error:&error],error);
+        NSDictionary *copiedManifest=[NSJSONSerialization JSONObjectWithData:[NSData dataWithContentsOfURL:at(payload,@"manifest.json")] options:0 error:&error];
+        for (NSDictionary *entry in copiedManifest[@"files"]) {
+            NSString *relative=entry[@"path"];
+            if (![[BO3SetupEngine sha256:at(payload,relative)] isEqual:entry[@"sha256"]]) {
+                fprintf(stderr,"Prepared payload mismatch: %s (source matches: %s)\n",relative.UTF8String,
+                    [[BO3SetupEngine sha256:at(source,relative)] isEqual:entry[@"sha256"]] ? "yes" : "no");
+            }
+        }
         for (NSString *kind in @[@"fresh",@"legacy"]) {
             NSURL *game=at(root,[kind stringByAppendingString:@" library/CoDBlkOps3.app"]);
             NSURL *executable=at(game,@"Contents/MacOS/CoDBlkOps3_Exe");

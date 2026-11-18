@@ -1,25 +1,22 @@
-# BO3MacFix — Mac Test 1.5.1
+# BO3MacFix 1.5.2
 
-A community test build for Steam Black Ops III on Mac, including AAE/UEM and
-custom-map compatibility work. Original BO3MacFix by Emma / InvoxiPlayGames and
+A community fork for Steam Black Ops III on Mac with experimental AAE, UEM and
+custom-map compatibility. Original BO3MacFix by Emma / InvoxiPlayGames and
 Anthony / serious.
 
-**[Download the Mac Test 1.5.1 installer](https://github.com/supagood-oss/BO3MacFix/releases/download/aae-uem-mac-test-1.5.1/BO3MacFix-Mac-Test-1.5.1.zip)**
+**[Download BO3MacFix Setup](https://github.com/supagood-oss/BO3MacFix/releases/latest)**
 
 The same installer is for **Intel and M-series Macs**. It downloads the required
 helpers automatically; no Homebrew, Terminal or manual game-file copying is
 intended. Earlier downloads 1 through 1.3 were withdrawn; do not reuse them.
 
-**This is an experimental first-Mac test candidate.** Intel and Apple Silicon
-builds, installer/dependency checks and archive verification passed. Physical
-Mac gameplay, checkpoint resume after quitting BO3, and Windows–Mac co-op have
-not yet been verified. [Release and build evidence](https://github.com/supagood-oss/BO3MacFix/releases/tag/aae-uem-mac-test-1.5.1).
+**AAE and UEM gameplay is experimental.** Real Mac gameplay, checkpoint resume
+after quitting BO3, and Windows–Mac co-op still need testing. See the release
+notes for the installer checks and exact build.
 
-**1.5.1 fixes an installation blocker reproduced on Intel and Apple Silicon:**
-macOS temporary-folder aliases caused incorrect paths in the downloaded helper
-file list. Setup now uses relative filenames directly. It also improves download
-retries, avoids replacing unchanged owned helpers, and includes installation
-errors in Save Report. The gameplay patch is unchanged from 1.5.
+**What's new in Setup:** Updates reuse existing helpers when they match the
+current download list and Mac architecture. Setup can restore a launcher that
+lost its executable permission and reports game launch errors in Save Report.
 
 ## Fresh installation
 
@@ -34,14 +31,15 @@ errors in Save Report. The gameplay patch is unchanged from 1.5.
 
 ## Already have BO3MacFix
 
-1. Quit BO3. Download and unzip 1.5.1, then open the **new BO3MacFix Setup** app.
+1. Quit BO3. Download and unzip the latest version, then open the **new BO3MacFix Setup** app.
 2. Click **Update**, or **Install** if that is the button shown. Keep the existing
-   installation, saves and Workshop files in place.
+   installation, saves and Workshop files in place. If Setup offers **Repair**
+   after an interrupted update, run it first, then click **Update**.
 3. Let Steam finish any mod/dependency updates, then click **Play** in Setup.
 
 If macOS cannot verify the developer, after trying to open Setup use
 **System Settings → Privacy & Security → Open Anyway**, then confirm **Open**.
-The test app is ad-hoc signed and not notarized.
+The app is ad-hoc signed and not notarized.
 [Apple's instructions](https://support.apple.com/en-us/102445).
 
 ## Test with Windows friends
@@ -66,9 +64,8 @@ only for the Mac players.
 
 If something fails, record **mod/map, who hosted, round, action and error**.
 Use Setup's **Save Report** button. Restart the map after a failed restore.
-Please report issues with this test build in this fork, not to the mod authors.
-[Full test guide](https://github.com/supagood-oss/BO3MacFix/blob/codex/installer-1.5.1/docs/TEST_1_5_1.md)
-· [Installer changes](https://github.com/supagood-oss/BO3MacFix/releases/tag/aae-uem-mac-test-1.5.1).
+Please report results in the [testing thread](https://www.reddit.com/r/macgaming/comments/1xu6z1y/bo3_mac_testers_wanted_experimental_bo3macfix/).
+[Detailed co-op test checklist](https://github.com/supagood-oss/BO3MacFix/blob/v1.5.2/docs/MAC_TEST.md).
 
 ## Does disabling credential-dependent online features affect co-op?
 
@@ -93,9 +90,10 @@ On **October 31, 2026**, Steam's current Workshop content IDs matched the exact
 packages already inspected for 1.5: **AAE 4.0.0**, **AAE Lite 4.0.0**,
 **UEM 1.3.4 Build-001** and **Expanded v4.62**. The published
 [AAE change notes](https://steamcommunity.com/sharedfiles/filedetails/changelog/2631943123)
-and [UEM change notes](https://steamcommunity.com/sharedfiles/filedetails/changelog/2942053577)
-show no newer update than those packages. This is a package match, not a claim
-that every option or future update works.
+show later updates, including a new co-op pause network channel and traversal
+changes in November. Those changes still need compatibility work and testing.
+Use the [UEM change notes](https://steamcommunity.com/sharedfiles/filedetails/changelog/2942053577)
+to check whether your Workshop version has changed since the inspection.
 
 1.5 includes the newer checkpoint disk slots/date menus/camera persistence,
 mantle hints, co-op pause, free aim, interactive prompts, traversal and migration

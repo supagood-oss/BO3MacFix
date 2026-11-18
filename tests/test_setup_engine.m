@@ -105,6 +105,11 @@ int main(void) {
         assert([BO3SetupEngine install:game payload:payload error:&error]);
         BO3SetupTestFailCopy(0);
         assert([BO3SetupEngine verifyInstalled:game payload:payload error:&error]);
+        NSURL *installedLauncher=child(fix,@"AppBundleExe");
+        assert(chmod(installedLauncher.fileSystemRepresentation,0644)==0);
+        assert(![BO3SetupEngine verifyInstalled:game payload:payload error:&error]);
+        assert([BO3SetupEngine install:game payload:payload error:&error]);
+        assert([BO3SetupEngine verifyInstalled:game payload:payload error:&error]);
         writeFile(child(payload,@"BO3MacFix.dylib"),@"updated patch");
         manifest(payload,game);
         assert([BO3SetupEngine install:game payload:payload error:&error]);
@@ -158,6 +163,7 @@ int main(void) {
         assert([BO3SetupEngine readiness:game payload:payload error:&error]);
         assert(![BO3SetupEngine install:game payload:payload error:&error]);
         candidate[@"dependencies_prepared"]=@YES;
+        candidate[@"helper_arch"]=[BO3SetupEngine hostArchitecture];
         writeFile(child(payload,@"runtime/wine/bin/wine"),@"synthetic helper");
         NSMutableArray *candidateFiles=[candidate[@"files"] mutableCopy];
         [candidateFiles addObject:@{@"path":@"runtime/wine/bin/wine",@"sha256":[BO3SetupEngine sha256:child(payload,@"runtime/wine/bin/wine")]}];
@@ -166,15 +172,32 @@ int main(void) {
         assert([BO3SetupEngine install:game payload:payload error:&error]);
         // On the next app launch only the small base payload is present. The
         // receipt must still verify every downloaded helper before Play.
-        candidate[@"files"]=[candidateFiles subarrayWithRange:NSMakeRange(0,2)]; candidate[@"requires_bundled_wine"]=@NO;
+        candidate[@"files"]=[candidateFiles subarrayWithRange:NSMakeRange(0,2)];
+        [candidate removeObjectForKey:@"dependencies_prepared"];
+        [candidate removeObjectForKey:@"helper_arch"];
+        candidate[@"requires_bundled_wine"]=@NO;
         writeJSON(child(payload,@"manifest.json"),candidate);
+        assert([BO3SetupEngine verifyInstalled:game payload:payload error:&error]);
+        writeFile(child(payload,@"BO3MacFix.dylib"),@"release update");
+        candidateFiles[0]=@{@"path":@"BO3MacFix.dylib",@"sha256":[BO3SetupEngine sha256:child(payload,@"BO3MacFix.dylib")]};
+        candidate[@"files"]=[candidateFiles subarrayWithRange:NSMakeRange(0,2)];
+        candidate[@"version"]=@"update-fixture";
+        writeJSON(child(payload,@"manifest.json"),candidate);
+        assert([BO3SetupEngine canReuseHelpers:game payload:payload]);
+        assert([BO3SetupEngine install:game payload:payload error:&error]);
         assert([BO3SetupEngine verifyInstalled:game payload:payload error:&error]);
         writeFile(child(fix,@"runtime/wine/bin/wine"),@"changed helper");
         assert(![BO3SetupEngine verifyInstalled:game payload:payload error:&error]);
+        assert(![BO3SetupEngine install:game payload:payload error:&error]);
+        assert([readFile(child(fix,@"runtime/wine/bin/wine")) isEqual:@"changed helper"]);
         assert([NSFileManager.defaultManager removeItemAtURL:child(fix,@"runtime/wine/bin/wine") error:nil]);
         // The small base payload cannot repair a helper it does not contain.
+        assert(![BO3SetupEngine canReuseHelpers:game payload:payload]);
         assert(![BO3SetupEngine install:game payload:payload error:&error]);
-        candidate[@"files"]=candidateFiles; candidate[@"requires_bundled_wine"]=@YES;
+        candidate[@"files"]=candidateFiles;
+        candidate[@"requires_bundled_wine"]=@YES;
+        candidate[@"dependencies_prepared"]=@YES;
+        candidate[@"helper_arch"]=[BO3SetupEngine hostArchitecture];
         writeJSON(child(payload,@"manifest.json"),candidate);
         assert([BO3SetupEngine install:game payload:payload error:&error]);
         assert([BO3SetupEngine verifyInstalled:game payload:payload error:&error]);

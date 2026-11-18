@@ -6,6 +6,8 @@
 + (NSString *)sha256:(NSURL *)file;
 + (BOOL)gameIsRunning;
 + (NSDictionary *)readiness:(NSURL *)game payload:(NSURL *)payload error:(NSError **)error;
++ (BOOL)canReuseHelpers:(NSURL *)game payload:(NSURL *)payload;
++ (NSString *)hostArchitecture;
 + (BOOL)install:(NSURL *)game payload:(NSURL *)payload error:(NSError **)error;
 + (BOOL)remove:(NSURL *)game error:(NSError **)error;
 + (BOOL)isInstalled:(NSURL *)game;

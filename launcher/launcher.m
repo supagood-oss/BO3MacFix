@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
     NSString *settingsPath = [macfixUrl URLByAppendingPathComponent:@"settings.ini"].path;
     FILE *log = fopen([macfixUrl URLByAppendingPathComponent:@"launcher.log"].path.fileSystemRepresentation, "w");
     if (log == NULL)
-        log = fopen("/dev/null", "w");
+        log = stderr;
     const char *prepatched_env = getenv("BO3MACFIX_PREPATCHEDEXE");
     int prepatched = prepatched_env != NULL ? atoi(prepatched_env) : read_setting(settingsPath, "PrePatchedExe", 1);
     if (prepatched == 0) {
@@ -163,15 +163,16 @@ int main(int argc, char **argv) {
             gameProc.executableURL = copyUrl;
     }
     fprintf(log, "starting %s\n", gameProc.executableURL.lastPathComponent.UTF8String);
-    fclose(log);
-
-    //NSLog(@"Launching game...\n");
-    //NSLog(@"  Executable: %@\n", gameProc.executableURL);
-    //NSLog(@"  Working Directory: %@\n", gameProc.currentDirectoryURL);
-    //NSLog(@"  DYLD_INSERT_LIBRARIES: %@\n", newEnvironment[@"DYLD_INSERT_LIBRARIES"]);
-    //NSLog(@"  WINEPREFIX: %@\n", newEnvironment[@"WINEPREFIX"]);
-    // launch the game executable
-    [gameProc launch];
+    NSError *error = nil;
+    if (![gameProc launchAndReturnError:&error]) {
+        fprintf(log, "couldn't start BO3 (error %ld)\n", (long)error.code);
+        if (log != stderr)
+            fclose(log);
+        return 1;
+    }
+    if (log != stderr)
+        fclose(log);
     [gameProc waitUntilExit];
-    return 0;
+    return gameProc.terminationReason == NSTaskTerminationReasonUncaughtSignal ?
+        128 + gameProc.terminationStatus : gameProc.terminationStatus;
 }

@@ -2,6 +2,7 @@
 #import <AppKit/AppKit.h>
 #include <CommonCrypto/CommonDigest.h>
 #include <sys/stat.h>
+#include <sys/sysctl.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -94,6 +95,22 @@ static BOOL receiptValid(NSDictionary *record, NSError **error) {
     }
     return YES;
 }
+static BOOL canReuseHelpers(NSURL *root, NSDictionary *manifest, NSDictionary *receipt, NSString *architecture) {
+    if (!manifest[@"dependencies_id"] || !receiptValid(receipt,nil) ||
+        ![receipt[@"dependencies_id"] isEqual:manifest[@"dependencies_id"]] ||
+        ![receipt[@"helper_arch"] isEqual:architecture]) return NO;
+    NSDictionary *files=receipt[@"installed"];
+    if (!files[@"runtime/wine/bin/wine"] && !files[@"runtime/wine/bin/wine64"]) return NO;
+    NSMutableSet *shipped=[NSMutableSet set];
+    for (NSDictionary *entry in manifest[@"files"]) [shipped addObject:entry[@"path"]];
+    for (NSString *path in files) {
+        if ([shipped containsObject:path]) continue;
+        struct stat info;
+        if (!noLinks(root,path,nil) || lstat(child(root,path).fileSystemRepresentation,&info)!=0 ||
+            !S_ISREG(info.st_mode)) return NO;
+    }
+    return YES;
+}
 #ifdef BO3SETUP_TESTING
 static unsigned fail_copy;
 void BO3SetupTestFailCopy(unsigned count) { fail_copy=count; }
@@ -123,6 +140,14 @@ static BOOL atomicCopy(NSURL *source, NSURL *destination, NSError **error) {
 }
 
 @implementation BO3SetupEngine
++ (NSString *)hostArchitecture {
+#if defined(__aarch64__) || defined(__arm64__)
+    return @"arm64";
+#else
+    int translated=0; size_t size=sizeof(translated);
+    return sysctlbyname("sysctl.proc_translated",&translated,&size,NULL,0)==0 && translated ? @"arm64" : @"x86_64";
+#endif
+}
 + (NSURL *)gameBundleAt:(NSURL *)selection {
     if (!selection) return nil;
     NSURL *root=selection.URLByResolvingSymlinksInPath;
@@ -130,7 +155,8 @@ static BOOL atomicCopy(NSURL *source, NSURL *destination, NSError **error) {
     for (NSURL *entry in [fm() contentsOfDirectoryAtURL:root includingPropertiesForKeys:nil options:0 error:nil])
         if ([entry.pathExtension isEqual:@"app"]) [choices addObject:entry];
     for (NSURL *bundle in choices) {
-        if ([fm() isExecutableFileAtPath:child(bundle,@"Contents/MacOS/CoDBlkOps3_Exe").path]) return bundle;
+        NSURL *resolved=bundle.URLByResolvingSymlinksInPath;
+        if ([fm() isExecutableFileAtPath:child(resolved,@"Contents/MacOS/CoDBlkOps3_Exe").path]) return resolved;
     }
     return nil;
 }
@@ -216,6 +242,11 @@ static BOOL atomicCopy(NSURL *source, NSURL *destination, NSError **error) {
     return manifest;
 }
 + (BOOL)isInstalled:(NSURL *)game { return json(child(fixRoot(game),@"setup-receipt.json"))!=nil; }
++ (BOOL)canReuseHelpers:(NSURL *)game payload:(NSURL *)payload {
+    NSURL *root=fixRoot(game);
+    return noLinks(root,@"setup-receipt.json",nil) &&
+        canReuseHelpers(root,json(child(payload,@"manifest.json")),json(child(root,@"setup-receipt.json")),[self hostArchitecture]);
+}
 + (BOOL)needsRecovery:(NSURL *)game { return [fm() fileExistsAtPath:pending(fixRoot(game)).path]; }
 + (BOOL)recover:(NSURL *)game error:(NSError **)error {
     if (![self needsRecovery:game]) return YES;
@@ -287,8 +318,11 @@ static BOOL atomicCopy(NSURL *source, NSURL *destination, NSError **error) {
     if (!noLinks(root,@"setup-receipt.json",error)) return NO;
     NSDictionary *receipt=json(child(root,@"setup-receipt.json"));
     if (!receiptValid(receipt,error)) return NO;
-    if (manifest[@"dependencies_id"] && ![manifest[@"dependencies_id"] isEqual:receipt[@"dependencies_id"]])
+    if (manifest[@"dependencies_id"] && (![manifest[@"dependencies_id"] isEqual:receipt[@"dependencies_id"]] ||
+        ![receipt[@"helper_arch"] isEqual:[self hostArchitecture]]))
         return failure(error,@"This installation needs its helpers. Click Update before playing.");
+    if (![fm() isExecutableFileAtPath:child(root,@"AppBundleExe").path])
+        return fileFailure(error,@"The game launcher cannot run. Click Update to repair it before playing.",@"AppBundleExe");
     for (NSString *path in receipt[@"installed"])
         if (!noLinks(root,path,error) || ![[self sha256:child(root,path)] isEqual:receipt[@"installed"][path]])
             return fileFailure(error,@"A helper is missing or changed. Click Update to repair it before playing.",path);
@@ -303,14 +337,15 @@ static BOOL atomicCopy(NSURL *source, NSURL *destination, NSError **error) {
 + (BOOL)install:(NSURL *)game payload:(NSURL *)payload error:(NSError **)error {
     if ([self gameIsRunning]) return failure(error,@"Close Black Ops III, then click Install again.");
     NSDictionary *manifest=[self readiness:game payload:payload error:error]; if (!manifest) return NO;
-    if (manifest[@"dependencies_id"] && ![manifest[@"dependencies_prepared"] isEqual:@YES])
-        return failure(error,@"Setup must finish downloading its helpers before installation.");
     if (![self recover:game error:error]) return NO;
     NSURL *root=fixRoot(game);
     if (!noLinks(root,@"setup-receipt.json",error) || !noLinks(root,@".setup-backup",error)) return NO;
-    if (![fm() createDirectoryAtURL:root withIntermediateDirectories:YES attributes:nil error:error]) return NO;
     NSDictionary *previous=json(child(root,@"setup-receipt.json"));
     if ([fm() fileExistsAtPath:child(root,@"setup-receipt.json").path] && !receiptValid(previous,error)) return NO;
+    BOOL reuse=manifest[@"dependencies_id"] && ![manifest[@"dependencies_prepared"] isEqual:@YES];
+    if (reuse && !canReuseHelpers(root,manifest,previous,[self hostArchitecture]))
+        return failure(error,@"Setup must finish downloading its helpers before installation.");
+    if (![fm() createDirectoryAtURL:root withIntermediateDirectories:YES attributes:nil error:error]) return NO;
     NSMutableDictionary *baseline=[previous[@"baseline"] mutableCopy] ?: [NSMutableDictionary dictionary];
     NSMutableDictionary *installed=[previous[@"installed"] mutableCopy] ?: [NSMutableDictionary dictionary];
     NSMutableSet *replacements=[NSMutableSet set];
@@ -338,7 +373,8 @@ static BOOL atomicCopy(NSURL *source, NSURL *destination, NSError **error) {
         if (!hash || !noLinks(root,path,error)) { staged=NO; break; }
         // Owned, unchanged helpers need no second copy or rollback staging.
         // Legacy files still get their original backup when first adopted.
-        if (baseline[path] && [hash isEqual:entry[@"sha256"]]) continue;
+        BOOL launcherNeedsRepair=[path isEqual:@"AppBundleExe"] && ![fm() isExecutableFileAtPath:destination.path];
+        if (baseline[path] && [hash isEqual:entry[@"sha256"]] && !launcherNeedsRepair) continue;
         before[path]=hash; after[path]=entry[@"sha256"];
         if (exists && (!atomicCopy(destination,child(stage,path),error) ||
             ![[self sha256:child(stage,path)] isEqual:hash])) { staged=NO; break; }
@@ -356,7 +392,7 @@ static BOOL atomicCopy(NSURL *source, NSURL *destination, NSError **error) {
     }
     NSDictionary *receipt=@{@"schema":@1,@"baseline":baseline,@"installed":installed,
         @"version":manifest[@"version"] ?: @"unknown",@"dependencies_id":manifest[@"dependencies_id"] ?: @"none",
-        @"helper_arch":manifest[@"helper_arch"] ?: @"unknown"};
+        @"helper_arch":(reuse ? previous[@"helper_arch"] : manifest[@"helper_arch"]) ?: @"unknown"};
     NSDictionary *journal=@{@"schema":@1,@"kind":@"install",@"before":before,@"after":after,
         @"previous_receipt":previous ?: (id)NSNull.null,@"final_receipt":receipt,
         @"new_backups":newBackups,@"cleanup_backups":@[]};

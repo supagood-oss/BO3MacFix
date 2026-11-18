@@ -66,15 +66,16 @@
     self.location.stringValue=self.game.path ?: @"No game folder selected";
     BOOL installed=self.game && [BO3SetupEngine isInstalled:self.game];
     self.chooseButton.enabled=!self.busy; self.reportButton.enabled=!self.busy;
-    self.removeButton.enabled=!self.busy && installed;
-    self.playButton.enabled=!self.busy && installed;
-    self.installButton.enabled=!self.busy && self.game!=nil;
+    BOOL canChangeGame=!self.busy && !self.gameTask.isRunning;
+    self.removeButton.enabled=canChangeGame && installed;
+    self.playButton.enabled=canChangeGame && installed;
+    self.installButton.enabled=canChangeGame && self.game!=nil;
     self.installButton.title=installed ? @"Update" : @"Install";
     [self.window standardWindowButton:NSWindowCloseButton].enabled=!self.busy;
     if (self.busy) return;
     if (!self.game) { self.message.stringValue=@"Your game wasn't found automatically. Click Choose Game Folder and select Black Ops III. Nothing will be changed until you click Install."; return; }
     if ([BO3SetupEngine needsRecovery:self.game]) {
-        self.installButton.title=@"Repair";self.installButton.enabled=YES;
+        self.installButton.title=@"Repair";
         self.playButton.enabled=NO;self.removeButton.enabled=NO;
         self.message.stringValue=@"Setup was interrupted. Click Repair to recover your files, then install or play again. Your saves and Workshop downloads will be kept.";
         return;
@@ -85,8 +86,9 @@
         self.installButton.enabled=NO; self.playButton.enabled=NO; return;
     }
     // Verify downloaded helpers once when Play is requested, off the UI thread.
-    self.message.stringValue=installed ? @"Installed. Keep Steam open, then click Play here to test.\nAAE / UEM co-op compatibility is still being tested." :
-        @"Game found. Click Install to download and set up the helpers (about 340 MB). Then use Play here.\nThis is an experimental build for the first Mac co-op test.";
+    self.message.stringValue=self.gameTask.isRunning ? @"Black Ops III is running. Close the game before updating or removing BO3MacFix." :
+        installed ? @"Installed. Keep Steam open, then click Play here.\nAAE / UEM co-op compatibility is still being tested." :
+        @"Game found. Click Install to download and set up the helpers (about 340 MB). Then use Play here.\nAAE / UEM co-op support is experimental.";
 }
 - (void)choose:(id)sender {
     NSOpenPanel *panel=[NSOpenPanel openPanel]; panel.canChooseDirectories=YES; panel.canChooseFiles=YES;
@@ -113,9 +115,13 @@
                 ready=NO;
                 error=[NSError errorWithDomain:@"BO3MacFix Setup" code:3 userInfo:@{NSLocalizedDescriptionKey:@"Close Black Ops III, then click Install again."}];
             }
-            NSURL *prepared=ready ? [BO3SetupDependencies prepare:self.payload progress:^(NSString *message) {
-                dispatch_async(dispatch_get_main_queue(), ^{ self.message.stringValue=message; });
-            } error:&error] : nil;
+            NSURL *prepared=nil;
+            if (ready) {
+                if ([BO3SetupEngine canReuseHelpers:self.game payload:self.payload]) prepared=self.payload;
+                else prepared=[BO3SetupDependencies prepare:self.payload progress:^(NSString *message) {
+                    dispatch_async(dispatch_get_main_queue(), ^{ self.message.stringValue=message; });
+                } error:&error];
+            }
             if (prepared) {
                 dispatch_async(dispatch_get_main_queue(), ^{ self.message.stringValue=@"Installing… Please keep this window open."; });
                 ok=[BO3SetupEngine install:self.game payload:prepared error:&error];
@@ -151,7 +157,7 @@
     }];
 }
 - (void)play:(id)sender {
-    if (self.busy) return;
+    if (self.busy || self.gameTask.isRunning) return;
     if ([BO3SetupEngine gameIsRunning]) { [self alert:@"Black Ops III is already running" detail:@"Switch to the game, or close it before launching again."]; return; }
     self.busy=YES; self.message.stringValue=@"Checking your installation… Please wait."; [self refresh];
     dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED,0), ^{
@@ -187,11 +193,33 @@
     }
     [NSWorkspace.sharedWorkspace openURL:[NSURL URLWithString:@"steam://open/main"]];
     NSURL *root=[self.game.URLByDeletingLastPathComponent URLByAppendingPathComponent:@"BO3MacFix"];
-    self.gameTask=[NSTask new]; self.gameTask.executableURL=[root URLByAppendingPathComponent:@"AppBundleExe"];
-    self.gameTask.arguments=@[@"--game-dir",[self.game URLByAppendingPathComponent:@"Contents/MacOS"].path];
-    self.gameTask.standardOutput=[NSFileHandle fileHandleForWritingAtPath:@"/dev/null"];
-    self.gameTask.standardError=[NSFileHandle fileHandleForWritingAtPath:@"/dev/null"];
-    if (![self.gameTask launchAndReturnError:&error]) [self alert:@"The game couldn't start" detail:error.localizedDescription];
+    NSTask *task=[NSTask new]; task.executableURL=[root URLByAppendingPathComponent:@"AppBundleExe"];
+    task.arguments=@[@"--game-dir",[self.game URLByAppendingPathComponent:@"Contents/MacOS"].path];
+    task.standardOutput=[NSFileHandle fileHandleWithNullDevice];
+    task.standardError=[NSFileHandle fileHandleWithNullDevice];
+    __weak SetupApp *weakSelf=self;
+    task.terminationHandler=^(NSTask *finished) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            SetupApp *app=weakSelf;
+            if (!app || app.gameTask!=finished) return;
+            app.gameTask=nil;
+            [app refresh];
+            if (finished.terminationStatus!=0) {
+                NSString *message=[NSString stringWithFormat:@"Black Ops III closed with code %d. Make sure Steam is open and signed in. Use Save Report if the problem continues.",finished.terminationStatus];
+                NSError *exitError=[NSError errorWithDomain:@"BO3MacFix Launcher" code:finished.terminationStatus
+                    userInfo:@{NSLocalizedDescriptionKey:message}];
+                [app recordFailure:exitError operation:@"play"];
+                [app alert:@"Black Ops III closed unexpectedly" detail:message];
+            }
+        });
+    };
+    if ([task launchAndReturnError:&error]) {
+        self.gameTask=task;
+        [self refresh];
+    } else {
+        [self recordFailure:error operation:@"play"];
+        [self alert:@"The game couldn't start" detail:error.localizedDescription];
+    }
 }
 - (void)report:(id)sender {
     NSSavePanel *panel=[NSSavePanel savePanel]; panel.nameFieldStringValue=@"BO3MacFix Report.json";

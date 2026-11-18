@@ -1,16 +1,6 @@
 #import "SetupDependencies.h"
 #import "SetupEngine.h"
 #include <sys/stat.h>
-#include <sys/sysctl.h>
-
-static NSString *hostArchitecture(void) {
-#if defined(__aarch64__) || defined(__arm64__)
-    return @"arm64";
-#else
-    int translated=0;size_t size=sizeof(translated);
-    return sysctlbyname("sysctl.proc_translated",&translated,&size,NULL,0)==0 && translated ? @"arm64" : @"x86_64";
-#endif
-}
 
 static BOOL fail(NSError **error, NSString *message) {
     if (error) *error=[NSError errorWithDomain:@"BO3MacFix Setup" code:2 userInfo:@{NSLocalizedDescriptionKey:message}];
@@ -115,9 +105,9 @@ NSError *BO3SetupTestDownloadResponse(NSURL *file, NSURL *destination, NSInteger
 #endif
 
 @implementation BO3SetupDependencies
-+ (NSString *)runtimeArchitecture { return hostArchitecture(); }
++ (NSString *)runtimeArchitecture { return [BO3SetupEngine hostArchitecture]; }
 + (BOOL)canRunIntelCode {
-    if ([hostArchitecture() isEqual:@"x86_64"]) return YES;
+    if ([[self runtimeArchitecture] isEqual:@"x86_64"]) return YES;
     NSURL *helper=at(NSBundle.mainBundle.resourceURL,@"Rosetta Check.app/Contents/MacOS/RosettaCheck");
     NSTask *task=[NSTask new];task.executableURL=helper;
     task.standardOutput=[NSFileHandle fileHandleForWritingAtPath:@"/dev/null"];
@@ -149,6 +139,7 @@ NSError *BO3SetupTestDownloadResponse(NSURL *file, NSURL *destination, NSInteger
 + (NSURL *)prepare:(NSURL *)payload progress:(void (^)(NSString *))progress error:(NSError **)error {
     NSDictionary *manifest=readJSON(at(payload,@"manifest.json"));
     NSDictionary *catalog=readJSON(at(payload,@"dependencies.json"));
+    NSString *hostArch=[self runtimeArchitecture];
     if (!manifest[@"dependencies_id"]) return payload;
     if (![catalog[@"schema"] isEqual:@1] || ![catalog[@"id"] isEqual:manifest[@"dependencies_id"]] ||
         ![catalog[@"archives"] isKindOfClass:NSArray.class] || [catalog[@"archives"] count]!=4) {
@@ -166,7 +157,7 @@ NSError *BO3SetupTestDownloadResponse(NSURL *file, NSURL *destination, NSInteger
         if (architecture && ![@[@"arm64",@"x86_64"] containsObject:architecture]) {
             ok=fail(error,@"The helper download list is invalid. Download the installer again.");break;
         }
-        if (architecture && ![architecture isEqual:hostArchitecture()]) continue;
+        if (architecture && ![architecture isEqual:hostArch]) continue;
         NSString *kind=archive[@"kind"], *hash=archive[@"sha256"];
         NSURL *url=[NSURL URLWithString:archive[@"url"] ?: @""];
         unsigned long long bytes=[archive[@"bytes"] unsignedLongLongValue];
@@ -239,7 +230,7 @@ NSError *BO3SetupTestDownloadResponse(NSURL *file, NSURL *destination, NSInteger
         if (ok) {
             NSMutableDictionary *prepared=[manifest mutableCopy]; prepared[@"files"]=files;
             prepared[@"requires_bundled_wine"]=@YES; prepared[@"dependencies_prepared"]=@YES;
-            prepared[@"helper_arch"]=hostArchitecture();
+            prepared[@"helper_arch"]=hostArch;
             NSData *data=[NSJSONSerialization dataWithJSONObject:prepared options:NSJSONWritingPrettyPrinted error:error];
             ok=data && [data writeToURL:at(result,@"manifest.json") options:NSDataWritingAtomic error:error];
         }

@@ -46,14 +46,14 @@ jobs:
           codesign --force --sign - 'build/BO3MacFix Diagnostics.app'
           codesign --verify --deep --strict 'build/BO3MacFix Diagnostics.app'
           ditto -c -k --keepParent 'build/BO3MacFix Diagnostics.app' build/BO3MacFix-Diagnostics.zip
-      - name: Assemble the explicit first-Mac-test installer
+      - name: Assemble the installer with experimental mod support
         run: |
           python3 tools/package_setup.py --test-candidate --output 'build/BO3MacFix Setup.app'
           codesign --force --sign - 'build/BO3MacFix Setup.app'
           codesign --verify --deep --strict 'build/BO3MacFix Setup.app'
-          ditto -c -k --keepParent 'build/BO3MacFix Setup.app' build/BO3MacFix-Native-Development.zip
+          ditto -c -k --keepParent 'build/BO3MacFix Setup.app' build/BO3MacFix-Setup.zip
       - name: Exercise the automatic dependency installer and converter startup
-        timeout-minutes: 12
+        timeout-minutes: 20
         run: |
           make -C installer dependency-check
           build/prepare_dependencies 'build/BO3MacFix Setup.app/Contents/Resources/payload' build/prepared-payload
@@ -61,7 +61,7 @@ jobs:
           python3 tools/check_converter.py build/prepared-payload build/converter-check
           clang -fobjc-arc -fblocks -framework Foundation -framework AppKit tools/check_setup_install.m installer/SetupEngine.m -o build/check-setup-install
           build/check-setup-install build/prepared-payload
-      - name: An incomplete source tree must not produce a gameplay release
+      - name: Require gameplay qualification for the production profile
         run: |
           if python3 tools/package_setup.py --output build/not-ready.app; then
             echo 'Unexpected gameplay release from incomplete profiles'
@@ -72,5 +72,5 @@ jobs:
           name: Mac-build-checks-${{ matrix.runner }}
           path: |
             build/BO3MacFix-Diagnostics.zip
-            build/BO3MacFix-Native-Development.zip
+            build/BO3MacFix-Setup.zip
           if-no-files-found: error

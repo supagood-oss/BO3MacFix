@@ -1,13 +1,10 @@
 # Publication and dependency boundaries
 
 The owner created **supagood-oss** and authorized GitHub CLI for this project.
-The public fork is [supagood-oss/BO3MacFix](https://github.com/supagood-oss/BO3MacFix),
-branch `codex/aae-uem-compatibility`.
-[Experimental Mac Test 1.1](https://github.com/supagood-oss/BO3MacFix/releases/tag/aae-uem-mac-test-1.1)
-is published with a universal setup app. Both Mac runner architectures passed
-build/helper checks; real gameplay and co-op remain unverified. The original authors, history and LGPL 2.1
-license are preserved. A separate local CLI credential configuration is used;
-business repository credentials were not changed.
+The public fork is [supagood-oss/BO3MacFix](https://github.com/supagood-oss/BO3MacFix).
+Its [releases](https://github.com/supagood-oss/BO3MacFix/releases) identify the
+builds and checks for each installer. The original authors, history and LGPL
+2.1 license are preserved. Use the separate GitHub CLI configuration for this fork.
 
 The branch depends on PR #76 commit
 `fcd8694a6fc65e8e50dbc06ceadeb6c91ac0be44`. No upstream PR has been opened for
@@ -30,7 +27,9 @@ logs. Licensed inputs and private analysis remain outside the checkout. Credenti
 `--test-candidate` packages an explicit experimental app with `ready_for_coop`
 false. `--development` produces diagnostics with Install/Play disabled.
 Production packaging still requires live-verified profiles and no release
-blockers. A test download must not be advertised as proven AAE/UEM support.
+blockers. A regular GitHub release can deliver a supported Setup update with
+experimental mod support. Preserve the experimental manifest and describe the
+tested installer behavior and gameplay limits in its release notes.
 
 The small app contains only the built patch, launcher, setup GUI, manifest,
 license and pinned dependency catalog. Clicking Install downloads original

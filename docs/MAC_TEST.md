@@ -1,4 +1,4 @@
-> Earlier public test downloads were withdrawn. Use the clean 1.4 test installer;
+> Earlier public test downloads were withdrawn. Use the current installer;
 > do not reuse archives 1 through 1.3. Credential-dependent online features
 > are disabled, while gameplay and ordinary HTTP support are retained.
 
@@ -17,11 +17,11 @@ do not need to calculate hashes.
 
 ## For the Mac player
 
-1. Download [**BO3MacFix-Mac-Test-1.4.zip**](https://github.com/supagood-oss/BO3MacFix/releases/download/aae-uem-mac-test-1.4/BO3MacFix-Mac-Test-1.4.zip), unzip it and open **BO3MacFix Setup**.
+1. Download **BO3MacFix Setup** from [the latest release](https://github.com/supagood-oss/BO3MacFix/releases/latest), unzip it and open the app.
    Move the app somewhere you will keep it, such as Applications.
 2. If macOS blocks the unnotarized test app, use System Settings > Privacy &
    Security > Open Anyway, then confirm Open. Do not change global security
-   settings. The first test app uses ad-hoc signing.
+   settings. The app uses ad-hoc signing.
 3. Leave Steam open. Close Black Ops III and click **Install** in Setup.
    Allow about 340 MB of downloads and roughly 4 GB free space for setup.
    The app normally finds the game; otherwise choose its folder. An existing

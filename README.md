@@ -1,4 +1,4 @@
-# BO3MacFix 1.5.2
+# BO3MacFix 1.5.3
 
 A community fork for Steam Black Ops III on Mac with experimental AAE, UEM and
 custom-map compatibility. Original BO3MacFix by Emma / InvoxiPlayGames and
@@ -14,9 +14,10 @@ intended. Earlier downloads 1 through 1.3 were withdrawn; do not reuse them.
 after quitting BO3, and Windows–Mac co-op still need testing. See the release
 notes for the installer checks and exact build.
 
-**What's new in Setup:** Updates reuse existing helpers when they match the
-current download list and Mac architecture. Setup can restore a launcher that
-lost its executable permission and reports game launch errors in Save Report.
+**What's new in 1.5.3:** Older AAE sessions recover from lost pause heartbeats
+and dropped guests. The old pause adapter activates only for the plugin it
+was built against. Setup reuses intact helpers from the same download set
+and Mac architecture, so most upgrades skip the large download.
 
 ## Fresh installation
 
@@ -54,8 +55,9 @@ only for the Mac players.
    few rounds and check movement, shooting, doors, effects and prompts.
 4. Repeat with the **Mac hosting**, then repeat with the other mod. Try custom
    maps after the basic sessions work.
-5. For AAE, check pause/unpause, camera transitions and mantle hints. A hint by
-   itself must not move the player.
+5. On current AAE or AAE Lite, leave co-op pause off for the first test. The
+   November pause protocol is still unsupported on Mac. Camera transitions and
+   mantle hints can be tested separately.
 6. Use AAE's save-slot menu, note the round, quit BO3 completely, reopen it and
    resume the same slot with the same mod, map and lobby settings. Check the
    round, inventory, positions and cameras with Windows guests, then keep playing.
@@ -84,16 +86,18 @@ assessment, not a successful Windows–Mac gameplay test. Use Steam friends/priv
 lobby invitations for the first test. AAE's new LAN/System Link browser is a
 separate unported feature.
 
-## Current mod versions and 1.5 changes
+## Workshop versions
 
 On **October 31, 2026**, Steam's current Workshop content IDs matched the exact
 packages already inspected for 1.5: **AAE 4.0.0**, **AAE Lite 4.0.0**,
 **UEM 1.3.4 Build-001** and **Expanded v4.62**. The published
 [AAE change notes](https://steamcommunity.com/sharedfiles/filedetails/changelog/2631943123)
-show later updates, including a new co-op pause network channel and traversal
-changes in November. Those changes still need compatibility work and testing.
-Use the [UEM change notes](https://steamcommunity.com/sharedfiles/filedetails/changelog/2942053577)
-to check whether your Workshop version has changed since the inspection.
+show later updates, including a dedicated co-op pause channel, changes to lobby
+joining and image pools, and expanded traversal. The November AAE and AAE Lite
+packages share an updated native plugin. BO3MacFix does not use the older pause
+adapter with that plugin. The November transport and other new native behavior
+still need Mac validation. The installed **UEM 1.3.4 Build-001** native file still
+matched the inspected version in November.
 
 1.5 includes the newer checkpoint disk slots/date menus/camera persistence,
 mantle hints, co-op pause, free aim, interactive prompts, traversal and migration

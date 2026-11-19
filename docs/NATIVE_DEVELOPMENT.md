@@ -69,6 +69,24 @@ reaches the inner command/simulation calls that Windows patches separately.
 Menu permission extends the already shared client-pause hook. No packet format,
 HTTP endpoint or background network worker is added.
 
+### AAE's November pause change
+
+The Steam packages inspected on November 18, 2026 were AAE manifest
+`2133781276482517527` and AAE Lite manifest `8080530432833740409`. Both
+contain the same `AAEUnified.dll` with SHA-256
+`77e70d850d84a4b42927ee63f8115d3c94c3e8b631f7e5f5ea808dc6fbf86ab0`.
+Static inspection found dedicated pause send and receive code, alongside
+the older command strings. Seeing the old strings does not establish
+interoperability with an older host or guest.
+
+1.5.3 selects the legacy adapter only for the October plugin shared by full
+and Lite. For that adapter, a lost acknowledgement or a changed guest roster
+releases the host and tells the remaining guests to resume. A Mac guest clears
+its pause after five seconds without a heartbeat. Scope stays limited to the
+game's existing legacy command path. The November transport has no qualified
+Mac binding, and changes to lobby joining, asset pools and traversal still
+need a current AAE gameplay test.
+
 Hook, setting and call stubs now use byte packing within the same verified
 padding. x86 branch targets have no instruction-address alignment requirement;
 the __DATA pointer slots retain eight-byte alignment. The generated table ID

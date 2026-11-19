@@ -51,6 +51,17 @@ _Static_assert(sizeof(XAssetPool) == 0x20, "XAssetPool must match the game's lay
 static char dll_dir[4096];
 static char dll_file[4096];
 
+static bool aae_uses_legacy_coop_pause(const char *plugin) {
+    /* Full and Lite shared this plugin before the November transport update.
+     * The filename alone cannot tell us which pause protocol a peer uses. */
+    static const uint8_t legacy[] = {
+        0x57,0x1b,0x66,0x49,0x19,0x10,0x0d,0xfd,0xa5,0xe6,
+        0xfc,0x5d,0x26,0x34,0xc1,0x91,0x45,0xd1,0x45,0x0d
+    };
+    uint8_t digest[sizeof(legacy)];
+    return get_file_sha1(plugin,digest) && memcmp(digest,legacy,sizeof(legacy))==0;
+}
+
 bool t7o_is_overcharged_dll(const char *path) {
     const char *name = filename_from_path(path);
     return strcasecmp(name, "T7Overcharged.ff") == 0 || strcasecmp(name, "T7Overcharged.dll") == 0;
@@ -193,7 +204,10 @@ static int t7o_init(lua_State *s) {
         if (!t7o_mac_ui_activate(s)) printf("T7Overcharged: AAE viewmodel widget hooks are unavailable\n");
         if (!t7o_mac_checkpoint_activate()) printf("T7Overcharged: AAE checkpoint FX repair is unavailable\n");
         if (!t7o_mac_arc_activate()) printf("T7Overcharged: AAE arc display anchors are unavailable\n");
-        if (!t7o_mac_cooppause_activate()) printf("T7Overcharged: AAE co-op pause synchronization is unavailable\n");
+        if (!aae_uses_legacy_coop_pause(plugin))
+            printf("T7Overcharged: legacy AAE co-op pause disabled for this plugin version\n");
+        else if (!t7o_mac_cooppause_activate())
+            printf("T7Overcharged: AAE co-op pause synchronization is unavailable\n");
         if (!t7o_mac_camera_activate()) printf("T7Overcharged: AAE camera link and checkpoint restoration hooks are unavailable\n");
         if (!t7o_mac_freeaim_activate()) printf("T7Overcharged: AAE free aim hooks are unavailable\n");
         if (!t7o_mac_prompt_activate()) printf("T7Overcharged: AAE interactive prompt hooks are unavailable\n");

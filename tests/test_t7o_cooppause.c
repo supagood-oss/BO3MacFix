@@ -5,7 +5,7 @@
 static unsigned sends,sets;
 static char last[32];
 static bool send_mock(void *user,unsigned index,const char *text,uint32_t *sequence) {
-    (void)user;assert(index==1);++sends;snprintf(last,sizeof(last),"%s",text);++*sequence;return true;
+    (void)user;assert(index==1 || index==2);++sends;snprintf(last,sizeof(last),"%s",text);++*sequence;return true;
 }
 static void set_mock(void *user,const char *name,const char *value) {
     (void)user;assert(!strcmp(name,"cl_paused") || !strcmp(name,"aae_coop_paused"));assert(*value=='0' || *value=='1');++sets;
@@ -26,16 +26,42 @@ int main(void) {
     c.now+=800;t7o_coop_pause_server_tick(&s,&c);assert(!strcmp(last,"q @ 1 0001") && c.clients[1].sequence==2);
     c.paused=0;t7o_coop_pause_server_tick(&s,&c);assert(!s.host_frozen && !s.negotiating && !strcmp(last,"q @ 0"));
     t7o_coop_pause_reset(&s);c=host();c.paused=1;t7o_coop_pause_server_tick(&s,&c);
-    c.now+=3500;t7o_coop_pause_server_tick(&s,&c);assert(s.aborted && !s.host_frozen && !strcmp(last,"q @ 0"));
+    c.now+=3500;t7o_coop_pause_server_tick(&s,&c);
+    assert(s.aborted && !s.host_frozen && c.paused==0 && !strcmp(last,"q @ 0"));
+    assert(t7o_coop_pause_allow_server(&s,&c));
+
+    // The host must resume even if the guest never acknowledges another heartbeat.
+    t7o_coop_pause_reset(&s);c=host();c.paused=1;t7o_coop_pause_server_tick(&s,&c);
+    c.now+=10;c.clients[1].ack=1;t7o_coop_pause_server_tick(&s,&c);
+    assert(t7o_coop_pause_freeze_host(&s,&c));
+    for (unsigned i=0;i<5;++i) {
+        c.now+=800;t7o_coop_pause_server_tick(&s,&c);
+    }
+    assert(s.aborted && c.paused==0 && !t7o_coop_pause_freeze_host(&s,&c) && !strcmp(last,"q @ 0"));
+
+    // Losing one of two guests must release the remaining guest too.
+    t7o_coop_pause_reset(&s);c=host();c.paused=1;c.max_clients=3;c.total=3;
+    c.remote_active=c.remote_connected=2;c.clients[2]=c.clients[1];
+    t7o_coop_pause_server_tick(&s,&c);
+    c.now+=10;c.clients[2].ack=c.clients[1].ack=1;t7o_coop_pause_server_tick(&s,&c);
+    assert(s.host_frozen);
+    c.clients[2].state=0;c.remote_connected=c.remote_active=1;c.total=2;
+    c.now+=10;t7o_coop_pause_server_tick(&s,&c);
+    assert(s.aborted && c.paused==0 && !s.host_frozen && !strcmp(last,"q @ 0"));
+
+    const char *pause="q @ 1 ab12";
+    assert(t7o_coop_pause_receive(&s,&c,pause)==pause && !s.remote_paused);
     t7o_coop_pause_reset(&s);c=host();c.server_role=0;c.now=1000;
-    assert(!t7o_coop_pause_client_tick(&s,&c));
-    assert(!strcmp(t7o_coop_pause_receive(&s,&c,"q @ 1 ab12"),"q cl_paused \"1\""));
-    assert(s.received && t7o_coop_pause_client_tick(&s,&c));
-    c.now+=120000;assert(!t7o_coop_pause_client_tick(&s,&c) && !s.remote_paused);
+    assert(!strcmp(t7o_coop_pause_receive(&s,&c,pause),"q cl_paused \"1\""));
+    c.paused=1;
+    assert(s.remote_paused && t7o_coop_pause_client_tick(&s,&c));
+    c.now+=4500;t7o_coop_pause_receive(&s,&c,"q @ 1 ab13");
+    c.now+=4999;assert(t7o_coop_pause_client_tick(&s,&c));
+    c.now+=1;assert(!t7o_coop_pause_client_tick(&s,&c) && !s.remote_paused && c.paused==0);
     c.now+=1;t7o_coop_pause_receive(&s,&c,"q @ 1");assert(t7o_coop_pause_client_tick(&s,&c));
     const char *invalid="q @ 0 ABCD";assert(t7o_coop_pause_receive(&s,&c,invalid)==invalid && s.remote_paused);
     t7o_coop_pause_receive(&s,&c,"q @ 0");assert(!t7o_coop_pause_client_tick(&s,&c));
     t7o_coop_pause_receive(&s,&c,"q @ 1");c.argument_state=0;assert(!t7o_coop_pause_client_tick(&s,&c));
-    c.in_game=false;t7o_coop_pause_server_tick(&s,&c);assert(!s.received && !s.host_frozen);
+    c.in_game=false;t7o_coop_pause_server_tick(&s,&c);assert(!s.remote_paused && !s.host_frozen);
     assert(sets>0);puts("AAE co-op pause core: reliable ACK barrier, nonce heartbeat, host/guest unpause, timeout and malformed-command preservation passed");
 }

@@ -65,6 +65,9 @@ int main(void) {
     tokenize_for("q @ 0",base+T7O_MAC_SERVER_TOKENIZE_RETURN+1);assert(!strcmp(tokenized,"q @ 0"));
     client_frame(7,50,1.25f);assert(client_msec==0);
     tokenize_for("q @ 0",base+T7O_MAC_SERVER_TOKENIZE_RETURN);client_frame(7,50,1.25f);assert(client_msec==50);
+    tokenize_for("q @ 1",base+T7O_MAC_SERVER_TOKENIZE_RETURN);dvars[3].text="1";
+    now+=5000;client_frame(7,50,1.25f);
+    assert(client_msec==50 && !strcmp(dvars[3].text,"0") && !strcmp(dvars[5].text,"0"));
     dvars[0].text="core_frontend";tokenize_for("q @ 1",base+T7O_MAC_SERVER_TOKENIZE_RETURN);assert(!strcmp(tokenized,"q @ 1"));
     char name[66];memset(name,'A',64);name[64]=0;assert(t7o_coop_pause_map_active(name));name[64]='A';name[65]=0;assert(!t7o_coop_pause_map_active(name));
     t7o_mac_cooppause_deactivate();tokenize_for("q @ 1",base+T7O_MAC_SERVER_TOKENIZE_RETURN);client_frame(7,50,1.25f);

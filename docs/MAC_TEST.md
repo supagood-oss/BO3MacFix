@@ -9,6 +9,9 @@ checks do not prove Windows-Mac co-op. Use matching Steam Workshop versions:
 [AAE](https://steamcommunity.com/sharedfiles/filedetails/?id=2631943123),
 [UEM](https://steamcommunity.com/sharedfiles/filedetails/?id=2942053577), and any maps required
 by the chosen mod. AAE and UEM are tested separately, one loaded mod at a time.
+Leave co-op pause off on the November AAE and AAE Lite builds. Their dedicated
+pause channel needs a separate Mac port. Test joining, playing and swapping
+hosts before testing optional features.
 Let Steam finish Workshop updates on every player's computer. The installer
 checks the supported Mac executable automatically. For current AAE, subscribe
 to both full AAE and Lite if Steam lists the other as required; load only your

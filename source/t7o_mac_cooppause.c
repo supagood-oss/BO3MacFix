@@ -60,7 +60,8 @@ static T7oCoopContext snapshot(Transport *transport) {
         .remote_enabled=integer(find_dvar("aae_coop_pause_remote"),0)>0,
         .total=-1,.remote_connected=-1,.remote_active=-1,.argument_state=-1,.user=transport,.send=send,.set=set};
     c.local_menu_pause=t7o_mac_pause_original_client();
-    transport->clients=pointer(address(T7O_MAC_SV_CLIENTS));transport->count=c.max_clients;
+    transport->clients=c.server_role==1 ? pointer(address(T7O_MAC_SV_CLIENTS)) : NULL;
+    transport->count=c.max_clients;
     if (transport->clients && c.max_clients>=1 && c.max_clients<=T7O_COOP_CLIENTS) {
         c.total=c.remote_connected=c.remote_active=0;
         for (unsigned i=0;i<(unsigned)c.max_clients;++i) {

@@ -1,4 +1,4 @@
-# BO3MacFix 1.5.3
+# BO3MacFix 1.5.4
 
 A community fork for Steam Black Ops III on Mac with experimental AAE, UEM and
 custom-map compatibility. Original BO3MacFix by Emma / InvoxiPlayGames and
@@ -14,10 +14,10 @@ intended. Earlier downloads 1 through 1.3 were withdrawn; do not reuse them.
 after quitting BO3, and Windows–Mac co-op still need testing. See the release
 notes for the installer checks and exact build.
 
-**What's new in 1.5.3:** Older AAE sessions recover from lost pause heartbeats
-and dropped guests. The old pause adapter activates only for the plugin it
-was built against. Setup reuses intact helpers from the same download set
-and Mac architecture, so most upgrades skip the large download.
+**What's new in 1.5.4:** AAE and AAE Lite's November pause channel has a Mac
+adapter. It uses BO3's existing network transport and checks the current match's
+host and guests. Real Mac–Windows pause tests are still needed. Setup reuses
+intact helpers from the same download set and Mac architecture.
 
 ## Fresh installation
 
@@ -55,9 +55,10 @@ only for the Mac players.
    few rounds and check movement, shooting, doors, effects and prompts.
 4. Repeat with the **Mac hosting**, then repeat with the other mod. Try custom
    maps after the basic sessions work.
-5. On current AAE or AAE Lite, leave co-op pause off for the first test. The
-   November pause protocol is still unsupported on Mac. Camera transitions and
-   mantle hints can be tested separately.
+5. With current AAE or AAE Lite, confirm the lobby plays normally first. Then
+   enable co-op pause on the host and test pause and resume with a guest in
+   the match. Repeat with each platform hosting. Disable co-op pause if a
+   participant hasn't updated or the lobby becomes unstable.
 6. Use AAE's save-slot menu, note the round, quit BO3 completely, reopen it and
    resume the same slot with the same mod, map and lobby settings. Check the
    round, inventory, positions and cameras with Windows guests, then keep playing.
@@ -67,7 +68,7 @@ only for the Mac players.
 If something fails, record **mod/map, who hosted, round, action and error**.
 Use Setup's **Save Report** button. Restart the map after a failed restore.
 Please report results in the [testing thread](https://www.reddit.com/r/macgaming/comments/1xu6z1y/bo3_mac_testers_wanted_experimental_bo3macfix/).
-[Detailed co-op test checklist](https://github.com/supagood-oss/BO3MacFix/blob/v1.5.3/docs/MAC_TEST.md).
+[Detailed co-op test checklist](https://github.com/supagood-oss/BO3MacFix/blob/v1.5.4/docs/MAC_TEST.md).
 
 ## Does disabling credential-dependent online features affect co-op?
 
@@ -94,9 +95,9 @@ packages already inspected for 1.5: **AAE 4.0.0**, **AAE Lite 4.0.0**,
 [AAE change notes](https://steamcommunity.com/sharedfiles/filedetails/changelog/2631943123)
 show later updates, including a dedicated co-op pause channel, changes to lobby
 joining and image pools, and expanded traversal. The November AAE and AAE Lite
-packages share an updated native plugin. BO3MacFix does not use the older pause
-adapter with that plugin. The November transport and other new native behavior
-still need Mac validation. The installed **UEM 1.3.4 Build-001** native file still
+packages share an updated native plugin. BO3MacFix selects the matching pause
+adapter from the plugin revision. The November transport and other new native
+behavior still need real gameplay validation. The installed **UEM 1.3.4 Build-001** native file still
 matched the inspected version in November.
 
 1.5 includes the newer checkpoint disk slots/date menus/camera persistence,

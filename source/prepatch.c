@@ -85,6 +85,7 @@ static const hook_def_t hook_defs[] = {
     { T7O_MAC_CLIENT_FRAME,5,0,{0x55,0x48,0x89,0xe5,0x53} },
     { T7O_MAC_CHECK_PAUSED,Push_R14 },
     { T7O_MAC_TOKENIZE,Push_R14 },
+    { T7O_MAC_AAE_GET_PACKET,Push_R15 },
     { T7O_MAC_ARC_SAMPLE,Push_R15 },
     { T7O_MAC_WEAPON_DEFINITION,10,0,{0x55,0x48,0x89,0xe5,0x81,0xe7,0xff,0x01,0,0} },
     { T7O_MAC_ARC_DRAW,Push_R15 },

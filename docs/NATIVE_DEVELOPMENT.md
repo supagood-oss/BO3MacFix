@@ -83,9 +83,17 @@ interoperability with an older host or guest.
 and Lite. For that adapter, a lost acknowledgement or a changed guest roster
 releases the host and tells the remaining guests to resume. A Mac guest clears
 its pause after five seconds without a heartbeat. Scope stays limited to the
-game's existing legacy command path. The November transport has no qualified
-Mac binding, and changes to lobby joining, asset pools and traversal still
-need a current AAE gameplay test.
+game's existing legacy command path.
+
+1.5.4 adds the separate November mode. Its Mac receive binding is downstream of
+the game's checksum and socket validation. Mac sends use the existing game
+transport, and accept the current connected host or a guest on the active
+server roster. The packet and frame adapters check the expected executable,
+source and local socket, then use the pause session challenges and generation
+to reject expired or unrelated messages. Unrecognised plugin revisions leave
+co-op pause disabled. The test suite covers the Windows message layout, both
+roles and the Mac adapter with substituted engine calls. Run the real mixed
+platform test before qualifying either hosting direction.
 
 Hook, setting and call stubs now use byte packing within the same verified
 padding. x86 branch targets have no instruction-address alignment requirement;

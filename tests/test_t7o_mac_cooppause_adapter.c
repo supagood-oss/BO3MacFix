@@ -4,8 +4,10 @@
 #include <string.h>
 static uint64_t now=1000;
 static uint64_t time_mock(void) { return now; }
+static uint64_t nonce_mock(void) { static uint64_t next=0x40; return ++next; }
 static void *test_address(uint32_t);
 #define T7O_COOP_MILLISECONDS time_mock
+#define T7O_AAE_NONCE nonce_mock
 #define T7O_MAC_ADDRESS(offset) test_address(offset)
 #define T7O_DEV_NATIVE 1
 #include "../source/t7o_mac_cooppause.c"
@@ -15,6 +17,8 @@ static Dvar dvars[]={{"mapname","zm_test"},{"aae_coop_pause_remote","1"},{"sv_ru
 static void *running=&dvars[2],*paused=&dvars[3],*maximum=&dvars[4];
 static uint8_t client_data[T7O_MAC_SV_CLIENT_STRIDE*2],thread_data[32],args[0x80];
 static uint8_t *clients=client_data;
+static uint8_t guest_connection[0x25780],*connections=guest_connection;
+static uint32_t connection_state=9;
 static int server_msec,client_msec,controller_seen,checks;
 static float scale_seen;
 static char sent[32],tokenized[128];
@@ -24,6 +28,8 @@ static void *test_address(uint32_t rva) {
     case T7O_MAC_CL_PAUSED_DVAR:return &paused;
     case T7O_MAC_SV_MAXCLIENTS_DVAR:return &maximum;
     case T7O_MAC_SV_CLIENTS:return &clients;
+    case T7O_MAC_CLIENT_CONNECTIONS:return &connections;
+    case T7O_MAC_AAE_CONNECTION_STATE:return &connection_state;
     default:assert(0);return NULL;
     }
 }
@@ -40,6 +46,30 @@ static int server_mock(int msec) { server_msec=msec;return 123; }
 static void client_mock(int controller,int msec,float scale) { controller_seen=controller;client_msec=msec;scale_seen=scale; }
 static bool check_mock(void) { ++checks;return true; }
 static void tokenize_mock(const char *text) { snprintf(tokenized,sizeof(tokenized),"%s",text); }
+static unsigned receives,sent_count;
+static uint8_t incoming[T7O_AAE_PAUSE_MESSAGE_SIZE+1];
+static T7oAaePauseAddress host_address={3,7,0,4,4};
+static int packet_mock(T7oAaePauseAddress *from,AaeMacMessage *message) {
+    // Check the adapter restores the pointer before asking the engine again.
+    assert(message->data==incoming);
+    *from=host_address;
+    if (receives++==0) {
+        message->data=incoming+1;
+        message->size=T7O_AAE_PAUSE_MESSAGE_SIZE;
+    } else {
+        message->size=4; // unrelated packet flows through
+    }
+    message->target_socket=0;
+    return 1;
+}
+static bool channel_send_mock(int socket,int len,const void *bytes,T7oAaePauseAddress to) {
+    const uint8_t *message=bytes;
+    assert(socket==0 && len==T7O_AAE_PAUSE_MESSAGE_SIZE && to.ip==host_address.ip);
+    assert(message[12]==(sent_count==0 ? 1 : 3));
+    ++sent_count;
+    return true;
+}
+static int socket_mock(int controller) { assert(controller==0);return 0; }
 const void *prepatch_original_code(const void *p,size_t n) { (void)p;(void)n;assert(0);return NULL; }
 int BO3MacFix_Hook(void *p,void *replacement,void **original) { (void)p;(void)replacement;(void)original;assert(0);return -1; }
 int main(void) {
@@ -71,5 +101,24 @@ int main(void) {
     char name[66];memset(name,'A',64);name[64]=0;assert(t7o_coop_pause_map_active(name));name[64]='A';name[65]=0;assert(!t7o_coop_pause_map_active(name));
     t7o_mac_cooppause_deactivate();tokenize_for("q @ 1",base+T7O_MAC_SERVER_TOKENIZE_RETURN);client_frame(7,50,1.25f);
     assert(client_msec==50 && scale_seen==1.25f && !strcmp(tokenized,"q @ 1"));
+
+    assert(!t7o_mac_cooppause_activate_channel());
+    channel_installed=true;original_get_packet=packet_mock;send_packet=channel_send_mock;local_socket=socket_mock;
+    dvars[0].text="zm_test";dvars[2].text="0";
+    memcpy(guest_connection+T7O_MAC_AAE_HOST_ADDRESS,&host_address,sizeof(host_address));
+    assert(t7o_mac_cooppause_activate_channel());
+    client_frame(0,50,1.25f);assert(client_msec==50);
+    const uint8_t state_packet[T7O_AAE_PAUSE_MESSAGE_SIZE]={
+        0xe1,0,'A','A','E','C','P','1',[8]=1,[12]=2,[16]=1,[24]=0x41,[32]=1,[40]=1
+    };
+    /* Leave a spare routing byte because NET_GetPacket advances the buffer. */
+    AaeMacMessage message={.data=incoming};
+    T7oAaePauseAddress from={0};
+    memcpy(incoming+1,state_packet,sizeof(state_packet));
+    assert(channel_get_packet(&from,&message)==1 && receives==2 && message.size==4 && sent_count==1);
+    client_frame(0,50,1.25f);
+    assert(client_msec==0 && scale_seen==0 && !strcmp(dvars[3].text,"1"));
+    assert(channel_get_packet(&from,&message)==1 && sent_count==2);
+    t7o_mac_cooppause_deactivate();
     puts("Mac AAE co-op pause: Mac client layout, reliable send/ACK, server/client frame arguments, command caller scope, menu and unload fallback passed (substituted engine)");
 }

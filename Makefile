@@ -48,7 +48,7 @@ SOURCES += source/t7o_mac_ui.c
 SOURCES += source/t7o_mac_checkpoint.c
 SOURCES += source/t7o_checkpoint_store.c source/t7o_mac_checkpoint_disk.c
 SOURCES += source/t7o_mac_arc.c
-SOURCES += source/t7o_cooppause.c source/t7o_mac_cooppause.c
+SOURCES += source/t7o_cooppause.c source/t7o_mac_cooppause.c source/t7o_aae_pause_channel.c
 SOURCES += source/t7o_mac_camera.c
 SOURCES += source/t7o_freeaim.c source/t7o_mac_freeaim.c
 SOURCES += source/t7o_prompt.c source/t7o_mac_prompt.c
@@ -187,8 +187,9 @@ tests/test_t7o_mac_checkpoint_adapter: tests/test_t7o_mac_checkpoint_adapter.c s
 test-arc-adapter: tests/test_t7o_mac_arc_adapter
 	./tests/test_t7o_mac_arc_adapter
 
-test-cooppause: tests/test_t7o_cooppause
+test-cooppause: tests/test_t7o_cooppause tests/test_t7o_aae_pause_channel
 	./tests/test_t7o_cooppause
+	./tests/test_t7o_aae_pause_channel
 
 tests/test_t7o_cooppause: tests/test_t7o_cooppause.c source/t7o_cooppause.c source/t7o_cooppause.h
 	$(HOST_CC) -std=c11 -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_cooppause.c source/t7o_cooppause.c
@@ -196,8 +197,11 @@ tests/test_t7o_cooppause: tests/test_t7o_cooppause.c source/t7o_cooppause.c sour
 test-cooppause-adapter: tests/test_t7o_mac_cooppause_adapter
 	./tests/test_t7o_mac_cooppause_adapter
 
-tests/test_t7o_mac_cooppause_adapter: tests/test_t7o_mac_cooppause_adapter.c source/t7o_mac_cooppause.c source/t7o_cooppause.c
-	$(HOST_CC) -std=c11 -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_mac_cooppause_adapter.c source/t7o_cooppause.c -pthread
+tests/test_t7o_aae_pause_channel: tests/test_t7o_aae_pause_channel.c source/t7o_aae_pause_channel.c source/t7o_aae_pause_channel.h
+	$(HOST_CC) -std=c11 -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_aae_pause_channel.c source/t7o_aae_pause_channel.c
+
+tests/test_t7o_mac_cooppause_adapter: tests/test_t7o_mac_cooppause_adapter.c source/t7o_mac_cooppause.c source/t7o_cooppause.c source/t7o_aae_pause_channel.c source/t7o_aae_pause_channel.h
+	$(HOST_CC) -std=c11 -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_mac_cooppause_adapter.c source/t7o_cooppause.c source/t7o_aae_pause_channel.c -pthread
 
 tests/test_t7o_mac_arc_adapter: tests/test_t7o_mac_arc_adapter.c source/t7o_mac_arc.c source/t7o_mac_arc.h source/t7o_mac_offsets.h
 	$(HOST_CC) -std=c11 -O1 -Wall -Wextra -Werror -o $@ tests/test_t7o_mac_arc_adapter.c -lm
@@ -254,6 +258,7 @@ source/t7overcharged_lua.h: source/t7overcharged.lua
 	cd source && xxd -i t7overcharged.lua > t7overcharged_lua.h
 
 clean:
+	rm -f -- tests/test_t7o_aae_pause_channel
 	rm -f -- tests/test_t7o_freeaim tests/test_t7o_mac_freeaim_adapter
 	rm -f -- tests/test_t7o_mac_prompt_adapter
 	rm -f -- tests/test_t7o_mac_mantle_adapter

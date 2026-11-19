@@ -61,4 +61,3 @@ bool t7o_mac_pause_activate(void) {
     atomic_store(&active,true);return true;
 }
 void t7o_mac_pause_deactivate(void) { atomic_store(&active,false); }
-bool t7o_mac_pause_original_client(void) { return installed && original_client && original_client(); }

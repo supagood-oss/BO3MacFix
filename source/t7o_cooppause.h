@@ -4,7 +4,7 @@
 enum { T7O_COOP_CLIENTS=18 };
 typedef struct { int state;bool remote;uint32_t sequence,ack; } T7oCoopClient;
 typedef struct {
-    bool in_game,remote_enabled,local_menu_pause,local_active;
+    bool in_game,remote_enabled;
     int server_role,paused,total,remote_connected,remote_active,max_clients,argument_state;
     uint64_t now;
     T7oCoopClient clients[T7O_COOP_CLIENTS];

@@ -40,7 +40,6 @@ static void broadcast(T7oCoopPause *s,T7oCoopContext *c,bool paused,bool begin) 
         else snprintf(text,sizeof(text),"q @ 1 %04x",++s->nonce&0xffff);
         if (!send(c,i,text)) continue;
         if (client->sequence==before) {
-            if (before-client->ack>31) continue;
             snprintf(text,sizeof(text),"q @ %u %04x",paused ? 1u : 0u,++s->nonce&0xffff);
             if (!send(c,i,text) || client->sequence==before) continue;
         }
@@ -57,7 +56,6 @@ static void abort_pause(T7oCoopPause *s,T7oCoopContext *c) {
     if (c->paused==1) set(c,"cl_paused",false);
 }
 static void heartbeat(T7oCoopPause *s,T7oCoopContext *c) {
-    if (!s->negotiating || s->aborted || !remote_host(c)) return;
     uint64_t interval=s->heartbeat_at<=s->last_sent ? 800 : 250;
     if (s->heartbeat_at && s->heartbeat_at<=c->now && c->now-s->heartbeat_at<interval) return;
     broadcast(s,c,true,false);s->heartbeat_at=c->now;

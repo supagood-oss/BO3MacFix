@@ -32,7 +32,6 @@ static void *find_mock(const char *name) { for (unsigned i=0;i<sizeof(dvars)/siz
 static const char *text_mock(const void *v) { return ((const Dvar *)v)->text; }
 static void set_mock(const char *name,const char *value,bool force) { assert(force);Dvar *v=find_mock(name);assert(v);v->text=!strcmp(value,"1") ? "1" : "0"; }
 static void *thread_mock(void) { return thread_data; }
-bool t7o_mac_pause_original_client(void) { return false; }
 static void send_mock(void *p,int reliable,const char *text) {
     assert(p==client_data+T7O_MAC_SV_CLIENT_STRIDE && reliable==1);
     snprintf(sent,sizeof(sent),"%s",text);put32((uint8_t *)p+0x5030,read32((uint8_t *)p+0x5030)+1);

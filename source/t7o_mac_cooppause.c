@@ -1,7 +1,6 @@
 #include "t7o_mac_cooppause.h"
 #include "t7o_cooppause.h"
 #include "t7o_mac_offsets.h"
-#include "t7o_mac_pause.h"
 #include "prepatch.h"
 #include "dobby.h"
 #include <limits.h>
@@ -59,7 +58,6 @@ static T7oCoopContext snapshot(Transport *transport) {
         .max_clients=integer(pointer(address(T7O_MAC_SV_MAXCLIENTS_DVAR)),-1),
         .remote_enabled=integer(find_dvar("aae_coop_pause_remote"),0)>0,
         .total=-1,.remote_connected=-1,.remote_active=-1,.argument_state=-1,.user=transport,.send=send,.set=set};
-    c.local_menu_pause=t7o_mac_pause_original_client();
     transport->clients=c.server_role==1 ? pointer(address(T7O_MAC_SV_CLIENTS)) : NULL;
     transport->count=c.max_clients;
     if (transport->clients && c.max_clients>=1 && c.max_clients<=T7O_COOP_CLIENTS) {
@@ -71,7 +69,6 @@ static T7oCoopContext snapshot(Transport *transport) {
             client->sequence=read32(p+0x5030);client->ack=read32(p+0x5034);
             if (client->state>2) {
                 ++c.total;if (client->remote) { ++c.remote_connected;if (client->state==5) ++c.remote_active; }
-                else if (client->state==5) c.local_active=true;
             }
         }
     }
